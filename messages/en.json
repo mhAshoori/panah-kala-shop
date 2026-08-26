@@ -4,6 +4,7 @@
     "description": "Panah Kala online store — shop with the best prices and quality"
   },
   "header": {
+    "brandName": "Panah Kala",
     "menu": "Menu",
     "search": "Search...",
     "searchPlaceholder": "Looking for a product?",
