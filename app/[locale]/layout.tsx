@@ -4,6 +4,8 @@ import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { Inter } from 'next/font/google';
 import { Vazirmatn } from 'next/font/google';
+import { Toaster } from 'sonner';
+
 import { routing } from '@/i18n/routing';
 import { dir } from '@/i18n/config';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -49,6 +51,10 @@ export default async function LocaleLayout({
             disableTransitionOnChange
           >
             {children}
+            <Toaster
+              richColors
+              position={locale === 'fa' ? 'top-left' : 'top-right'}
+            />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

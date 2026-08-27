@@ -42,6 +42,17 @@ export function formatError(error: any): string {
   }
 }
 
+// Round number/string to 2 decimal places (avoids FP rounding errors)
+export const round2 = (value: number | string) => {
+  if (typeof value === 'number') {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
+  } else if (typeof value === 'string') {
+    return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+  } else {
+    throw new Error('value is not a number nor a string');
+  }
+};
+
 // Prefix an internal path with the active locale unless it is already prefixed or absolute
 export function withLocalePath(path: string, locale: string): string {
   if (/^https?:\/\//i.test(path)) return path;

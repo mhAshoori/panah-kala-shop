@@ -2,9 +2,10 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import ProductPrice from '@/components/product/product-price';
 import ProductImages from '@/components/product/product-images';
+import AddToCart from '@/components/shared/product/add-to-cart';
 import { Card, CardContent } from '@/components/ui/card';
 import { getProductBySlug } from '@/lib/actions/product.actions';
-import { Button } from '@/components/ui/button';
+import { getMyCart } from '@/lib/actions/cart.actions';
 import { Badge } from '@/components/ui/badge';
 
 const ProductDetailsPage = async (props: {
@@ -16,6 +17,9 @@ const ProductDetailsPage = async (props: {
 
   const product = await getProductBySlug(slug);
   if (!product) notFound();
+
+  // Load the visitor's cart so AddToCart can show +/- controls
+  const cart = await getMyCart();
 
   return (
     <section>
@@ -59,16 +63,26 @@ const ProductDetailsPage = async (props: {
                 </div>
               </div>
               <div className="mb-2 flex justify-between">
-                <div>Status</div>
+                <div>{t('status')}</div>
                 {product.stock > 0 ? (
-                  <Badge variant="outline">In stock</Badge>
+                  <Badge variant="outline">{t('inStock')}</Badge>
                 ) : (
-                  <Badge variant="destructive">Unavailable</Badge>
+                  <Badge variant="destructive">{t('unavailable')}</Badge>
                 )}
               </div>
               {product.stock > 0 && (
-                <div className="flex-center">
-                  <Button className="w-full">Add to cart</Button>
+                <div className='mt-4'>
+                  <AddToCart
+                    cart={cart}
+                    item={{
+                      productId: product.id,
+                      name: product.name,
+                      nameFa: product.nameFa,
+                      slug: product.slug,
+                      price: product.price,
+                      image: product.images[0],
+                    }}
+                  />
                 </div>
               )}
             </CardContent>

@@ -50,8 +50,12 @@
   },
   "product": {
     "addToCart": "Add To Cart",
+    "adding": "Adding...",
+    "goToCart": "Go to cart",
     "outOfStock": "Out Of Stock",
     "inStock": "In Stock",
+    "unavailable": "Unavailable",
+    "status": "Status",
     "onlyLeft": "Only {count} left",
     "brand": "Brand",
     "category": "Category",

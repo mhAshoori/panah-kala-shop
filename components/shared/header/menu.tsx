@@ -1,6 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { EllipsisVertical, ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { EllipsisVertical } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -8,10 +7,10 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
-import { Link } from '@/i18n/navigation';
 import ModeToggle from './mode-toggle';
 import LanguageToggle from './language-toggle';
 import UserButton from './user-button';
+import CartButton from './cart-button';
 
 const Menu = () => {
   const t = useTranslations('header');
@@ -21,12 +20,7 @@ const Menu = () => {
       <nav className="md:flex hidden w-full max-w-xs items-center gap-1">
         <ModeToggle />
         <LanguageToggle />
-        <Button asChild variant="ghost">
-          <Link href="/cart">
-            <ShoppingCart />
-            {t('cart')}
-          </Link>
-        </Button>
+        <CartButton />
         <UserButton />
       </nav>
       <nav className="md:hidden">
@@ -38,12 +32,7 @@ const Menu = () => {
             <SheetTitle>{t('menu')}</SheetTitle>
             <ModeToggle />
             <LanguageToggle />
-            <Button asChild variant="ghost">
-              <Link href="/cart">
-                <ShoppingCart />
-                {t('cart')}
-              </Link>
-            </Button>
+            <CartButton />
             <UserButton />
             <SheetDescription></SheetDescription>
           </SheetContent>

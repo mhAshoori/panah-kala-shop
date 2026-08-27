@@ -50,8 +50,12 @@
   },
   "product": {
     "addToCart": "افزودن به سبد",
+    "adding": "در حال افزودن...",
+    "goToCart": "مشاهده سبد خرید",
     "outOfStock": "ناموجود",
     "inStock": "موجود در انبار",
+    "unavailable": "ناموجود",
+    "status": "وضعیت",
     "onlyLeft": "{count} عدد باقی مانده",
     "brand": "برند",
     "category": "دسته‌بندی",

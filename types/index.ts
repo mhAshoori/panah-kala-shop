@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import {
+  cartItemSchema,
+  insertCartSchema,
   insertProductSchema,
   signInFormSchema,
   signUpFormSchema,
@@ -14,6 +16,11 @@ export type Product = z.infer<typeof insertProductSchema> & {
 
 export type SignInForm = z.infer<typeof signInFormSchema>;
 export type SignUpForm = z.infer<typeof signUpFormSchema>;
+export type Cart = z.infer<typeof insertCartSchema> & {
+  id: string;
+  createdAt: Date;
+};
+export type CartItem = z.infer<typeof cartItemSchema>;
 
 // Standard shape returned by "use server" actions used with useActionState
 export type ActionState = {
