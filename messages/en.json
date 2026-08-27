@@ -88,9 +88,11 @@
     "forgotPassword": "Forgot your password?",
     "noAccount": "Don't have an account?",
     "haveAccount": "Already have an account?",
-    "signingIn": "Signing in...",
+    "signingIn": "Signing in",
     "welcomeBack": "Welcome back",
-    "createAccount": "Create a new account"
+    "createAccount": "Create a new account",
+    "signInSubtitle": "Enter your information below to sign in to your account",
+    "signUpSubtitle": "Enter your information below to create your account"
   },
   "checkout": {
     "shippingAddress": "Shipping Address",

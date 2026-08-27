@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { useTranslations } from 'next-intl';
-import { MoonIcon, SunIcon, SunMoon } from 'lucide-react';
+import { MoonIcon, SunIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -15,16 +14,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+// Icons swap purely via the .dark class applied by next-themes, so there is
+// no hydration mismatch and no mounted-state flicker.
 const ModeToggle = () => {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const t = useTranslations('header');
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
 
   return (
     <DropdownMenu>
@@ -34,13 +28,8 @@ const ModeToggle = () => {
           className="focus-visible:ring-0 focus-visible:ring-offset-0"
           aria-label={t('theme')}
         >
-          {theme === 'system' ? (
-            <SunMoon />
-          ) : theme === 'dark' ? (
-            <MoonIcon />
-          ) : (
-            <SunIcon />
-          )}
+          <SunIcon className='dark:hidden' />
+          <MoonIcon className='hidden dark:block' />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

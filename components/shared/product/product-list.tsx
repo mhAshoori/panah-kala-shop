@@ -1,4 +1,4 @@
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import ProductCard from './product-card';
 import type { Product } from '@/types';
 
@@ -11,7 +11,6 @@ const ProductList = ({
   title?: string;
   limit?: number;
 }) => {
-  const locale = useLocale();
   const t = useTranslations('common');
   const limitedData = limit ? data.slice(0, limit) : data;
 

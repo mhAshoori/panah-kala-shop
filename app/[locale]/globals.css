@@ -193,4 +193,8 @@
   .h3-bold {
     @apply font-bold text-xl lg:text-2xl;
   }
+
+  .link {
+    @apply underline underline-offset-4 hover:text-primary transition-colors;
+  }
 }

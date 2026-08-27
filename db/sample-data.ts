@@ -1,6 +1,30 @@
 // Seed source data. Prices are in Toman (stored as Decimal strings for Prisma).
 // Names carry fa/en pairs for the bilingual UI.
 
+import { hashSync } from 'bcrypt-ts-edge';
+
+export type SampleUser = {
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+};
+
+const users: SampleUser[] = [
+  {
+    name: 'Admin',
+    email: 'admin@example.com',
+    password: hashSync('123456', 10),
+    role: 'admin',
+  },
+  {
+    name: 'Jane',
+    email: 'jane@example.com',
+    password: hashSync('123456', 10),
+    role: 'user',
+  },
+];
+
 export type SampleProduct = {
   name: string;
   nameFa: string;
@@ -250,6 +274,6 @@ const products: SampleProduct[] = [
   },
 ];
 
-const sampleData = { products };
+const sampleData = { users, products };
 
 export default sampleData;

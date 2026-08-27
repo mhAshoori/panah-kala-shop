@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { EllipsisVertical, ShoppingCart, UserIcon } from 'lucide-react';
+import { EllipsisVertical, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -11,6 +11,7 @@ import {
 import { Link } from '@/i18n/navigation';
 import ModeToggle from './mode-toggle';
 import LanguageToggle from './language-toggle';
+import UserButton from './user-button';
 
 const Menu = () => {
   const t = useTranslations('header');
@@ -26,12 +27,7 @@ const Menu = () => {
             {t('cart')}
           </Link>
         </Button>
-        <Button asChild>
-          <Link href="/sign-in">
-            <UserIcon />
-            {t('signIn')}
-          </Link>
-        </Button>
+        <UserButton />
       </nav>
       <nav className="md:hidden">
         <Sheet>
@@ -48,12 +44,7 @@ const Menu = () => {
                 {t('cart')}
               </Link>
             </Button>
-            <Button asChild>
-              <Link href="/sign-in">
-                <UserIcon />
-                {t('signIn')}
-              </Link>
-            </Button>
+            <UserButton />
             <SheetDescription></SheetDescription>
           </SheetContent>
         </Sheet>

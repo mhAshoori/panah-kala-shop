@@ -88,9 +88,11 @@
     "forgotPassword": "رمز عبور را فراموش کرده‌اید؟",
     "noAccount": "حساب کاربری ندارید؟",
     "haveAccount": "قبلاً ثبت‌نام کرده‌اید؟",
-    "signingIn": "در حال ورود...",
+    "signingIn": "در حال ورود",
     "welcomeBack": "خوش آمدید",
-    "createAccount": "ساخت حساب کاربری جدید"
+    "createAccount": "ساخت حساب کاربری جدید",
+    "signInSubtitle": "برای ورود به حساب خود، اطلاعات زیر را وارد کنید",
+    "signUpSubtitle": "برای ساخت حساب کاربری جدید، اطلاعات خود را وارد کنید"
   },
   "checkout": {
     "shippingAddress": "آدرس تحویل",
