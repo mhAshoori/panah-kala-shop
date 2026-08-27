@@ -22,6 +22,8 @@ export type PaymentMethodType = (typeof PAYMENT_METHODS)[number];
 
 export const DEFAULT_PAYMENT_METHOD: PaymentMethodType = 'zarinpal';
 
+export const PAGE_SIZE = Number(process.env.PAGE_SIZE) || 6;
+
 export const LATEST_PRODUCTS_LIMIT =
   Number(process.env.LATEST_PRODUCTS_LIMIT) || 4;
 

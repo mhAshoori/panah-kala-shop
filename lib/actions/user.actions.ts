@@ -13,9 +13,36 @@ import {
   signInFormSchema,
   signUpFormSchema,
   paymentMethodSchema,
+  updateProfileSchema,
 } from '../validator';
 import { formatError, withLocalePath } from '../utils';
 import type { ActionState, ShippingAddress } from '@/types';
+
+// Update the signed-in user's profile (name only; email is fixed)
+export async function updateProfile(user: { name: string; email: string }) {
+  try {
+    const session = await auth();
+
+    const currentUser = await prisma.user.findFirst({
+      where: { id: session?.user?.id as string },
+    });
+    if (!currentUser) throw new Error('User not found');
+
+    const profile = updateProfileSchema.parse(user);
+
+    await prisma.user.update({
+      where: { id: currentUser.id },
+      data: { name: profile.name },
+    });
+
+    return {
+      success: true,
+      message: 'User updated successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
 
 // Update the signed-in user's preferred payment method
 export async function updateUserPaymentMethod(

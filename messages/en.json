@@ -148,6 +148,7 @@
     "processing": "Processing",
     "cancelled": "Cancelled",
     "refId": "Reference Number",
+    "details": "Details",
     "payNow": "Pay Now (ZarinPal)",
     "checkoutTitle": "Redirecting to ZarinPal...",
     "paymentSuccess": "Payment completed successfully",
@@ -156,6 +157,8 @@
   },
   "account": {
     "profile": "Profile Details",
+    "orders": "My Orders",
+    "name": "Full Name",
     "updateProfile": "Update Profile",
     "saved": "Changes saved"
   },

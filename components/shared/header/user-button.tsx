@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { auth } from '@/auth';
 import { getTranslations } from 'next-intl/server';
+import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { SignOutUser } from '@/lib/actions/user.actions';
 
@@ -49,6 +50,17 @@ const UserButton = async () => {
             </div>
           </DropdownMenuLabel>
 
+          <DropdownMenuItem asChild>
+            <Link href="/user/profile" className="w-full">
+              {t('myAccount')}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/user/orders" className="w-full">
+              {t('myOrders')}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem className='p-0 mb-1'>
             <form action={SignOutUser} className='w-full'>
               <Button

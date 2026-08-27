@@ -6,8 +6,9 @@ import { auth } from '@/auth';
 import { getMyCart } from './cart.actions';
 import { getUserById } from './user.actions';
 import { insertOrderSchema } from '../validator';
+import { PAGE_SIZE } from '../constants';
 import { prisma } from '@/db/prisma';
-import { CartItem } from '@/types';
+import { CartItem, Order } from '@/types';
 
 // Create an order from the current cart (transactional, decrements stock)
 export async function createOrder() {
@@ -112,4 +113,32 @@ export async function getOrderById(orderId: string) {
   });
   if (!data) return null;
   return JSON.parse(JSON.stringify(data));
+}
+
+// Get the signed-in user's orders with pagination
+export async function getMyOrders({
+  limit = PAGE_SIZE,
+  page,
+}: {
+  limit?: number;
+  page: number;
+}) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error('User is not authenticated');
+
+  const data = await prisma.order.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    skip: (page - 1) * limit,
+  });
+
+  const dataCount = await prisma.order.count({
+    where: { userId: session.user.id },
+  });
+
+  return {
+    data: JSON.parse(JSON.stringify(data)) as Order[],
+    totalPages: Math.ceil(dataCount / limit),
+  };
 }
