@@ -53,6 +53,18 @@ export const round2 = (value: number | string) => {
   }
 };
 
+// Currency formatter for Toman amounts (grouped, no decimals)
+const TOMAN_FORMATTER = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 0,
+});
+
+// Format currency (Toman). The unit label ("تومان") is rendered by callers.
+export function formatCurrency(amount: number | string | null | undefined) {
+  if (typeof amount === 'number') return TOMAN_FORMATTER.format(amount);
+  if (typeof amount === 'string') return TOMAN_FORMATTER.format(Number(amount));
+  return 'NaN';
+}
+
 // Prefix an internal path with the active locale unless it is already prefixed or absolute
 export function withLocalePath(path: string, locale: string): string {
   if (/^https?:\/\//i.test(path)) return path;

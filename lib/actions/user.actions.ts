@@ -1,17 +1,56 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { signIn, signOut } from '@/auth';
+import { auth, signIn, signOut } from '@/auth';
 import { CredentialsSignin } from '@auth/core/errors';
 import { getLocale } from 'next-intl/server';
 
 import { prisma } from '@/db/prisma';
 import { hashSync } from 'bcrypt-ts-edge';
-import { signInFormSchema, signUpFormSchema } from '../validator';
+import {
+  shippingAddressSchema,
+  signInFormSchema,
+  signUpFormSchema,
+} from '../validator';
 import { formatError, withLocalePath } from '../utils';
-import type { ActionState } from '@/types';
+import type { ActionState, ShippingAddress } from '@/types';
 
-// Locale-aware UX messages (zod/prisma details come through formatError)
+// Get user by ID
+export async function getUserById(userId: string) {
+  const user = await prisma.user.findFirst({
+    where: { id: userId },
+  });
+
+  if (!user) throw new Error('User not found');
+  return user;
+}
+
+// Update the signed-in user's shipping address
+export async function updateUserAddress(data: ShippingAddress) {
+  try {
+    const session = await auth();
+
+    const currentUser = await prisma.user.findFirst({
+      where: { id: session?.user?.id as string },
+    });
+
+    if (!currentUser) throw new Error('User not found');
+
+    const address = shippingAddressSchema.parse(data);
+
+    await prisma.user.update({
+      where: { id: currentUser.id },
+      data: { address },
+    });
+
+    return {
+      success: true,
+      message: 'User updated successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
 const messages = {
   en: {
     invalidCredentials: 'Invalid email or password',

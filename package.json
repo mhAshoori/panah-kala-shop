@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
+    "@hookform/resolvers": "^5.9.1",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "bcrypt-ts-edge": "^3.0.1",
@@ -26,6 +27,7 @@
     "radix-ui": "^1.6.7",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-hook-form": "^7.86.0",
     "shadcn": "^4.19.0",
     "slugify": "^1.6.9",
     "sonner": "^2.0.8",

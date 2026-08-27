@@ -3,6 +3,7 @@ import {
   cartItemSchema,
   insertCartSchema,
   insertProductSchema,
+  shippingAddressSchema,
   signInFormSchema,
   signUpFormSchema,
 } from '@/lib/validator';
@@ -21,6 +22,7 @@ export type Cart = z.infer<typeof insertCartSchema> & {
   createdAt: Date;
 };
 export type CartItem = z.infer<typeof cartItemSchema>;
+export type ShippingAddress = z.infer<typeof shippingAddressSchema>;
 
 // Standard shape returned by "use server" actions used with useActionState
 export type ActionState = {

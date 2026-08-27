@@ -79,7 +79,8 @@
     "checkout": "Checkout",
     "remove": "Remove",
     "quantity": "Qty",
-    "item": "item",
+    "price": "Price",
+    "item": "Item",
     "items": "items"
   },
   "auth": {
