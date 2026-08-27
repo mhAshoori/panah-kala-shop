@@ -2,18 +2,18 @@ import { setRequestLocale } from 'next-intl/server';
 import Header from '@/components/shared/header';
 import Footer from '@/components/footer';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = params as unknown as { locale: string };
+  const { locale } = await params;
   setRequestLocale(locale);
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1 wrapper">{children}</main>
       <Footer />

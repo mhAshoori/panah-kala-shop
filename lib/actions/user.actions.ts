@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { auth, signIn, signOut } from '@/auth';
 import { CredentialsSignin } from '@auth/core/errors';
 import { getLocale } from 'next-intl/server';
+import { z } from 'zod';
 
 import { prisma } from '@/db/prisma';
 import { hashSync } from 'bcrypt-ts-edge';
@@ -11,9 +12,35 @@ import {
   shippingAddressSchema,
   signInFormSchema,
   signUpFormSchema,
+  paymentMethodSchema,
 } from '../validator';
 import { formatError, withLocalePath } from '../utils';
 import type { ActionState, ShippingAddress } from '@/types';
+
+// Update the signed-in user's preferred payment method
+export async function updateUserPaymentMethod(
+  data: z.infer<typeof paymentMethodSchema>
+) {
+  try {
+    const session = await auth();
+
+    const currentUser = await prisma.user.findFirst({
+      where: { id: session?.user?.id as string },
+    });
+    if (!currentUser) throw new Error('User not found');
+
+    const paymentMethod = paymentMethodSchema.parse(data);
+
+    await prisma.user.update({
+      where: { id: currentUser.id },
+      data: { paymentMethod: paymentMethod.type },
+    });
+
+    return { success: true, message: 'User updated successfully' };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
 
 // Get user by ID
 export async function getUserById(userId: string) {

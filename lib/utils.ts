@@ -65,6 +65,40 @@ export function formatCurrency(amount: number | string | null | undefined) {
   return 'NaN';
 }
 
+// Shorten an ID to its last 6 characters
+export function formatId(id: string) {
+  return `..${id.substring(id.length - 6)}`;
+}
+
+// Format a date in 3 useful ways (date-time, date-only, time-only)
+export function formatDateTime(dateString: Date | string) {
+  const dateTimeOptions: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    year: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  };
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'short',
+    month: 'short',
+    year: 'numeric',
+    day: 'numeric',
+  };
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  };
+  const d = new Date(dateString);
+  return {
+    dateTime: d.toLocaleString('en-US', dateTimeOptions),
+    dateOnly: d.toLocaleString('en-US', dateOptions),
+    timeOnly: d.toLocaleString('en-US', timeOptions),
+  };
+}
+
 // Prefix an internal path with the active locale unless it is already prefixed or absolute
 export function withLocalePath(path: string, locale: string): string {
   if (/^https?:\/\//i.test(path)) return path;

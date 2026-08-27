@@ -122,7 +122,7 @@ async function saveCart(params: {
       items,
       sessionCartId,
       ...calcPrice(items),
-    });
+    }) as Prisma.CartUncheckedCreateInput;
     await prisma.cart.create({ data: newCart });
   }
 }
