@@ -1,7 +1,10 @@
 'use client';
 
 import Image from 'next/image';
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,11 +17,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { formatCurrency, formatDateTime, formatId } from '@/lib/utils';
+import ZarinpalButton from './zarinpal-button';
 import type { Order } from '@/types';
 
 const OrderDetailsTable = ({ order }: { order: Order }) => {
   const t = useTranslations('order');
   const tc = useTranslations('checkout');
+  const searchParams = useSearchParams();
+
+  // Show a toast after a ZarinPal callback redirect
+  useEffect(() => {
+    const paid = searchParams.get('paid');
+    if (paid === 'success') toast.success(t('paymentSuccess'));
+    if (paid === 'failed') toast.error(t('paymentFailed'));
+  }, [searchParams, t]);
 
   const { shippingAddress, orderItems, itemsPrice, taxPrice, shippingPrice, totalPrice, paymentMethod, isPaid, paidAt, isDelivered, deliveredAt, paymentResult, id } = order;
 
@@ -136,6 +148,10 @@ const OrderDetailsTable = ({ order }: { order: Order }) => {
                 <div>{t('total')}</div>
                 <div>{formatCurrency(totalPrice)}</div>
               </div>
+
+              {!isPaid && paymentMethod === 'zarinpal' && (
+                <ZarinpalButton orderId={id} />
+              )}
             </CardContent>
           </Card>
         </div>

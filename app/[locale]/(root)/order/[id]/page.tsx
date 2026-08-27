@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { getOrderById } from '@/lib/actions/order.actions';
@@ -23,13 +24,17 @@ const OrderDetailsPage = async (props: {
   const order = await getOrderById(id);
   if (!order) notFound();
 
+  const ct = await getTranslations('common');
+
   return (
-    <OrderDetailsTable
-      order={{
-        ...order,
-        shippingAddress: order.shippingAddress as ShippingAddress,
-      }}
-    />
+    <Suspense fallback={<div className='h2-bold py-4'>{ct('loading')}</div>}>
+      <OrderDetailsTable
+        order={{
+          ...order,
+          shippingAddress: order.shippingAddress as ShippingAddress,
+        }}
+      />
+    </Suspense>
   );
 };
 

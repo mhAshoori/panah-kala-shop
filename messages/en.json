@@ -148,6 +148,8 @@
     "processing": "Processing",
     "cancelled": "Cancelled",
     "refId": "Reference Number",
+    "payNow": "Pay Now (ZarinPal)",
+    "checkoutTitle": "Redirecting to ZarinPal...",
     "paymentSuccess": "Payment completed successfully",
     "paymentFailed": "Payment failed",
     "retryPayment": "Retry Payment"

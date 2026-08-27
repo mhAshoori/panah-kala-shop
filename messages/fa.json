@@ -148,6 +148,8 @@
     "processing": "در حال پردازش",
     "cancelled": "لغو شده",
     "refId": "شماره پیگیری",
+    "payNow": "پرداخت (زرین‌پال)",
+    "checkoutTitle": "در حال انتقال به درگاه زرین‌پال...",
     "paymentSuccess": "پرداخت با موفقیت انجام شد",
     "paymentFailed": "پرداخت ناموفق بود",
     "retryPayment": "پرداخت مجدد"
