@@ -1,21 +1,17 @@
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import ProductCard from './product-card';
-import type { SampleProduct } from '@/db/sample-data';
-
-export type LocalizedProduct = SampleProduct & {
-  localName?: string;
-  localCategory?: string;
-};
+import type { Product } from '@/types';
 
 const ProductList = ({
   data,
   title,
   limit,
 }: {
-  data: SampleProduct[];
+  data: Product[];
   title?: string;
   limit?: number;
 }) => {
+  const locale = useLocale();
   const t = useTranslations('common');
   const limitedData = limit ? data.slice(0, limit) : data;
 
@@ -25,16 +21,7 @@ const ProductList = ({
       {limitedData.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {limitedData.map((product) => (
-            <ProductCard
-              key={product.slug}
-              product={
-                {
-                  ...product,
-                  localName: product.nameFa ?? product.name,
-                  localCategory: product.categoryFa ?? product.category,
-                } as LocalizedProduct
-              }
-            />
+            <ProductCard key={product.slug} product={product} />
           ))}
         </div>
       ) : (

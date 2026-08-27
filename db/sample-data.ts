@@ -1,6 +1,5 @@
-// Temporary in-memory sample data (Section 02).
-// Replaced by PostgreSQL + Prisma seed data in Section 03.
-// Prices are in Toman. Names carry fa/en pairs for the bilingual UI.
+// Seed source data. Prices are in Toman (stored as Decimal strings for Prisma).
+// Names carry fa/en pairs for the bilingual UI.
 
 export type SampleProduct = {
   name: string;
@@ -11,13 +10,13 @@ export type SampleProduct = {
   description: string;
   descriptionFa: string;
   images: string[];
-  price: number;
+  price: string;
   brand: string;
-  rating: number;
+  rating: string;
   numReviews: number;
   stock: number;
   isFeatured: boolean;
-  banner?: string;
+  banner?: string | null;
 };
 
 const products: SampleProduct[] = [
@@ -32,9 +31,9 @@ const products: SampleProduct[] = [
     descriptionFa:
       'بدنه تیتانیومی با تراشه A17 Pro، دوربین اصلی ۴۸ مگاپیکسلی و نمایشگر ProMotion.',
     images: ['/images/sample-products/p1.webp', '/images/sample-products/p2.webp'],
-    price: 68_500_000,
+    price: '68500000.00',
     brand: 'Apple',
-    rating: 4.8,
+    rating: '4.8',
     numReviews: 132,
     stock: 12,
     isFeatured: true,
@@ -51,12 +50,13 @@ const products: SampleProduct[] = [
     descriptionFa:
       'هوش مصنوعی Galaxy AI، قلم S Pen داخلی، دوربین ۲۰۰ مگاپیکسلی و نمایشگر ۶.۸ اینچی QHD+.',
     images: ['/images/sample-products/p2.webp'],
-    price: 61_900_000,
+    price: '61900000.00',
     brand: 'Samsung',
-    rating: 4.7,
+    rating: '4.7',
     numReviews: 98,
     stock: 8,
     isFeatured: false,
+    banner: null,
   },
   {
     name: 'MacBook Air M3 13"',
@@ -69,12 +69,13 @@ const products: SampleProduct[] = [
     descriptionFa:
       'لپ‌تاپ فوق نازک با تراشه M3، تا ۱۸ ساعت شارژدهی و نمایشگر Liquid Retina.',
     images: ['/images/sample-products/p3.webp'],
-    price: 54_200_000,
+    price: '54200000.00',
     brand: 'Apple',
-    rating: 4.9,
+    rating: '4.9',
     numReviews: 76,
     stock: 5,
     isFeatured: true,
+    banner: null,
   },
   {
     name: 'ASUS ROG Strix G16',
@@ -87,12 +88,13 @@ const products: SampleProduct[] = [
     descriptionFa:
       'لپ‌تاپ گیمینگ با کارت گرافیک RTX 4070، پردازنده Core i9 اینتل و نمایشگر 165Hz QHD.',
     images: ['/images/sample-products/p4.webp'],
-    price: 78_000_000,
+    price: '78000000.00',
     brand: 'ASUS',
-    rating: 4.6,
+    rating: '4.6',
     numReviews: 54,
     stock: 3,
     isFeatured: false,
+    banner: null,
   },
   {
     name: 'AirPods Pro 2 (USB-C)',
@@ -105,12 +107,13 @@ const products: SampleProduct[] = [
     descriptionFa:
       'حذف نویز فعال، شفافیت تطبیقی و تا ۶ ساعت پخش موسیقی در هر شارژ.',
     images: ['/images/sample-products/p5.webp'],
-    price: 11_400_000,
+    price: '11400000.00',
     brand: 'Apple',
-    rating: 4.7,
+    rating: '4.7',
     numReviews: 210,
     stock: 25,
     isFeatured: true,
+    banner: null,
   },
   {
     name: 'Sony WH-1000XM5',
@@ -123,12 +126,13 @@ const products: SampleProduct[] = [
     descriptionFa:
       'هدفون بی‌سیم با بهترین حذف نویز بازار و ۳۰ ساعت شارژدهی باتری.',
     images: ['/images/sample-products/p6.webp'],
-    price: 16_800_000,
+    price: '16800000.00',
     brand: 'Sony',
-    rating: 4.8,
+    rating: '4.8',
     numReviews: 167,
     stock: 14,
     isFeatured: false,
+    banner: null,
   },
   {
     name: 'Apple Watch Series 9',
@@ -141,12 +145,13 @@ const products: SampleProduct[] = [
     descriptionFa:
       'اشاره دوضربه‌ای Double Tap، نمایشگر روشن‌تر و حسگرهای سلامت پیشرفته.',
     images: ['/images/sample-products/p7.webp'],
-    price: 19_900_000,
+    price: '19900000.00',
     brand: 'Apple',
-    rating: 4.6,
+    rating: '4.6',
     numReviews: 88,
     stock: 18,
     isFeatured: true,
+    banner: null,
   },
   {
     name: 'iPad Pro 11" M4',
@@ -159,12 +164,13 @@ const products: SampleProduct[] = [
     descriptionFa:
       'نمایشگر Ultra Retina XDR، تراشه M4 و پشتیبانی از اپل پنسل پرو.',
     images: ['/images/sample-products/p8.webp'],
-    price: 42_300_000,
+    price: '42300000.00',
     brand: 'Apple',
-    rating: 4.9,
+    rating: '4.9',
     numReviews: 64,
     stock: 7,
     isFeatured: false,
+    banner: null,
   },
   {
     name: 'Canon EOS R50',
@@ -177,12 +183,13 @@ const products: SampleProduct[] = [
     descriptionFa:
       'دوربین بدون آینه ۲۴.۲ مگاپیکسلی با فیلم‌برداری 4K و فوکوس خودکار Dual Pixel CMOS AF II.',
     images: ['/images/sample-products/p9.webp'],
-    price: 32_500_000,
+    price: '32500000.00',
     brand: 'Canon',
-    rating: 4.5,
+    rating: '4.5',
     numReviews: 41,
     stock: 0,
     isFeatured: false,
+    banner: null,
   },
   {
     name: 'JBL Charge 5',
@@ -195,12 +202,13 @@ const products: SampleProduct[] = [
     descriptionFa:
       'اسپیکر بلوتوثی قابل حمل با ضدآب IP67 و ۲۰ ساعت پخش موسیقی.',
     images: ['/images/sample-products/p10.webp'],
-    price: 7_900_000,
+    price: '7900000.00',
     brand: 'JBL',
-    rating: 4.4,
+    rating: '4.4',
     numReviews: 156,
     stock: 30,
     isFeatured: false,
+    banner: null,
   },
   {
     name: 'LG UltraGear 27" 240Hz',
@@ -211,11 +219,11 @@ const products: SampleProduct[] = [
     description:
       'QHD gaming monitor with 1ms response time, 240Hz refresh and G-Sync.',
     descriptionFa:
-      'مانیتور گیمینگ QHD با زمان پاسخ‌دهی ۱ میلی‌ثانیه، نرخ به‌روزرسانی ۲۴۰ هرتز و G-Sync.',
+      'مانیتور گیمینگ QHD با زمان پاسخ‌دهی ۱ میلی‌ثانیه، نرخ نوسازی ۲۴۰ هرتز و G-Sync.',
     images: ['/images/sample-products/p11.webp'],
-    price: 21_700_000,
+    price: '21700000.00',
     brand: 'LG',
-    rating: 4.6,
+    rating: '4.6',
     numReviews: 72,
     stock: 9,
     isFeatured: true,
@@ -232,12 +240,13 @@ const products: SampleProduct[] = [
     descriptionFa:
       'کنسول یک ترابایتی با درایو دیسک یکپارچه، بازی‌های 4K و ردیابی پرتو.',
     images: ['/images/sample-products/p12.webp'],
-    price: 38_400_000,
+    price: '38400000.00',
     brand: 'Sony',
-    rating: 4.8,
+    rating: '4.8',
     numReviews: 189,
     stock: 6,
     isFeatured: false,
+    banner: null,
   },
 ];
 

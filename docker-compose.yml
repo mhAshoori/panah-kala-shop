@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: panah-kala-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: panah
+      POSTGRES_PASSWORD: panah_dev_pw
+      POSTGRES_DB: panah_kala
+    ports:
+      - '5432:5432'
+    volumes:
+      - panah_pgdata:/var/lib/postgresql/data
+
+volumes:
+  panah_pgdata:
