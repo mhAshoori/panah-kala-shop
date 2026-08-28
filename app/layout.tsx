@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import localFont from 'next/font/local';
 import { Suspense } from 'react';
 import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
@@ -15,23 +14,11 @@ import {
   organizationJsonLd,
   websiteJsonLd,
 } from '@/lib/seo';
+import { shabnamFont } from './fonts';
 import './globals.css';
 
 // Self-hosted Latin font
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-
-// Self-hosted Persian font (Shabnam) — primary typeface
-const shabnam = localFont({
-  src: [
-    { path: './fonts/shabnam/Shabnam-Thin.ttf', weight: '100', style: 'normal' },
-    { path: './fonts/shabnam/Shabnam-Light.ttf', weight: '300', style: 'normal' },
-    { path: './fonts/shabnam/Shabnam.ttf', weight: '400', style: 'normal' },
-    { path: './fonts/shabnam/Shabnam-Medium.ttf', weight: '500', style: 'normal' },
-    { path: './fonts/shabnam/Shabnam-Bold.ttf', weight: '700', style: 'normal' },
-  ],
-  variable: '--font-shabnam',
-  display: 'swap',
-});
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getSiteLocale();
@@ -82,7 +69,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} dir={dir(locale)} suppressHydrationWarning>
-      <body className={`${inter.variable} ${shabnam.variable} font-sans`}>
+      <body className={`${inter.variable} ${shabnamFont.variable} font-sans`}>
         <NextIntlClientProvider>
           <ThemeProvider
             attribute="class"

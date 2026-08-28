@@ -47,7 +47,9 @@ const OrderDetailsTable = ({ order }: { order: Order }) => {
             <CardContent className='p-4 gap-4'>
               <h2 className='text-xl pb-4'>{t('paymentMethod')}</h2>
               <p>
-                {paymentMethod === 'cod' ? tc('cod') : tc('zarinpal')}
+                {paymentMethod === 'cod'
+                  ? tc('cashOnDelivery')
+                  : tc('zarinpal')}
               </p>
               {isPaid ? (
                 <Badge variant='secondary' className='mt-2'>

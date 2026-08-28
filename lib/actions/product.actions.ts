@@ -31,6 +31,28 @@ export async function getFeaturedProducts() {
   return convertToPlainObject(data);
 }
 
+// Get distinct brands for the homepage marquee
+export async function getBrands() {
+  const products = await prisma.product.findMany({
+    select: { brand: true },
+    distinct: ['brand'],
+    orderBy: { brand: 'asc' },
+  });
+
+  return products.map((p) => p.brand);
+}
+
+// Get homepage counters (products, orders, customers)
+export async function getSiteStats() {
+  const [products, orders, users] = await Promise.all([
+    prisma.product.count(),
+    prisma.order.count(),
+    prisma.user.count(),
+  ]);
+
+  return { products, orders, users };
+}
+
 // Get single product by slug
 export async function getProductBySlug(slug: string) {
   return await prisma.product.findFirst({
@@ -55,6 +77,71 @@ export async function getAllCategories() {
   }
 
   return Array.from(map.values()).sort((a, b) => b._count - a._count);
+}
+
+// Get categories for navigation (dock, grids, filters) with product counts
+export async function getCategoriesWithCount() {
+  const categories = await prisma.category.findMany({
+    orderBy: { sortOrder: 'asc' },
+    include: { _count: { select: { products: true } } },
+  });
+
+  return convertToPlainObject(categories) as {
+    id: string;
+    slug: string;
+    name: string;
+    nameFa: string;
+    icon: string;
+    sortOrder: number;
+    _count: { products: number };
+  }[];
+}
+
+// Get a single category by slug
+export async function getCategoryBySlug(slug: string) {
+  return prisma.category.findUnique({ where: { slug } });
+}
+
+// Get paginated products for a category slug
+export async function getProductsByCategorySlug({
+  slug,
+  sort,
+  page,
+  limit = PAGE_SIZE,
+}: {
+  slug: string;
+  sort?: string;
+  page: number;
+  limit?: number;
+}) {
+  const category = await prisma.category.findUnique({ where: { slug } });
+  if (!category) return null;
+
+  const orderBy =
+    sort === 'lowest'
+      ? { price: 'asc' as const }
+      : sort === 'highest'
+        ? { price: 'desc' as const }
+        : sort === 'rating'
+          ? { rating: 'desc' as const }
+          : { createdAt: 'desc' as const };
+
+  const where = { categoryId: category.id };
+
+  const data = await prisma.product.findMany({
+    where,
+    orderBy,
+    take: limit,
+    skip: (page - 1) * limit,
+  });
+
+  const dataCount = await prisma.product.count({ where });
+
+  return {
+    category: convertToPlainObject(category),
+    data: convertToPlainObject(data),
+    totalPages: Math.ceil(dataCount / limit),
+  };
 }
 
 // Get products for the public search page with filters + sorting + pagination
@@ -192,6 +279,44 @@ function productDataFromFormData(formData: FormData) {
   };
 }
 
+// Find or create the Category row for a product's category pair
+async function upsertCategory(category: string, categoryFa: string) {
+  const slug = category
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
+  const existing = await prisma.category.findFirst({
+    where: { OR: [{ name: category }, { slug }] },
+  });
+
+  if (existing) {
+    if (existing.nameFa !== categoryFa) {
+      await prisma.category.update({
+        where: { id: existing.id },
+        data: { nameFa: categoryFa },
+      });
+    }
+    return existing.id;
+  }
+
+  const maxOrder = await prisma.category.aggregate({
+    _max: { sortOrder: true },
+  });
+
+  const created = await prisma.category.create({
+    data: {
+      slug,
+      name: category,
+      nameFa: categoryFa,
+      icon: 'package',
+      sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
+    },
+  });
+
+  return created.id;
+}
+
 // Create a product (admin)
 export async function createProduct(
   _prevState: ActionState,
@@ -201,7 +326,9 @@ export async function createProduct(
     await requireAdmin();
 
     const product = insertProductSchema.parse(productDataFromFormData(formData));
-    await prisma.product.create({ data: product });
+    const categoryId = await upsertCategory(product.category, product.categoryFa);
+
+    await prisma.product.create({ data: { ...product, categoryId } });
 
     return { success: true, message: 'Product created successfully' };
   } catch (error) {
@@ -227,9 +354,11 @@ export async function updateProduct(
     });
     if (!productExists) throw new Error('Product not found');
 
+    const categoryId = await upsertCategory(product.category, product.categoryFa);
+
     await prisma.product.update({
       where: { id: product.id },
-      data: product,
+      data: { ...product, categoryId },
     });
 
     return { success: true, message: 'Product updated successfully' };

@@ -161,7 +161,140 @@
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
   html {
+    font-family: var(--font-shabnam), var(--font-inter), ui-sans-serif,
+      system-ui, sans-serif;
     @apply font-sans;
+  }
+}
+
+/* ---------- Homepage animations ---------- */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ken-burns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shine-sweep {
+  from {
+    background-position: 200% center;
+  }
+  to {
+    background-position: -200% center;
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-ken-burns {
+    animation: ken-burns 12s ease-in-out infinite alternate;
+  }
+
+  .animate-marquee {
+    animation: marquee-x 32s linear infinite;
+  }
+
+  .marquee-paused:hover .animate-marquee {
+    animation-play-state: paused;
+  }
+
+  .animate-float-y {
+    animation: float-y 4s ease-in-out infinite;
+  }
+
+  /* Shimmering gradient text for highlights */
+  .text-shine {
+    background: linear-gradient(
+      110deg,
+      var(--primary) 20%,
+      oklch(0.85 0.15 85) 40%,
+      var(--primary) 60%
+    );
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: shine-sweep 4s linear infinite;
+  }
+
+  /* Rotating conic border (wrap content with padding inside) */
+  .animated-border {
+    position: relative;
+    isolation: isolate;
+  }
+  .animated-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: conic-gradient(
+      from var(--angle, 0deg),
+      transparent 0%,
+      var(--primary) 10%,
+      oklch(0.82 0.15 85) 20%,
+      transparent 30%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: spin-slow 5s linear infinite;
+    z-index: -1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up,
+    .animate-ken-burns,
+    .animate-marquee,
+    .animate-float-y,
+    .text-shine,
+    .animated-border::before {
+      animation: none;
+    }
   }
 }
 

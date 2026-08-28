@@ -50,7 +50,16 @@
     "seconds": "Sec",
     "shopNow": "Shop Now",
     "heroTitle": "Everything you need, delivered fast",
-    "heroSubtitle": "Mobile phones, laptops, accessories and more — with the best prices and genuine warranty"
+    "heroSubtitle": "Mobile phones, laptops, accessories and more — with the best prices and genuine warranty",
+    "statsProducts": "Products in stock",
+    "statsOrders": "Orders delivered",
+    "statsCustomers": "Happy customers",
+    "shopByCategory": "Shop by Category",
+    "productsCount": "{count, plural, =0 {no products} one {# product} other {# products}}",
+    "brandsTitle": "Featured Brands",
+    "supportTitle": "We're here for you, every day",
+    "supportDesc": "Questions about your order, shipping or returns? Our support team answers around the clock — fast, in Persian, and to the point.",
+    "supportCta": "Contact Support"
   },
   "product": {
     "addToCart": "Add To Cart",
@@ -125,6 +134,10 @@
       "payment": "Payment",
       "placeOrder": "Place Order"
     }
+  },
+  "category": {
+    "title": "Product Categories",
+    "all": "All Categories"
   },
   "search": {
     "title": "Search Products",

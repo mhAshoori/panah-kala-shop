@@ -21,6 +21,18 @@ model Review {
   @@unique([productId, userId], map: "reviews_productId_userId_key")
 }
 
+// Curated product categories (home dock, /category/[slug] pages, homepage grid)
+model Category {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug      String    @unique(map: "category_slug_idx")
+  name      String
+  nameFa    String
+  icon      String    @default("package")
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  products  Product[]
+}
+
 model Product {
   id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
@@ -28,6 +40,7 @@ model Product {
   slug          String      @unique(map: "product_slug_idx")
   category      String
   categoryFa    String
+  categoryId    String?     @db.Uuid
   images        String[]
   brand         String
   description   String
@@ -39,6 +52,7 @@ model Product {
   isFeatured    Boolean     @default(false)
   banner        String?
   createdAt     DateTime    @default(now()) @db.Timestamp(6)
+  categoryRef   Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "product_categoryId_category_id_fk")
   orderItems    OrderItem[]
   reviews       Review[]
 }

@@ -1,41 +1,50 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { cn } from '@/lib/utils';
+
+const MIN_VISIBLE_MS = 650;
+const FADE_MS = 350;
 
 /**
- * Global top progress bar. Starts on link clicks / form GET submissions and
- * completes when the route (pathname or query) changes.
+ * Global top progress bar. The track is always visible; the animated fill
+ * appears on in-page navigations (link clicks, GET form submits, back/forward)
+ * and completes when the route (pathname or query) changes.
  */
 const TopProgress = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [state, setState] = useState<'idle' | 'running' | 'done'>('idle');
+  const startedAt = useRef(0);
 
-  // Complete the bar whenever the route changes
+  // Complete the bar when the route changes (respecting a minimum duration)
   useEffect(() => {
-    if (state === 'running') {
-      const timer = setTimeout(() => setState('done'), 0);
-      return () => clearTimeout(timer);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, searchParams]);
+    if (state !== 'running') return;
+    const elapsed = Date.now() - startedAt.current;
+    const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
+    const timer = setTimeout(() => setState('done'), wait);
+    return () => clearTimeout(timer);
+  }, [pathname, searchParams, state]);
 
-  // Fade out after completion
+  // Fade back to idle after completion
   useEffect(() => {
     if (state === 'done') {
-      const timer = setTimeout(() => setState('idle'), 400);
+      const timer = setTimeout(() => setState('idle'), FADE_MS);
       return () => clearTimeout(timer);
     }
   }, [state]);
 
   // Start on in-page navigations
   useEffect(() => {
-    const start = () => setState((s) => (s === 'idle' ? 'running' : s));
+    const start = () =>
+      setState((prev) => {
+        if (prev === 'running') return prev;
+        startedAt.current = Date.now();
+        return 'running';
+      });
 
     const onClick = (e: MouseEvent) => {
-      if (e.defaultPrevented || e.button !== 0) return;
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey) return;
       const anchor = (e.target as HTMLElement).closest('a');
       if (
         anchor &&
@@ -65,19 +74,22 @@ const TopProgress = () => {
     };
   }, []);
 
-  if (state === 'idle') return null;
-
   return (
     <div
-      className='fixed inset-x-0 top-0 z-[100] h-0.5'
+      className='fixed inset-x-0 top-0 z-[100] h-1 bg-transparent'
       role='progressbar'
       aria-label='Loading'
+      data-state={state}
     >
       <div
-        className={cn(
-          'h-full bg-primary transition-all duration-300 ease-out',
-          state === 'running' ? 'w-2/3 opacity-100' : 'w-full opacity-0'
-        )}
+        className={
+          'h-full bg-gradient-to-r from-primary via-amber-400 to-primary transition-all duration-300 ease-out ' +
+          (state === 'running'
+            ? 'w-2/3 opacity-100 shadow-[0_0_10px_var(--primary)]'
+            : state === 'done'
+              ? 'w-full opacity-100'
+              : 'w-0 opacity-0')
+        }
       />
     </div>
   );
