@@ -28,10 +28,8 @@ const Header = async () => {
               {t('brandName')}
             </span>
           </Link>
-          {/* Category mega menu (desktop) */}
-          <div className='hidden lg:block'>
-            <CategoryMenu categories={categories} />
-          </div>
+          {/* Category mega menu — available at every screen size */}
+          <CategoryMenu categories={categories} />
         </div>
         <div className='hidden md:block flex-1 justify-center'>
           <SearchBar />

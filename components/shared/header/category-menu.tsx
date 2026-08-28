@@ -20,7 +20,14 @@ import {
 import { cn } from '@/lib/utils';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
-import type { DockCategory } from '@/components/shared/category/category-dock';
+
+export type DockCategory = {
+  slug: string;
+  name: string;
+  nameFa: string;
+  icon: string;
+  _count: { products: number };
+};
 
 const ICONS: Record<string, LucideIcon> = {
   smartphone: Smartphone,
@@ -76,10 +83,10 @@ const CategoryMenu = ({ categories }: { categories: DockCategory[] }) => {
         aria-expanded={open}
         aria-haspopup='true'
         onClick={() => setOpen((o) => !o)}
-        className='font-medium'
+        className='font-medium px-2 sm:px-3'
       >
         <LayoutGrid className='h-4 w-4' />
-        {t('categories')}
+        <span className='hidden sm:inline'>{t('categories')}</span>
         <ChevronDown
           className={cn(
             'h-3.5 w-3.5 transition-transform duration-200',
