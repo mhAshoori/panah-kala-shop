@@ -6,6 +6,7 @@ import { getTranslations } from 'next-intl/server';
 import { auth } from '@/auth';
 import { getMyCart } from '@/lib/actions/cart.actions';
 import { getUserById } from '@/lib/actions/user.actions';
+import { getValidUserId } from '@/lib/auth-helpers';
 import ShippingAddressForm from './shipping-address-form';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,12 +22,14 @@ const ShippingAddressPage = async () => {
 
   const session = await auth();
 
-  // Not signed in yet — send to sign-in with return path
-  if (!session?.user?.id) {
+  // Not signed in — or the session is stale (user deleted after a reseed):
+  // send to sign-in with a return path instead of crashing with User not found
+  const userId = await getValidUserId();
+  if (!session?.user?.id || !userId) {
     redirect(`/sign-in?callbackUrl=${encodeURIComponent('/shipping-address')}`);
   }
 
-  const user = await getUserById(session.user.id);
+  const user = await getUserById(userId);
   const t = await getTranslations('checkout');
 
   return (

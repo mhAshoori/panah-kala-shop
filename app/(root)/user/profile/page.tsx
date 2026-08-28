@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 
 import { auth } from '@/auth';
 import { getUserById } from '@/lib/actions/user.actions';
+import { getValidUserId } from '@/lib/auth-helpers';
 import ProfileForm from './profile-form';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,11 +14,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const ProfilePage = async () => {
   const session = await auth();
-  if (!session?.user?.id) {
+  const userId = await getValidUserId();
+  if (!session?.user?.id || !userId) {
     redirect('/sign-in');
   }
 
-  const user = await getUserById(session.user.id);
+  const user = await getUserById(userId);
   const t = await getTranslations('account');
 
   return (

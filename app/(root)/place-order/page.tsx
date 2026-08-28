@@ -18,6 +18,7 @@ import {
 import { getMyCart } from '@/lib/actions/cart.actions';
 import { getUserById } from '@/lib/actions/user.actions';
 import { formatCurrency } from '@/lib/utils';
+import { getValidUserId } from '@/lib/auth-helpers';
 import PlaceOrderForm from './place-order-form';
 import type { ShippingAddress } from '@/types';
 
@@ -30,12 +31,13 @@ const PlaceOrderPage = async () => {
 
   const cart = await getMyCart();
   const session = await auth();
+  const userId = await getValidUserId();
 
-  if (!session?.user?.id) {
+  if (!session?.user?.id || !userId) {
     redirect(`/sign-in?callbackUrl=${encodeURIComponent('/place-order')}`);
   }
 
-  const user = await getUserById(session.user.id);
+  const user = await getUserById(userId);
 
   if (!cart || cart.items.length === 0) {
     redirect('/cart');
