@@ -4,7 +4,13 @@ import { getBrands } from '@/lib/actions/product.actions';
 import { cn } from '@/lib/utils';
 
 // Infinite scrolling brand strip (pauses on hover, masked edges)
-const BrandMarquee = async ({ className }: { className?: string }) => {
+const BrandMarquee = async ({
+  title,
+  className,
+}: {
+  title?: string;
+  className?: string;
+}) => {
   const t = await getTranslations('home');
   const brands = await getBrands();
 
@@ -16,7 +22,7 @@ const BrandMarquee = async ({ className }: { className?: string }) => {
   return (
     <section className={cn('space-y-3', className)}>
       <p className='text-center text-xs font-medium uppercase tracking-widest text-muted-foreground'>
-        {t('brandsTitle')}
+        {title ?? t('brandsTitle')}
       </p>
       <div className='marquee-paused relative overflow-hidden'>
         {/* Edge fade masks */}

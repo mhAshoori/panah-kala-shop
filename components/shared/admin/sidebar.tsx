@@ -2,7 +2,14 @@
 
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
-import { LayoutDashboard, Package, ShoppingCart, Shapes, Users } from 'lucide-react';
+import {
+  Home,
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Shapes,
+  Users,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MENU_ITEMS: {
@@ -12,6 +19,7 @@ const MENU_ITEMS: {
   exact?: boolean;
 }[] = [
   { href: '/admin', label: 'overview', icon: LayoutDashboard, exact: true },
+  { href: '/admin/homepage', label: 'homepage', icon: Home },
   { href: '/admin/orders', label: 'orders', icon: ShoppingCart },
   { href: '/admin/products', label: 'products', icon: Package },
   { href: '/admin/categories', label: 'categories', icon: Shapes },

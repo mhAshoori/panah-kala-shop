@@ -40,6 +40,7 @@ const messages = {
     // Settings
     languageUpdated: 'Language updated',
     fontUpdated: 'Font updated',
+    homeSaved: 'Homepage content saved',
     invalidValue: 'Invalid value',
   },
   fa: {
@@ -77,6 +78,7 @@ const messages = {
     // Settings
     languageUpdated: 'زبان سایت به‌روزرسانی شد',
     fontUpdated: 'فونت سایت به‌روزرسانی شد',
+    homeSaved: 'محتوای صفحه اصلی ذخیره شد',
     invalidValue: 'مقدار نامعتبر است',
   },
 } as const;

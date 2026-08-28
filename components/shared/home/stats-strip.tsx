@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Package, ShoppingCart, Users } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { formatNumberLocale } from '@/lib/persian';
 
 // Animated count-up that starts when the strip scrolls into view
 const CountUp = ({ target }: { target: number }) => {
@@ -33,7 +34,7 @@ const CountUp = ({ target }: { target: number }) => {
 
   return (
     <span className='tabular-nums'>
-      {new Intl.NumberFormat(locale === 'fa' ? 'fa-IR' : 'en-US').format(value)}
+      {formatNumberLocale(value, locale)}
       {value >= target && '+'}
     </span>
   );
@@ -41,15 +42,28 @@ const CountUp = ({ target }: { target: number }) => {
 
 const StatsStrip = ({
   stats,
+  labels,
 }: {
   stats: { products: number; orders: number; users: number };
+  labels?: {
+    products: { fa: string; en: string };
+    orders: { fa: string; en: string };
+    customers: { fa: string; en: string };
+  };
 }) => {
   const t = useTranslations('home');
+  const locale = useLocale();
+
+  const pick = (v: { fa: string; en: string } | undefined, fallback: string) => {
+    if (!v) return fallback;
+    const text = locale === 'fa' ? v.fa || v.en : v.en || v.fa;
+    return text || fallback;
+  };
 
   const items = [
-    { icon: Package, value: Math.max(stats.products, 12), label: t('statsProducts') },
-    { icon: ShoppingCart, value: Math.max(stats.orders, 50), label: t('statsOrders') },
-    { icon: Users, value: Math.max(stats.users, 100), label: t('statsCustomers') },
+    { icon: Package, value: Math.max(stats.products, 12), label: pick(labels?.products, t('statsProducts')) },
+    { icon: ShoppingCart, value: Math.max(stats.orders, 50), label: pick(labels?.orders, t('statsOrders')) },
+    { icon: Users, value: Math.max(stats.users, 100), label: pick(labels?.customers, t('statsCustomers')) },
   ];
 
   return (

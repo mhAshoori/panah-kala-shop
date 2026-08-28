@@ -1,0 +1,155 @@
+import { getTranslations } from 'next-intl/server';
+
+import HomeBlockEditor, {
+  type BlockField,
+} from '@/components/shared/admin/home-block-editor';
+import { getHomeConfig } from '@/lib/home-content';
+import { prisma } from '@/db/prisma';
+
+const ICON_OPTIONS = [
+  { value: 'truck', label: 'Truck' },
+  { value: 'shield', label: 'Shield' },
+  { value: 'headset', label: 'Headset' },
+  { value: 'undo', label: 'Undo' },
+  { value: 'credit-card', label: 'Credit Card' },
+  { value: 'star', label: 'Star' },
+  { value: 'package', label: 'Package' },
+];
+
+const AdminHomepagePage = async () => {
+  const t = await getTranslations('admin');
+  const config = await getHomeConfig();
+
+  // Product picker for the deal block
+  const products = await prisma.product.findMany({
+    select: { id: true, name: true, nameFa: true },
+    orderBy: { createdAt: 'desc' },
+  });
+  const productOptions = [
+    { value: '', label: t('blockDealAuto') },
+    ...products.map((p) => ({ value: p.id, label: p.nameFa })),
+  ];
+
+  return (
+    <div className='space-y-6'>
+      <div className='space-y-1'>
+        <h1 className='h2-bold'>{t('homepage')}</h1>
+        <p className='text-sm text-muted-foreground'>{t('homepageHint')}</p>
+      </div>
+
+      {/* Hero */}
+      <HomeBlockEditor
+        blockKey='hero'
+        title={t('blockHero')}
+        initialEnabled={config.hero.enabled}
+        initialData={config.hero as unknown as Record<string, unknown>}
+        fields={[
+          { path: 'image', label: 'fImage', type: 'image' },
+          { path: 'badge', label: 'fBadge', type: 'text', localized: true },
+          { path: 'title', label: 'fTitle', type: 'text', localized: true },
+          { path: 'subtitle', label: 'fSubtitle', type: 'textarea', localized: true },
+          { path: 'cta', label: 'fCta', type: 'text', localized: true },
+        ]}
+      />
+
+      {/* Icon boxes */}
+      <HomeBlockEditor
+        blockKey='iconBoxes'
+        title={t('blockIconBoxes')}
+        initialEnabled={config.iconBoxes.enabled}
+        initialData={config.iconBoxes as unknown as Record<string, unknown>}
+        fields={[0, 1, 2, 3].flatMap((i): BlockField[] => [
+          { path: `items.${i}.icon`, label: `fIconBoxIcon`, type: 'text', options: ICON_OPTIONS },
+          { path: `items.${i}.title`, label: `fIconBoxTitle${i + 1}`, type: 'text', localized: true },
+          { path: `items.${i}.desc`, label: `fIconBoxDesc${i + 1}`, type: 'textarea', localized: true },
+        ])}
+      />
+
+      {/* Deal of the day */}
+      <HomeBlockEditor
+        blockKey='deal'
+        title={t('blockDeal')}
+        initialEnabled={config.deal.enabled}
+        initialData={config.deal as unknown as Record<string, unknown>}
+        fields={[
+          { path: 'productId', label: 'fProduct', type: 'text', options: productOptions },
+          { path: 'badge', label: 'fBadge', type: 'text', localized: true },
+        ]}
+      />
+
+      {/* Stats */}
+      <HomeBlockEditor
+        blockKey='stats'
+        title={t('blockStats')}
+        initialEnabled={config.stats.enabled}
+        initialData={config.stats as unknown as Record<string, unknown>}
+        fields={[
+          { path: 'labels.products', label: 'fStatProducts', type: 'text', localized: true },
+          { path: 'labels.orders', label: 'fStatOrders', type: 'text', localized: true },
+          { path: 'labels.customers', label: 'fStatCustomers', type: 'text', localized: true },
+        ]}
+      />
+
+      {/* Category grid */}
+      <HomeBlockEditor
+        blockKey='categoryGrid'
+        title={t('blockCategoryGrid')}
+        initialEnabled={config.categoryGrid.enabled}
+        initialData={config.categoryGrid as unknown as Record<string, unknown>}
+        fields={[
+          { path: 'title', label: 'fTitle', type: 'text', localized: true },
+        ]}
+      />
+
+      {/* Latest products */}
+      <HomeBlockEditor
+        blockKey='latest'
+        title={t('blockLatest')}
+        initialEnabled={config.latest.enabled}
+        initialData={config.latest as unknown as Record<string, unknown>}
+        fields={[
+          { path: 'title', label: 'fTitle', type: 'text', localized: true },
+          { path: 'limit', label: 'fLimit', type: 'number' },
+        ]}
+      />
+
+      {/* Featured products */}
+      <HomeBlockEditor
+        blockKey='featured'
+        title={t('blockFeatured')}
+        initialEnabled={config.featured.enabled}
+        initialData={config.featured as unknown as Record<string, unknown>}
+        fields={[
+          { path: 'title', label: 'fTitle', type: 'text', localized: true },
+          { path: 'limit', label: 'fLimit', type: 'number' },
+        ]}
+      />
+
+      {/* Brands marquee */}
+      <HomeBlockEditor
+        blockKey='brands'
+        title={t('blockBrands')}
+        initialEnabled={config.brands.enabled}
+        initialData={config.brands as unknown as Record<string, unknown>}
+        fields={[
+          { path: 'title', label: 'fTitle', type: 'text', localized: true },
+        ]}
+      />
+
+      {/* Support CTA */}
+      <HomeBlockEditor
+        blockKey='support'
+        title={t('blockSupport')}
+        initialEnabled={config.support.enabled}
+        initialData={config.support as unknown as Record<string, unknown>}
+        fields={[
+          { path: 'title', label: 'fTitle', type: 'text', localized: true },
+          { path: 'desc', label: 'fDescription', type: 'textarea', localized: true },
+          { path: 'cta', label: 'fCta', type: 'text', localized: true },
+        ]}
+      />
+    </div>
+  );
+};
+
+export default AdminHomepagePage;

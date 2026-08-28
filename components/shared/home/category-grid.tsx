@@ -17,7 +17,7 @@ const PALETTES = [
 ];
 
 // "Shop by category" grid linking to the /category pages
-const CategoryGrid = async () => {
+const CategoryGrid = async ({ title: titleOverride }: { title?: string }) => {
   const t = await getTranslations('home');
   const locale = await getLocale();
   const isFa = locale === 'fa';
@@ -28,7 +28,7 @@ const CategoryGrid = async () => {
   return (
     <section className='space-y-4'>
       <div className='flex-between'>
-        <h2 className='h2-bold'>{t('shopByCategory')}</h2>
+        <h2 className='h2-bold'>{titleOverride ?? t('shopByCategory')}</h2>
       </div>
 
       <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4'>
