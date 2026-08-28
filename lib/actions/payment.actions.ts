@@ -1,6 +1,4 @@
-'use server';
-
-import { getLocale } from 'next-intl/server';
+﻿'use server';
 
 import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
@@ -34,10 +32,8 @@ export async function createZarinpalPayment(orderId: string) {
       return { success: false, message: 'Not a ZarinPal order' };
     }
 
-    const locale = ((await getLocale()) as 'fa' | 'en') ?? 'fa';
-
     // Build the callback URL ZarinPal will redirect the user back to.
-    const callback_url = `${APP_BASE_URL}/api/zarinpal/callback?locale=${locale}&orderId=${order.id}`;
+    const callback_url = `${APP_BASE_URL}/api/zarinpal/callback?orderId=${order.id}`;
 
     const description = `سفارش ${order.id} / Panah Kala Shop`;
 
@@ -79,17 +75,16 @@ export async function verifyZarinpalPayment(params: {
   orderId: string;
   authority: string;
   status: string;
-  locale: string;
 }) {
-  const { orderId, authority, status, locale } = params;
+  const { orderId, authority, status } = params;
   try {
     const order = await getOrderById(orderId);
     if (!order) {
-      return { redirectTo: `/${locale}/order/${orderId}`, success: false as const };
+      return { redirectTo: `/order/${orderId}`, success: false as const };
     }
 
     const base = {
-      redirectTo: `/${locale}/order/${orderId}`,
+      redirectTo: `/order/${orderId}`,
     };
 
     // User cancelled / payment not completed on the gateway
@@ -136,7 +131,7 @@ export async function verifyZarinpalPayment(params: {
     return { ...base, success: false as const };
   } catch {
     return {
-      redirectTo: `/${locale}/order/${orderId}`,
+      redirectTo: `/order/${orderId}`,
       success: false as const,
     };
   }

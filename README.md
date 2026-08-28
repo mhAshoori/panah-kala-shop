@@ -2,9 +2,10 @@
 
 A production-oriented, bilingual (Persian/English) e-commerce storefront built with Next.js 16, adapted from the [next-ecom-prostore](https://github.com/mammad-linuxer/next-ecom-prostore) roadmap for the Iranian market.
 
-- **Default language:** Persian (`fa`, RTL) with English (`en`) — sub-path routing `/fa/...`, `/en/...`
+- **Single-URL site** (no locale prefixes) — Persian is the default display language, stored in the database and switchable **only by admins** from the dashboard
 - **Payments:** [ZarinPal](https://www.zarinpal.com/docs/) online gateway + Cash on Delivery (PayPal/Stripe intentionally skipped)
 - **Currency:** Toman in the UI, IRR (×10) in structured data per schema.org requirements
+- **Fonts:** self-hosted Shabnam (Persian) + Inter (Latin)
 - **Themes:** Light (porcelain + Persian turquoise) and dark (graphite black-grey combo)
 
 ## Stack
@@ -64,8 +65,8 @@ Open http://localhost:3000 (redirects to `/fa`).
 - ZarinPal sandbox payment + cash on delivery, order history, order detail with payment status/reference
 - Ratings & reviews (one review per user per product, auto-recalculated averages)
 - Admin dashboard: sales overview + chart, orders (deliver/delete), products CRUD, users (role management)
-- SEO for the Persian market: hreflang (`fa-IR`/`en-US`), canonical, sitemap.xml, robots.txt (Google/Yandex/Bing), Product/Organization/Breadcrumb JSON-LD, geo meta tags, PWA manifest
-- Security headers, localized error boundaries, global error page
+- SEO for the Persian market: canonical URLs, sitemap.xml, robots.txt (Google/Yandex/Bing), Product/Organization/Breadcrumb JSON-LD, geo meta tags, PWA manifest
+- Security headers, localized error boundaries, global error page, top progress bar on navigation
 
 ## Production notes
 

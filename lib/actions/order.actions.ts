@@ -1,7 +1,6 @@
 'use server';
 
-import { getLocale } from 'next-intl/server';
-import { formatError, withLocalePath } from '../utils';
+import { formatError } from '../utils';
 import { auth } from '@/auth';
 import { getMyCart } from './cart.actions';
 import { getUserById } from './user.actions';
@@ -105,12 +104,10 @@ export async function createOrder() {
       );
     }
 
-    const locale = await getLocale();
-
     return {
       success: true,
       message: 'Order successfully created',
-      redirectTo: withLocalePath(`/order/${insertedOrderId}`, locale),
+      redirectTo: `/order/${insertedOrderId}`,
     };
   } catch (error) {
     return { success: false, message: formatError(error) };

@@ -1,11 +1,10 @@
-import createMiddleware from 'next-intl/middleware';
-import { routing } from './i18n/routing';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
-const handleI18nRouting = createMiddleware(routing);
-
+// The next-intl middleware is intentionally not used: the app has a single
+// set of unprefixed routes and the language is resolved server-side from
+// the DB (admin-controlled). This proxy only assigns session cart ids.
 export default function proxy(request: NextRequest) {
-  const response = handleI18nRouting(request);
+  const response = NextResponse.next();
 
   // Ensure every visitor has a session cart id so server actions can
   // associate carts with the current visitor (anonymous or signed in).

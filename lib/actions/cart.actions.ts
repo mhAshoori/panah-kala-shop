@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
@@ -9,12 +9,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { Prisma } from '@/lib/generated/prisma/client';
 import { cartItemSchema, insertCartSchema } from '../validator';
-import {
-  convertToPlainObject,
-  formatError,
-  round2,
-  withLocalePath,
-} from '../utils';
+import { convertToPlainObject, formatError, round2 } from '../utils';
 import {
   FREE_SHIPPING_THRESHOLD,
   SHIPPING_FLAT_RATE,
@@ -195,7 +190,7 @@ export async function addItemToCart(data: CartItem) {
     }
 
     // Revalidate localized product page (header badge refreshes too)
-    revalidatePath(withLocalePath(`/product/${product.slug}`, locale));
+    revalidatePath(`/product/${product.slug}`);
 
     return { success: true, message: await msg(messageKey, displayName) };
   } catch (error) {
@@ -244,7 +239,7 @@ export async function removeItemFromCart(productId: string) {
     await saveCart({ sessionCartId, existingCartId: cart.id, items });
 
     // Revalidate localized product page
-    revalidatePath(withLocalePath(`/product/${product.slug}`, locale));
+    revalidatePath(`/product/${product.slug}`);
 
     return {
       success: true,

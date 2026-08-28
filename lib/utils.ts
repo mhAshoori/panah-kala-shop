@@ -98,12 +98,3 @@ export function formatDateTime(dateString: Date | string) {
     timeOnly: d.toLocaleString('en-US', timeOptions),
   };
 }
-
-// Prefix an internal path with the active locale unless it is already prefixed or absolute
-export function withLocalePath(path: string, locale: string): string {
-  if (/^https?:\/\//i.test(path)) return path;
-  const clean = path.startsWith('/') ? path : `/${path}`;
-  if (clean.startsWith(`/${locale}/`) || clean === `/${locale}`) return clean;
-  const suffix = clean === '/' ? '' : clean;
-  return `/${locale}${suffix}`;
-}

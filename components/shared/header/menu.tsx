@@ -8,7 +8,6 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet';
 import ModeToggle from './mode-toggle';
-import LanguageToggle from './language-toggle';
 import UserButton from './user-button';
 import CartButton from './cart-button';
 import SearchBar from './search';
@@ -20,7 +19,6 @@ const Menu = () => {
     <div className="flex justify-end gap-3">
       <nav className="md:flex hidden w-full max-w-xs items-center gap-1">
         <ModeToggle />
-        <LanguageToggle />
         <CartButton />
         <UserButton />
       </nav>
@@ -35,7 +33,6 @@ const Menu = () => {
               <SearchBar />
             </div>
             <ModeToggle />
-            <LanguageToggle />
             <CartButton />
             <UserButton />
             <SheetDescription className="sr-only">{t('menu')}</SheetDescription>

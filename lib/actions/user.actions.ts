@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { redirect } from 'next/navigation';
 import { auth, signIn, signOut } from '@/auth';
@@ -16,7 +16,7 @@ import {
   updateProfileSchema,
   updateUserSchema,
 } from '../validator';
-import { formatError, withLocalePath } from '../utils';
+import { formatError } from '../utils';
 import { PAGE_SIZE } from '../constants';
 import { requireAdmin } from '../auth-guard';
 import type { ActionState, ShippingAddress } from '@/types';
@@ -175,9 +175,7 @@ export async function signInWithCredentials(
   formData: FormData
 ): Promise<ActionState> {
   const callbackUrl = formData.get('callbackUrl')?.toString() || '/';
-  let locale = 'fa';
   try {
-    locale = await getLocale();
 
     const parsed = signInFormSchema.safeParse({
       email: formData.get('email'),
@@ -201,7 +199,7 @@ export async function signInWithCredentials(
     if (isNextRedirectError(error)) throw error;
     return { success: false, message: formatError(error) };
   }
-  redirect(withLocalePath(callbackUrl, locale));
+  redirect(callbackUrl);
 }
 
 // Sign user out
@@ -300,9 +298,7 @@ export async function signUpUser(
   formData: FormData
 ): Promise<ActionState> {
   const callbackUrl = formData.get('callbackUrl')?.toString() || '/';
-  let locale = 'fa';
   try {
-    locale = await getLocale();
 
     const parsed = signUpFormSchema.safeParse({
       name: formData.get('name'),
@@ -322,11 +318,11 @@ export async function signUpUser(
     const ok = await establishCredentialsSession(email, password);
     if (!ok) {
       // Account exists but auto sign-in failed — send to sign-in page.
-      redirect(withLocalePath(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`, locale));
+      redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
     }
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
     return { success: false, message: formatError(error) };
   }
-  redirect(withLocalePath(callbackUrl, locale));
+  redirect(callbackUrl);
 }

@@ -1,14 +1,13 @@
 'use client';
 
 import { useTransition } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 // Native select that pushes the chosen sort into the URL
 const SortDropdown = () => {
   const t = useTranslations('search');
-  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -25,7 +24,7 @@ const SortDropdown = () => {
     params.delete('page');
     const qs = params.toString();
     startTransition(() => {
-      router.push(`/${locale}/search${qs ? `?${qs}` : ''}`);
+      router.push(`/search${qs ? `?${qs}` : ''}`);
     });
   };
 

@@ -1,5 +1,4 @@
-import { routing } from '@/i18n/routing';
-
+﻿
 // Absolute site URL used for metadata, sitemap and structured data
 export function getSiteUrl(): string {
   return (
@@ -8,17 +7,12 @@ export function getSiteUrl(): string {
   );
 }
 
-// hreflang alternates for any internal path (both locales + x-default = fa)
+// Canonical for any internal path (single-URL site; locale lives server-side)
 export function buildAlternates(path: string) {
   const base = getSiteUrl();
-  const clean = path === '/' ? '' : `/${path.replace(/^\//, '')}`;
+  const clean = path === '/' ? '/' : `/${path.replace(/^\//, '')}`;
   return {
-    canonical: `${base}/fa${clean}`,
-    languages: {
-      'fa-IR': `${base}/fa${clean}`,
-      'en-US': `${base}/en${clean}`,
-      'x-default': `${base}/fa${clean}`,
-    },
+    canonical: `${base}${clean}`,
   };
 }
 
@@ -29,7 +23,7 @@ export function organizationJsonLd() {
     '@type': 'Organization',
     name: 'پناه کالا',
     alternateName: 'Panah Kala',
-    url: `${getSiteUrl()}/fa`,
+    url: getSiteUrl(),
     logo: `${getSiteUrl()}/images/logo.svg`,
     contactPoint: {
       '@type': 'ContactPoint',
@@ -46,13 +40,13 @@ export function websiteJsonLd(locale: string) {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: locale === 'fa' ? 'فروشگاه پناه کالا' : 'Panah Kala Shop',
-    url: `${getSiteUrl()}/${locale}`,
+    url: getSiteUrl(),
     inLanguage: locale === 'fa' ? 'fa-IR' : 'en-US',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: `${getSiteUrl()}/${locale}/search?q={search_term_string}`,
+        urlTemplate: `${getSiteUrl()}/search?q={search_term_string}`,
       },
       'query-input': 'required name=search_term_string',
     },
@@ -104,7 +98,7 @@ export function productJsonLd(product: {
         product.stock > 0
           ? 'https://schema.org/InStock'
           : 'https://schema.org/OutOfStock',
-      url: `${base}/${locale}/product/${product.slug}`,
+      url: `${base}/product/${product.slug}`,
       seller: { '@type': 'Organization', name: 'پناه کالا' },
     },
     inLanguage: locale === 'fa' ? 'fa-IR' : 'en-US',
@@ -125,4 +119,3 @@ export function breadcrumbJsonLd(items: { name: string; url: string }[]) {
   };
 }
 
-export const ALL_LOCALES = routing.locales;

@@ -142,3 +142,10 @@ model VerificationToken {
 
   @@id([identifier, token])
 }
+
+// Global site settings (e.g. the site-wide display language)
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
