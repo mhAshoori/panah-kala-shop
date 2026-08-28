@@ -79,7 +79,7 @@ const PaymentMethodForm = ({
                   <label
                     htmlFor={method}
                     dir='rtl'
-                    className='flex w-full cursor-pointer flex-row-reverse items-center justify-between gap-4 rounded-lg border p-4 font-normal hover:bg-muted/50'
+                    className='flex w-full cursor-pointer items-center justify-between gap-4 rounded-lg border p-4 font-normal hover:bg-muted/50'
                   >
                     <span dir='rtl' className='text-right'>
                       <span className='block'>
