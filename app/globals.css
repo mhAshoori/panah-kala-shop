@@ -6,101 +6,105 @@
 
 /*
   Panah Kala Shop — Theme Palette
-  Light: warm porcelain neutrals + Persian turquoise (فیروزه‌ای) primary,
-         amber-gold secondary accents.
-  Dark: graphite / zinc black-grey combo with brightened teal accent.
+  Light: warm paper neutrals (solarized-light vibe, no pure white) with a
+         deep teal primary and amber-gold accents.
+  Dark: One-Dark-Pro-inspired blue-graphite (#282c34 vibe) with cyan-teal
+        primary, purple accent and warm syntax-highlight chart colors.
 */
 
 :root {
   --radius: 0.625rem;
 
-  /* Warm light surfaces */
-  --background: oklch(0.985 0.005 95);
-  --foreground: oklch(0.24 0.02 250);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.02 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.02 250);
+  /* Warm paper surfaces (offset from absolute white) */
+  --background: oklch(0.972 0.007 90);
+  --foreground: oklch(0.26 0.02 250);
+  --card: oklch(0.993 0.004 95);
+  --card-foreground: oklch(0.26 0.02 250);
+  --popover: oklch(0.993 0.004 95);
+  --popover-foreground: oklch(0.26 0.02 250);
 
-  /* Persian turquoise */
-  --primary: oklch(0.62 0.11 195);
-  --primary-foreground: oklch(0.99 0.01 190);
+  /* Deep teal primary (proper contrast on paper) */
+  --primary: oklch(0.55 0.10 195);
+  --primary-foreground: oklch(0.985 0.01 190);
 
-  /* Amber-gold secondary */
-  --secondary: oklch(0.94 0.03 85);
-  --secondary-foreground: oklch(0.35 0.05 70);
+  /* Warm sand secondary */
+  --secondary: oklch(0.93 0.025 85);
+  --secondary-foreground: oklch(0.36 0.05 70);
 
-  --muted: oklch(0.96 0.008 90);
-  --muted-foreground: oklch(0.52 0.02 250);
-  --accent: oklch(0.93 0.04 190);
+  --muted: oklch(0.945 0.009 90);
+  --muted-foreground: oklch(0.50 0.022 250);
+  --accent: oklch(0.92 0.035 190);
   --accent-foreground: oklch(0.35 0.07 200);
 
-  --destructive: oklch(0.58 0.21 27);
-  --destructive-foreground: oklch(0.98 0.01 20);
+  --destructive: oklch(0.55 0.21 27);
+  --destructive-foreground: oklch(0.985 0.01 20);
 
-  --border: oklch(0.91 0.01 90);
-  --input: oklch(0.91 0.01 90);
-  --ring: oklch(0.62 0.11 195);
+  --border: oklch(0.895 0.012 90);
+  --input: oklch(0.885 0.012 90);
+  --ring: oklch(0.55 0.10 195);
 
-  /* Chart colors: turquoise, gold, coral, slate, plum */
-  --chart-1: oklch(0.62 0.11 195);
-  --chart-2: oklch(0.78 0.13 80);
-  --chart-3: oklch(0.66 0.17 30);
-  --chart-4: oklch(0.55 0.06 255);
-  --chart-5: oklch(0.6 0.12 320);
+  /* Chart colors: teal, gold, coral, indigo, plum */
+  --chart-1: oklch(0.55 0.10 195);
+  --chart-2: oklch(0.72 0.13 80);
+  --chart-3: oklch(0.62 0.16 30);
+  --chart-4: oklch(0.52 0.09 265);
+  --chart-5: oklch(0.56 0.12 320);
 
-  --sidebar: oklch(0.97 0.008 95);
-  --sidebar-foreground: oklch(0.24 0.02 250);
-  --sidebar-primary: oklch(0.62 0.11 195);
-  --sidebar-primary-foreground: oklch(0.99 0.01 190);
-  --sidebar-accent: oklch(0.93 0.04 190);
+  --sidebar: oklch(0.955 0.009 90);
+  --sidebar-foreground: oklch(0.26 0.02 250);
+  --sidebar-primary: oklch(0.55 0.10 195);
+  --sidebar-primary-foreground: oklch(0.985 0.01 190);
+  --sidebar-accent: oklch(0.92 0.035 190);
   --sidebar-accent-foreground: oklch(0.35 0.07 200);
-  --sidebar-border: oklch(0.91 0.01 90);
-  --sidebar-ring: oklch(0.62 0.11 195);
+  --sidebar-border: oklch(0.895 0.012 90);
+  --sidebar-ring: oklch(0.55 0.10 195);
 }
 
 .dark {
-  /* Graphite black-grey combo */
-  --background: oklch(0.165 0.006 260);
-  --foreground: oklch(0.93 0.005 260);
-  --card: oklch(0.21 0.007 260);
-  --card-foreground: oklch(0.93 0.005 260);
-  --popover: oklch(0.23 0.008 260);
-  --popover-foreground: oklch(0.93 0.005 260);
+  /* One Dark Pro vibe: blue-graphite, never absolute black */
+  --background: oklch(0.215 0.018 262);
+  --foreground: oklch(0.91 0.008 250);
+  --card: oklch(0.245 0.018 262);
+  --card-foreground: oklch(0.91 0.008 250);
+  --popover: oklch(0.262 0.018 262);
+  --popover-foreground: oklch(0.91 0.008 250);
 
-  /* Brightened teal accent on dark */
-  --primary: oklch(0.74 0.12 185);
-  --primary-foreground: oklch(0.16 0.02 220);
+  /* Cyan-teal primary (#56b6c2 vibe) */
+  --primary: oklch(0.77 0.115 190);
+  --primary-foreground: oklch(0.18 0.03 240);
 
-  --secondary: oklch(0.27 0.01 260);
+  --secondary: oklch(0.30 0.02 260);
   --secondary-foreground: oklch(0.88 0.008 260);
 
-  --muted: oklch(0.25 0.008 260);
-  --muted-foreground: oklch(0.66 0.01 260);
-  --accent: oklch(0.29 0.02 210);
-  --accent-foreground: oklch(0.9 0.03 190);
+  --muted: oklch(0.27 0.018 262);
+  --muted-foreground: oklch(0.66 0.012 255);
 
-  --destructive: oklch(0.68 0.19 25);
-  --destructive-foreground: oklch(0.14 0.02 25);
+  /* Purple accent (#c678dd vibe) */
+  --accent: oklch(0.62 0.13 295);
+  --accent-foreground: oklch(0.95 0.02 300);
 
-  --border: oklch(0.29 0.008 260);
-  --input: oklch(0.31 0.008 260);
-  --ring: oklch(0.74 0.12 185);
+  --destructive: oklch(0.66 0.19 22);
+  --destructive-foreground: oklch(0.15 0.02 22);
 
-  --chart-1: oklch(0.72 0.12 185);
-  --chart-2: oklch(0.82 0.13 82);
-  --chart-3: oklch(0.7 0.16 30);
-  --chart-4: oklch(0.68 0.06 255);
-  --chart-5: oklch(0.7 0.12 320);
+  --border: oklch(0.305 0.018 262);
+  --input: oklch(0.325 0.018 262);
+  --ring: oklch(0.77 0.115 190);
 
-  --sidebar: oklch(0.19 0.007 260);
-  --sidebar-foreground: oklch(0.93 0.005 260);
-  --sidebar-primary: oklch(0.74 0.12 185);
-  --sidebar-primary-foreground: oklch(0.16 0.02 220);
-  --sidebar-accent: oklch(0.29 0.02 210);
-  --sidebar-accent-foreground: oklch(0.9 0.03 190);
-  --sidebar-border: oklch(0.29 0.008 260);
-  --sidebar-ring: oklch(0.74 0.12 185);
+  /* Syntax-highlight chart palette: cyan, gold, purple, green, orange */
+  --chart-1: oklch(0.77 0.115 190);
+  --chart-2: oklch(0.83 0.12 85);
+  --chart-3: oklch(0.70 0.13 300);
+  --chart-4: oklch(0.78 0.13 140);
+  --chart-5: oklch(0.75 0.10 60);
+
+  --sidebar: oklch(0.235 0.018 262);
+  --sidebar-foreground: oklch(0.91 0.008 250);
+  --sidebar-primary: oklch(0.77 0.115 190);
+  --sidebar-primary-foreground: oklch(0.18 0.03 240);
+  --sidebar-accent: oklch(0.62 0.13 295);
+  --sidebar-accent-foreground: oklch(0.95 0.02 300);
+  --sidebar-border: oklch(0.305 0.018 262);
+  --sidebar-ring: oklch(0.77 0.115 190);
 }
 
 @theme inline {
