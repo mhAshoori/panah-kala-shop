@@ -9,6 +9,7 @@ import { insertOrderSchema } from '../validator';
 import { PAGE_SIZE } from '../constants';
 import { prisma } from '@/db/prisma';
 import { CartItem, Order } from '@/types';
+import { sendOrderReceipt } from '../email/order-receipt';
 
 // Create an order from the current cart (transactional, decrements stock)
 export async function createOrder() {
@@ -89,6 +90,20 @@ export async function createOrder() {
     });
 
     if (!insertedOrderId) throw new Error('Order not created');
+
+    // Fire-and-forget order receipt email (never breaks checkout)
+    const insertedOrder = await prisma.order.findFirst({
+      where: { id: insertedOrderId },
+      include: {
+        orderItems: true,
+        user: { select: { name: true, email: true } },
+      },
+    });
+    if (insertedOrder) {
+      await sendOrderReceipt(
+        JSON.parse(JSON.stringify(insertedOrder)) as Order
+      );
+    }
 
     const locale = await getLocale();
 

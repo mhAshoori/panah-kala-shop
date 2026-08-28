@@ -259,6 +259,8 @@
     "next": "Next",
     "previous": "Previous",
     "notFound": "The page you requested was not found",
+    "errorHint": "Please try again. If the problem persists, contact support.",
+    "retry": "Try Again",
     "currency": "Toman",
     "rials": "Rials",
     "price": "Price",
