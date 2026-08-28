@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import ProductPrice from '@/components/product/product-price';
@@ -9,6 +10,39 @@ import { Card, CardContent } from '@/components/ui/card';
 import { getProductBySlug } from '@/lib/actions/product.actions';
 import { getMyCart } from '@/lib/actions/cart.actions';
 import { Badge } from '@/components/ui/badge';
+import {
+  breadcrumbJsonLd,
+  buildAlternates,
+  getSiteUrl,
+  productJsonLd,
+} from '@/lib/seo';
+
+export async function generateMetadata(props: {
+  params: Promise<{ slug: string; locale: string }>;
+}): Promise<Metadata> {
+  const { slug, locale } = await props.params;
+  const product = await getProductBySlug(slug);
+  if (!product) return {};
+
+  const name = locale === 'fa' ? product.nameFa : product.name;
+  const description = locale === 'fa' ? product.descriptionFa : product.description;
+  const siteUrl = getSiteUrl();
+
+  return {
+    title: name,
+    description: description.slice(0, 160),
+    alternates: buildAlternates(`/product/${slug}`),
+    openGraph: {
+      type: 'website',
+      title: name,
+      description: description.slice(0, 160),
+      url: `${siteUrl}/${locale}/product/${slug}`,
+      images: product.images[0]
+        ? [{ url: product.images[0], alt: name }]
+        : undefined,
+    },
+  };
+}
 
 const ProductDetailsPage = async (props: {
   params: Promise<{ slug: string; locale: string }>;
@@ -23,8 +57,24 @@ const ProductDetailsPage = async (props: {
   // Load the visitor's cart so AddToCart can show +/- controls
   const cart = await getMyCart();
 
+  const categoryName = isFa ? product.categoryFa : product.category;
+  const jsonLd = productJsonLd(product, locale);
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: isFa ? 'خانه' : 'Home', url: `${getSiteUrl()}/${locale}` },
+    { name: categoryName, url: `${getSiteUrl()}/${locale}/search?category=${encodeURIComponent(product.category)}` },
+    { name: isFa ? product.nameFa : product.name, url: `${getSiteUrl()}/${locale}/product/${product.slug}` },
+  ]);
+
   return (
     <section>
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
+      />
       <div className="grid grid-cols-1 md:grid-cols-5">
         {/* Images Column */}
         <div className="col-span-2">
