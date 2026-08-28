@@ -1,22 +1,39 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const Pagination = ({ page, totalPages }: { page: number; totalPages: number }) => {
+const Pagination = ({
+  page,
+  totalPages,
+  query,
+}: {
+  page: number;
+  totalPages: number;
+  /** Optional search query to preserve across pages */
+  query?: string;
+}) => {
   const t = useTranslations('common');
+  const pathname = usePathname();
 
   if (totalPages <= 1) return null;
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
+  const hrefFor = (p: number) => {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    params.set('page', String(p));
+    return `${pathname}?${params.toString()}`;
+  };
+
   return (
     <nav className='flex items-center justify-center gap-1 pt-4' aria-label='Pagination'>
       {page > 1 && (
         <Link
-          href={`/user/orders?page=${page - 1}`}
+          href={hrefFor(page - 1)}
           className='inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm hover:bg-muted'
           aria-label={t('previous')}
         >
@@ -27,7 +44,7 @@ const Pagination = ({ page, totalPages }: { page: number; totalPages: number }) 
       {pages.map((p) => (
         <Link
           key={p}
-          href={`/user/orders?page=${p}`}
+          href={hrefFor(p)}
           className={cn(
             'inline-flex h-9 w-9 items-center justify-center rounded-md text-sm',
             p === page
@@ -41,7 +58,7 @@ const Pagination = ({ page, totalPages }: { page: number; totalPages: number }) 
 
       {page < totalPages && (
         <Link
-          href={`/user/orders?page=${page + 1}`}
+          href={hrefFor(page + 1)}
           className='inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm hover:bg-muted'
           aria-label={t('next')}
         >

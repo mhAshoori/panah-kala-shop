@@ -15,6 +15,7 @@ import { SignOutUser } from '@/lib/actions/user.actions';
 const UserButton = async () => {
   const session = await auth();
   const t = await getTranslations('header');
+  const tAdmin = await getTranslations('admin');
 
   if (!session)
     return (
@@ -60,6 +61,13 @@ const UserButton = async () => {
               {t('myOrders')}
             </Link>
           </DropdownMenuItem>
+          {session.user?.role === 'admin' && (
+            <DropdownMenuItem asChild>
+              <Link href="/admin" className="w-full">
+                {tAdmin('dashboard')}
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem className='p-0 mb-1'>
             <form action={SignOutUser} className='w-full'>

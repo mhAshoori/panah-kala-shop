@@ -176,7 +176,17 @@
     "editProduct": "ویرایش محصول",
     "delete": "حذف",
     "edit": "ویرایش",
-    "search": "جستجو"
+    "search": "جستجو",
+    "searchPlaceholder": "جستجو بر اساس نام یا ایمیل کاربر",
+    "user": "کاربر",
+    "markDelivered": "ثبت تحویل",
+    "deleteOrderConfirm": "آیا از حذف این سفارش مطمئن هستید؟",
+    "orderDelivered": "سفارش به عنوان تحویل‌شده ثبت شد",
+    "orderDeleted": "سفارش با موفقیت حذف شد",
+    "monthlySales": "فروش ماهانه (۶ ماه گذشته)",
+    "latestSales": "آخرین فروش‌ها",
+    "paid": "پرداخت شده",
+    "noSalesYet": "هنوز فروشی ثبت نشده است"
   },
   "common": {
     "loading": "در حال بارگذاری...",
