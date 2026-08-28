@@ -20,6 +20,7 @@ const validProduct = {
   images: ['/images/test.jpg'],
   isFeatured: false,
   banner: null,
+  codAvailable: false,
   price: '50000000.00',
 };
 
