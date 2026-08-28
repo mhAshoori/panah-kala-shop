@@ -128,6 +128,7 @@
     "zarinpalDesc": "Secure payment with all Shetab cards",
     "cashOnDelivery": "Cash on Delivery",
     "codDesc": "Pay when your order is delivered",
+    "cod": "Cash on Delivery",
     "orderSummary": "Order Summary",
     "steps": {
       "shipping": "Shipping",

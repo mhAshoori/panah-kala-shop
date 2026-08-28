@@ -11,31 +11,34 @@ import ModeToggle from './mode-toggle';
 import UserButton from './user-button';
 import CartButton from './cart-button';
 import SearchBar from './search';
+import { CategoryList } from './category-menu';
+import type { DockCategory } from '@/components/shared/category/category-dock';
 
-const Menu = () => {
+const Menu = ({ categories }: { categories: DockCategory[] }) => {
   const t = useTranslations('header');
 
   return (
-    <div className="flex justify-end gap-3">
-      <nav className="md:flex hidden w-full max-w-xs items-center gap-1">
+    <div className='flex justify-end gap-3'>
+      <nav className='md:flex hidden w-full max-w-xs items-center gap-1'>
         <ModeToggle />
         <CartButton />
         <UserButton />
       </nav>
-      <nav className="md:hidden">
+      <nav className='md:hidden'>
         <Sheet>
-          <SheetTrigger className="align-middle" aria-label={t('menu')}>
+          <SheetTrigger className='align-middle' aria-label={t('menu')}>
             <EllipsisVertical />
           </SheetTrigger>
-          <SheetContent className="flex flex-col items-start gap-3">
+          <SheetContent className='flex flex-col items-start gap-4 overflow-y-auto'>
             <SheetTitle>{t('menu')}</SheetTitle>
-            <div className="w-full">
+            <div className='w-full'>
               <SearchBar />
             </div>
+            <CategoryList categories={categories} />
             <ModeToggle />
             <CartButton />
             <UserButton />
-            <SheetDescription className="sr-only">{t('menu')}</SheetDescription>
+            <SheetDescription className='sr-only'>{t('menu')}</SheetDescription>
           </SheetContent>
         </Sheet>
       </nav>
