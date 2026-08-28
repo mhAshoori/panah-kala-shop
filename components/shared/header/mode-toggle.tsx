@@ -34,8 +34,12 @@ const ModeToggle = () => {
           <MoonIcon className='hidden dark:block' />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent dir={dir} className='text-right' align='end'>
-        <DropdownMenuLabel dir={dir}>{t('theme')}</DropdownMenuLabel>
+      <DropdownMenuContent
+        className='text-right'
+        align='end'
+        style={{ direction: dir }}
+      >
+        <DropdownMenuLabel>{t('theme')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuCheckboxItem
           checked={theme === 'system'}
