@@ -79,6 +79,13 @@ export const updateProfileSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
 
+// Update user schema (admin)
+export const updateUserSchema = z.object({
+  id: z.string().min(1, 'Id is required'),
+  name: z.string().min(3, 'Name must be at least 3 characters'),
+  role: z.enum(['user', 'admin']),
+});
+
 // Shipping address
 export const shippingAddressSchema = z.object({
   fullName: z.string().min(3, 'Name must be at least 3 characters'),

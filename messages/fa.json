@@ -208,9 +208,15 @@
     "banner": "تصویر بنر",
     "descriptionEn": "توضیحات (انگلیسی)",
     "descriptionFa": "توضیحات (فارسی)",
-    "deleteProductConfirm": "آیا از حذف این محصول مطمئن هستید؟"
+    "deleteProductConfirm": "آیا از حذف این محصول مطمئن هستید؟",
+    "editUser": "ویرایش کاربر",
+    "name": "نام",
+    "role": "نقش",
+    "createdAt": "تاریخ عضویت",
+    "userDeleted": "کاربر با موفقیت حذف شد"
   },
   "common": {
+    "email": "ایمیل",
     "loading": "در حال بارگذاری...",
     "error": "خطایی رخ داد",
     "success": "با موفقیت انجام شد",

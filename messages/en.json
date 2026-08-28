@@ -208,9 +208,15 @@
     "banner": "Banner Image",
     "descriptionEn": "Description (English)",
     "descriptionFa": "Description (Persian)",
-    "deleteProductConfirm": "Are you sure you want to delete this product?"
+    "deleteProductConfirm": "Are you sure you want to delete this product?",
+    "editUser": "Edit User",
+    "name": "Name",
+    "role": "Role",
+    "createdAt": "Created At",
+    "userDeleted": "User deleted successfully"
   },
   "common": {
+    "email": "Email",
     "loading": "Loading...",
     "error": "Something went wrong",
     "success": "Done successfully",
