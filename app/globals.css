@@ -6,105 +6,105 @@
 
 /*
   Panah Kala Shop — Theme Palette
-  Light: warm paper neutrals (solarized-light vibe, no pure white) with a
-         deep teal primary and amber-gold accents.
-  Dark: One-Dark-Pro-inspired blue-graphite (#282c34 vibe) with cyan-teal
-        primary, purple accent and warm syntax-highlight chart colors.
+  Light: Prisma.io-inspired cool gray-white surfaces with deep navy-ink text
+         and dark navy-blue primary actions (no absolute white).
+  Dark: deep navy with a dodger-blue primary (#1e90ff vibe) and cyan accents.
 */
 
 :root {
   --radius: 0.625rem;
 
-  /* Warm paper surfaces (offset from absolute white) */
-  --background: oklch(0.972 0.007 90);
-  --foreground: oklch(0.26 0.02 250);
-  --card: oklch(0.993 0.004 95);
-  --card-foreground: oklch(0.26 0.02 250);
-  --popover: oklch(0.993 0.004 95);
-  --popover-foreground: oklch(0.26 0.02 250);
+  /* Cool gray-blue paper (offset from absolute white) */
+  --background: oklch(0.972 0.007 235);
+  --foreground: oklch(0.24 0.035 255);
+  --card: oklch(0.99 0.004 235);
+  --card-foreground: oklch(0.24 0.035 255);
+  --popover: oklch(0.99 0.004 235);
+  --popover-foreground: oklch(0.24 0.035 255);
 
-  /* Deep teal primary (proper contrast on paper) */
-  --primary: oklch(0.55 0.10 195);
-  --primary-foreground: oklch(0.985 0.01 190);
+  /* Prisma-style deep navy primary buttons */
+  --primary: oklch(0.42 0.09 250);
+  --primary-foreground: oklch(0.98 0.005 240);
 
-  /* Warm sand secondary */
-  --secondary: oklch(0.93 0.025 85);
-  --secondary-foreground: oklch(0.36 0.05 70);
+  --secondary: oklch(0.93 0.012 240);
+  --secondary-foreground: oklch(0.33 0.04 250);
 
-  --muted: oklch(0.945 0.009 90);
-  --muted-foreground: oklch(0.50 0.022 250);
-  --accent: oklch(0.92 0.035 190);
-  --accent-foreground: oklch(0.35 0.07 200);
+  --muted: oklch(0.945 0.009 235);
+  --muted-foreground: oklch(0.47 0.028 252);
+
+  /* Light blue accent tint */
+  --accent: oklch(0.90 0.035 235);
+  --accent-foreground: oklch(0.33 0.07 245);
 
   --destructive: oklch(0.55 0.21 27);
   --destructive-foreground: oklch(0.985 0.01 20);
 
-  --border: oklch(0.895 0.012 90);
-  --input: oklch(0.885 0.012 90);
-  --ring: oklch(0.55 0.10 195);
+  --border: oklch(0.895 0.013 240);
+  --input: oklch(0.885 0.013 240);
+  --ring: oklch(0.50 0.14 250);
 
-  /* Chart colors: teal, gold, coral, indigo, plum */
-  --chart-1: oklch(0.55 0.10 195);
-  --chart-2: oklch(0.72 0.13 80);
-  --chart-3: oklch(0.62 0.16 30);
-  --chart-4: oklch(0.52 0.09 265);
-  --chart-5: oklch(0.56 0.12 320);
+  /* Chart colors: navy, cyan, teal, violet, amber */
+  --chart-1: oklch(0.42 0.09 250);
+  --chart-2: oklch(0.68 0.12 220);
+  --chart-3: oklch(0.62 0.11 180);
+  --chart-4: oklch(0.56 0.15 285);
+  --chart-5: oklch(0.72 0.13 80);
 
-  --sidebar: oklch(0.955 0.009 90);
-  --sidebar-foreground: oklch(0.26 0.02 250);
-  --sidebar-primary: oklch(0.55 0.10 195);
-  --sidebar-primary-foreground: oklch(0.985 0.01 190);
-  --sidebar-accent: oklch(0.92 0.035 190);
-  --sidebar-accent-foreground: oklch(0.35 0.07 200);
-  --sidebar-border: oklch(0.895 0.012 90);
-  --sidebar-ring: oklch(0.55 0.10 195);
+  --sidebar: oklch(0.955 0.009 235);
+  --sidebar-foreground: oklch(0.24 0.035 255);
+  --sidebar-primary: oklch(0.42 0.09 250);
+  --sidebar-primary-foreground: oklch(0.98 0.005 240);
+  --sidebar-accent: oklch(0.90 0.035 235);
+  --sidebar-accent-foreground: oklch(0.33 0.07 245);
+  --sidebar-border: oklch(0.895 0.013 240);
+  --sidebar-ring: oklch(0.50 0.14 250);
 }
 
 .dark {
-  /* One Dark Pro vibe: blue-graphite, never absolute black */
-  --background: oklch(0.215 0.018 262);
-  --foreground: oklch(0.91 0.008 250);
-  --card: oklch(0.245 0.018 262);
-  --card-foreground: oklch(0.91 0.008 250);
-  --popover: oklch(0.262 0.018 262);
-  --popover-foreground: oklch(0.91 0.008 250);
+  /* Deep navy base (Prisma dark-docs vibe) */
+  --background: oklch(0.205 0.035 250);
+  --foreground: oklch(0.92 0.012 240);
+  --card: oklch(0.235 0.035 250);
+  --card-foreground: oklch(0.92 0.012 240);
+  --popover: oklch(0.25 0.035 250);
+  --popover-foreground: oklch(0.92 0.012 240);
 
-  /* Cyan-teal primary (#56b6c2 vibe) */
-  --primary: oklch(0.77 0.115 190);
-  --primary-foreground: oklch(0.18 0.03 240);
+  /* Dodger blue primary (#1e90ff vibe) */
+  --primary: oklch(0.68 0.17 252);
+  --primary-foreground: oklch(0.15 0.05 255);
 
-  --secondary: oklch(0.30 0.02 260);
-  --secondary-foreground: oklch(0.88 0.008 260);
+  --secondary: oklch(0.285 0.035 250);
+  --secondary-foreground: oklch(0.88 0.012 245);
 
-  --muted: oklch(0.27 0.018 262);
-  --muted-foreground: oklch(0.66 0.012 255);
+  --muted: oklch(0.255 0.032 250);
+  --muted-foreground: oklch(0.67 0.018 245);
 
-  /* Purple accent (#c678dd vibe) */
-  --accent: oklch(0.62 0.13 295);
-  --accent-foreground: oklch(0.95 0.02 300);
+  /* Cyan-blue accent */
+  --accent: oklch(0.62 0.13 220);
+  --accent-foreground: oklch(0.96 0.02 220);
 
   --destructive: oklch(0.66 0.19 22);
   --destructive-foreground: oklch(0.15 0.02 22);
 
-  --border: oklch(0.305 0.018 262);
-  --input: oklch(0.325 0.018 262);
-  --ring: oklch(0.77 0.115 190);
+  --border: oklch(0.30 0.035 250);
+  --input: oklch(0.32 0.035 250);
+  --ring: oklch(0.68 0.17 252);
 
-  /* Syntax-highlight chart palette: cyan, gold, purple, green, orange */
-  --chart-1: oklch(0.77 0.115 190);
-  --chart-2: oklch(0.83 0.12 85);
-  --chart-3: oklch(0.70 0.13 300);
-  --chart-4: oklch(0.78 0.13 140);
-  --chart-5: oklch(0.75 0.10 60);
+  /* Chart colors: dodger, cyan, teal, violet, amber */
+  --chart-1: oklch(0.68 0.17 252);
+  --chart-2: oklch(0.74 0.12 215);
+  --chart-3: oklch(0.70 0.11 185);
+  --chart-4: oklch(0.66 0.15 285);
+  --chart-5: oklch(0.78 0.13 80);
 
-  --sidebar: oklch(0.235 0.018 262);
-  --sidebar-foreground: oklch(0.91 0.008 250);
-  --sidebar-primary: oklch(0.77 0.115 190);
-  --sidebar-primary-foreground: oklch(0.18 0.03 240);
-  --sidebar-accent: oklch(0.62 0.13 295);
-  --sidebar-accent-foreground: oklch(0.95 0.02 300);
-  --sidebar-border: oklch(0.305 0.018 262);
-  --sidebar-ring: oklch(0.77 0.115 190);
+  --sidebar: oklch(0.225 0.035 250);
+  --sidebar-foreground: oklch(0.92 0.012 240);
+  --sidebar-primary: oklch(0.68 0.17 252);
+  --sidebar-primary-foreground: oklch(0.15 0.05 255);
+  --sidebar-accent: oklch(0.62 0.13 220);
+  --sidebar-accent-foreground: oklch(0.96 0.02 220);
+  --sidebar-border: oklch(0.30 0.035 250);
+  --sidebar-ring: oklch(0.68 0.17 252);
 }
 
 @theme inline {
