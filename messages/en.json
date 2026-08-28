@@ -15,6 +15,9 @@
     "myOrders": "My Orders",
     "language": "Language",
     "theme": "Theme",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
     "categories": "Categories",
     "allCategories": "All Categories"
   },

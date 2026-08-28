@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { LogIn } from 'lucide-react';
 
 import StarRating from './star-rating';
@@ -11,6 +11,7 @@ import {
   getReviewByUserAndProduct,
 } from '@/lib/actions/review.actions';
 import { getValidUserId } from '@/lib/auth-helpers';
+import { formatNumberLocale } from '@/lib/persian';
 
 // Product reviews section: summary, write/edit button and the review list
 const ReviewsSection = async ({
@@ -25,6 +26,7 @@ const ReviewsSection = async ({
   slug: string;
 }) => {
   const t = await getTranslations('review');
+  const locale = await getLocale();
 
   const [reviews, userId] = await Promise.all([
     getReviews(productId),
@@ -55,7 +57,8 @@ const ReviewsSection = async ({
       <div className='flex items-center gap-2'>
         <StarRating value={rating} />
         <span className='text-sm text-muted-foreground'>
-          {rating.toFixed(1)} · {numReviews} {t('count')}
+          {formatNumberLocale(rating.toFixed(1), locale)} ·{' '}
+          {formatNumberLocale(numReviews, locale)} {t('count')}
         </span>
       </div>
 

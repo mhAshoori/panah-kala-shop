@@ -15,6 +15,9 @@
     "myOrders": "سفارش‌های من",
     "language": "زبان",
     "theme": "پوسته",
+    "themeSystem": "پیش‌فرض",
+    "themeLight": "روشن",
+    "themeDark": "تیره",
     "categories": "دسته‌بندی‌ها",
     "allCategories": "همه دسته‌بندی‌ها"
   },

@@ -116,10 +116,13 @@ export async function updateOrderToPaid(orderId: string) {
   if (order.isPaid)
     throw new Error(await withActionMessage('orderAlreadyPaid'));
 
-  return await prisma.order.update({
+  // Return a plain success flag — Prisma Decimals are not serializable
+  // across the Server Action boundary.
+  await prisma.order.update({
     where: { id: orderId },
     data: { isPaid: true, paidAt: new Date() },
   });
+  return { success: true as const };
 }
 
 // Mark a paid order as delivered (step 2 — requires payment first)
@@ -134,10 +137,11 @@ export async function updateOrderToDelivered(orderId: string) {
     throw new Error(await withActionMessage('orderMustBePaid'));
   }
 
-  return await prisma.order.update({
+  await prisma.order.update({
     where: { id: orderId },
     data: { isDelivered: true, deliveredAt: new Date() },
   });
+  return { success: true as const };
 }
 
 // Delete an order by ID (order items cascade)

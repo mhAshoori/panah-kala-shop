@@ -13,6 +13,7 @@ import { getLocale } from 'next-intl/server';
 import { buildAlternates, getSiteUrl } from '@/lib/seo';
 import { Link } from '@/i18n/navigation';
 import Breadcrumbs from '@/components/shared/breadcrumbs';
+import { formatNumberLocale } from '@/lib/persian';
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;
@@ -75,7 +76,7 @@ const CategoryPage = async (props: {
       </div>
 
       <ProductList
-        title={`${t('results')} (${result.data.length})`}
+        title={`${t('results')} (${formatNumberLocale(result.data.length, locale)})`}
         data={result.data}
       />
 

@@ -71,15 +71,17 @@ const PaymentMethodForm = ({
             <RadioGroup
               value={field.value}
               onValueChange={field.onChange}
+              dir='rtl'
               className='gap-4'
             >
               {methods.map((method) => (
                 <Field key={method} orientation='horizontal'>
                   <FieldLabel
                     htmlFor={method}
-                    className='flex w-full items-center justify-between gap-4 rounded-lg border p-4 font-normal cursor-pointer hover:bg-muted/50'
+                    dir='rtl'
+                    className='flex w-full flex-row-reverse items-center justify-between gap-4 rounded-lg border p-4 font-normal cursor-pointer hover:bg-muted/50'
                   >
-                    <span>
+                    <span className='text-start'>
                       {t(methodLabelKey[method] ?? 'checkout.zarinpal')}
                       {method === 'cod' && (
                         <span className='block text-xs text-muted-foreground mt-1'>

@@ -168,6 +168,8 @@ export async function addItemToCart(data: CartItem) {
 
     // Revalidate localized product page (header badge refreshes too)
     revalidatePath(`/product/${product.slug}`);
+    // Refresh the header cart badge everywhere
+    revalidatePath('/', 'layout');
 
     return { success: true, message: await msg(messageKey, displayName) };
   } catch (error) {
@@ -217,6 +219,8 @@ export async function removeItemFromCart(productId: string) {
 
     // Revalidate localized product page
     revalidatePath(`/product/${product.slug}`);
+    // Refresh the header cart badge everywhere
+    revalidatePath('/', 'layout');
 
     return {
       success: true,

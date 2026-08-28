@@ -1,23 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ChevronDown, LayoutGrid } from 'lucide-react';
 
-import {
-  Camera,
-  Gamepad2,
-  Headphones,
-  Laptop,
-  Monitor,
-  Package,
-  Smartphone,
-  Tablet,
-  Watch,
-  type LucideIcon,
-} from 'lucide-react';
-
 import { cn } from '@/lib/utils';
+import { formatNumberLocale } from '@/lib/persian';
+import { getCategoryIcon } from '@/components/shared/category/category-icons';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 
@@ -29,18 +18,6 @@ export type DockCategory = {
   _count: { products: number };
 };
 
-const ICONS: Record<string, LucideIcon> = {
-  smartphone: Smartphone,
-  laptop: Laptop,
-  headphones: Headphones,
-  watch: Watch,
-  tablet: Tablet,
-  camera: Camera,
-  monitor: Monitor,
-  'gamepad-2': Gamepad2,
-  package: Package,
-};
-
 /**
  * Header "Categories" dropdown (mega menu). Opens on hover and on click,
  * closes on outside click / Escape, and lists every category with its icon
@@ -49,6 +26,7 @@ const ICONS: Record<string, LucideIcon> = {
 const CategoryMenu = ({ categories }: { categories: DockCategory[] }) => {
   const t = useTranslations('header');
   const tCategory = useTranslations('category');
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -110,7 +88,7 @@ const CategoryMenu = ({ categories }: { categories: DockCategory[] }) => {
         </p>
         <div className='grid grid-cols-2 gap-1'>
           {categories.map((c) => {
-            const Icon = ICONS[c.icon] ?? Package;
+            const Icon = getCategoryIcon(c.icon);
             return (
               <Link
                 key={c.slug}
@@ -127,7 +105,7 @@ const CategoryMenu = ({ categories }: { categories: DockCategory[] }) => {
                     {c.nameFa}
                   </span>
                   <span className='block text-xs text-muted-foreground'>
-                    {c._count.products}
+                    {formatNumberLocale(c._count.products, locale)}
                   </span>
                 </span>
               </Link>
@@ -142,6 +120,7 @@ const CategoryMenu = ({ categories }: { categories: DockCategory[] }) => {
 // Plain stacked list used inside the mobile sheet
 export const CategoryList = ({ categories }: { categories: DockCategory[] }) => {
   const tCategory = useTranslations('category');
+  const locale = useLocale();
 
   if (categories.length === 0) return null;
 
@@ -151,7 +130,7 @@ export const CategoryList = ({ categories }: { categories: DockCategory[] }) => 
         {tCategory('title')}
       </p>
       {categories.map((c) => {
-        const Icon = ICONS[c.icon] ?? Package;
+        const Icon = getCategoryIcon(c.icon);
         return (
           <Link
             key={c.slug}
@@ -161,7 +140,7 @@ export const CategoryList = ({ categories }: { categories: DockCategory[] }) => 
             <Icon className='h-4 w-4 text-primary' aria-hidden='true' />
             <span className='flex-1'>{c.nameFa}</span>
             <span className='text-xs text-muted-foreground'>
-              {c._count.products}
+              {formatNumberLocale(c._count.products, locale)}
             </span>
           </Link>
         );

@@ -1,6 +1,7 @@
 'use server';
 
 import { formatError } from '../utils';
+import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 import { getMyCart } from './cart.actions';
 import { getUserById } from './user.actions';
@@ -107,7 +108,10 @@ export async function createOrder() {
       return insertedOrder.id;
     });
 
-    if (!insertedOrderId) throw new Error('Order not created');
+    if (!insertedOrderId) throw new Error(await withActionMessage('orderNotFound'));
+
+    // The cart is now empty — refresh the header badge on every page
+    revalidatePath('/', 'layout');
 
     // Fire-and-forget order receipt email (never breaks checkout)
     const insertedOrder = await prisma.order.findFirst({

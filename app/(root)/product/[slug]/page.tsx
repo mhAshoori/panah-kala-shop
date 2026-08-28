@@ -138,9 +138,9 @@ const ProductDetailsPage = async (props: {
         </div>
 
         {/* Action Column */}
-        <div className='lg:col-span-1'>
-          <Card className='lg:sticky lg:top-24'>
-            <CardContent className='p-4'>
+        <div className='lg:col-span-1 min-w-0'>
+          <Card className='w-auto max-w-full overflow-hidden lg:sticky lg:top-24'>
+            <CardContent className='p-4 min-w-0'>
               <div className="mb-2 flex justify-between">
                 <div>{t('details')}</div>
                 <div>

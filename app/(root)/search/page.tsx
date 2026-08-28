@@ -6,6 +6,7 @@ import ProductList from '@/components/shared/product/product-list';
 import SortDropdown from '@/components/shared/product/sort-dropdown';
 import Pagination from '@/components/shared/pagination';
 import { getFilteredProducts, getAllCategories } from '@/lib/actions/product.actions';
+import { formatNumberLocale } from '@/lib/persian';
 import { Link } from '@/i18n/navigation';
 
 export async function generateMetadata(props: {
@@ -149,7 +150,10 @@ const SearchPage = async (props: {
       </div>
 
       {/* Results */}
-      <ProductList title={`${t('results')} (${products.data.length})`} data={products.data} />
+      <ProductList
+        title={`${t('results')} (${formatNumberLocale(products.data.length, locale)})`}
+        data={products.data}
+      />
 
       <Pagination page={page} totalPages={products.totalPages} />
     </div>

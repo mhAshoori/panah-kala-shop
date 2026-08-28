@@ -119,7 +119,9 @@ const OrderDetailsTable = ({ order }: { order: Order }) => {
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <span className='px-2 tabular-nums'>{item.qty}</span>
+                        <span className='px-2 tabular-nums'>
+                          {formatNumberLocale(item.qty, locale)}
+                        </span>
                       </TableCell>
                       <TableCell className='text-end tabular-nums'>
                         {formatNumberLocale(item.price, locale)}
