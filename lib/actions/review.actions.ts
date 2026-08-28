@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { formatError } from '../utils';
+import { withActionMessage } from '../action-messages';
 import { insertReviewSchema } from '../validator';
 import { prisma } from '@/db/prisma';
 import { getValidUserId } from '../auth-helpers';
@@ -29,7 +30,7 @@ export async function createUpdateReview(
     const product = await prisma.product.findFirst({
       where: { id: review.productId },
     });
-    if (!product) throw new Error('Product not found');
+    if (!product) throw new Error(await withActionMessage('productNotFound'));
 
     const reviewExists = await prisma.review.findFirst({
       where: { productId: review.productId, userId: review.userId },
@@ -70,7 +71,7 @@ export async function createUpdateReview(
 
     revalidatePath(`/product/${product.slug}`);
 
-    return { success: true, message: 'Review updated successfully' };
+    return { success: true, message: await withActionMessage('reviewSaved') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

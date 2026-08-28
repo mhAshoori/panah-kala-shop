@@ -4,6 +4,7 @@ import { prisma } from '@/db/prisma';
 import { convertToPlainObject } from '../utils';
 import { PAGE_SIZE } from '../constants';
 import { requireAdmin } from '../auth-guard';
+import { withActionMessage } from '../action-messages';
 import { Order } from '@/types';
 
 // Get dashboard summary: counts, total sales, monthly sales and latest sales
@@ -111,8 +112,9 @@ export async function updateOrderToPaid(orderId: string) {
   await requireAdmin();
 
   const order = await prisma.order.findFirst({ where: { id: orderId } });
-  if (!order) throw new Error('Order not found');
-  if (order.isPaid) throw new Error('Order is already paid');
+  if (!order) throw new Error(await withActionMessage('orderNotFound'));
+  if (order.isPaid)
+    throw new Error(await withActionMessage('orderAlreadyPaid'));
 
   return await prisma.order.update({
     where: { id: orderId },
@@ -125,10 +127,11 @@ export async function updateOrderToDelivered(orderId: string) {
   await requireAdmin();
 
   const order = await prisma.order.findFirst({ where: { id: orderId } });
-  if (!order) throw new Error('Order not found');
-  if (order.isDelivered) throw new Error('Order is already delivered');
+  if (!order) throw new Error(await withActionMessage('orderNotFound'));
+  if (order.isDelivered)
+    throw new Error(await withActionMessage('orderAlreadyDelivered'));
   if (!order.isPaid) {
-    throw new Error('Order must be paid before it can be delivered');
+    throw new Error(await withActionMessage('orderMustBePaid'));
   }
 
   return await prisma.order.update({
@@ -142,7 +145,7 @@ export async function deleteOrder(orderId: string) {
   await requireAdmin();
 
   const order = await prisma.order.findFirst({ where: { id: orderId } });
-  if (!order) throw new Error('Order not found');
+  if (!order) throw new Error(await withActionMessage('orderNotFound'));
 
   await prisma.order.delete({ where: { id: orderId } });
 

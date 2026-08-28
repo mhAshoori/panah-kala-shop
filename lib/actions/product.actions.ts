@@ -4,6 +4,7 @@ import { prisma } from '@/db/prisma';
 import { convertToPlainObject, formatError } from '../utils';
 import { LATEST_PRODUCTS_LIMIT, PAGE_SIZE } from '../constants';
 import { requireAdmin } from '../auth-guard';
+import { withActionMessage } from '../action-messages';
 import {
   insertProductSchema,
   updateProductSchema,
@@ -149,6 +150,21 @@ export async function getProductsByCategorySlug({
   };
 }
 
+// Whether every product in the given list allows cash on delivery
+// (ZarinPal is always available; COD is a per-product opt-in)
+export async function canPayCashOnDelivery(productIds: string[]) {
+  if (productIds.length === 0) return false;
+
+  const [codCount, total] = await Promise.all([
+    prisma.product.count({
+      where: { id: { in: productIds }, codAvailable: true },
+    }),
+    prisma.product.count({ where: { id: { in: productIds } } }),
+  ]);
+
+  return codCount === total;
+}
+
 // Get products for the public search page with filters + sorting + pagination
 export async function getFilteredProducts({
   query,
@@ -281,6 +297,7 @@ function productDataFromFormData(formData: FormData) {
     images: imagesRaw ? (JSON.parse(imagesRaw) as string[]) : [],
     isFeatured: formData.get('isFeatured') === 'on',
     banner,
+    codAvailable: formData.get('codAvailable') === 'on',
   };
 }
 
@@ -335,7 +352,7 @@ export async function createProduct(
 
     await prisma.product.create({ data: { ...product, categoryId } });
 
-    return { success: true, message: 'Product created successfully' };
+    return { success: true, message: await withActionMessage('productCreated') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -357,7 +374,8 @@ export async function updateProduct(
     const productExists = await prisma.product.findFirst({
       where: { id: product.id },
     });
-    if (!productExists) throw new Error('Product not found');
+    if (!productExists)
+      throw new Error(await withActionMessage('productNotFound'));
 
     const categoryId = await upsertCategory(product.category, product.categoryFa);
 
@@ -366,7 +384,7 @@ export async function updateProduct(
       data: { ...product, categoryId },
     });
 
-    return { success: true, message: 'Product updated successfully' };
+    return { success: true, message: await withActionMessage('productUpdated') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -380,11 +398,12 @@ export async function deleteProduct(id: string) {
     const productExists = await prisma.product.findFirst({
       where: { id },
     });
-    if (!productExists) throw new Error('Product not found');
+    if (!productExists)
+      throw new Error(await withActionMessage('productNotFound'));
 
     await prisma.product.delete({ where: { id } });
 
-    return { success: true, message: 'Product deleted successfully' };
+    return { success: true, message: await withActionMessage('productDeleted') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

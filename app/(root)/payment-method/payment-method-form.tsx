@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { updateUserPaymentMethod } from '@/lib/actions/user.actions';
-import { DEFAULT_PAYMENT_METHOD, PAYMENT_METHODS } from '@/lib/constants';
+import { DEFAULT_PAYMENT_METHOD } from '@/lib/constants';
 import { paymentMethodSchema } from '@/lib/validator';
 import { useRouter } from '@/i18n/navigation';
 
@@ -24,17 +24,26 @@ const methodLabelKey: Record<string, string> = {
 
 const PaymentMethodForm = ({
   preferredPaymentMethod,
+  codAllowed,
 }: {
   preferredPaymentMethod: string | null;
+  codAllowed: boolean;
 }) => {
   const router = useRouter();
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();
 
+  const methods = codAllowed
+    ? (['zarinpal', 'cod'] as const)
+    : (['zarinpal'] as const);
+
   const form = useForm<z.infer<typeof paymentMethodSchema>>({
     resolver: zodResolver(paymentMethodSchema),
     defaultValues: {
-      type: preferredPaymentMethod || DEFAULT_PAYMENT_METHOD,
+      type:
+        preferredPaymentMethod === 'cod' && !codAllowed
+          ? DEFAULT_PAYMENT_METHOD
+          : preferredPaymentMethod || DEFAULT_PAYMENT_METHOD,
     },
   });
 
@@ -64,7 +73,7 @@ const PaymentMethodForm = ({
               onValueChange={field.onChange}
               className='gap-4'
             >
-              {PAYMENT_METHODS.map((method) => (
+              {methods.map((method) => (
                 <Field key={method} orientation='horizontal'>
                   <FieldLabel
                     htmlFor={method}

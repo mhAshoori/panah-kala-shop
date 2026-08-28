@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import { prisma } from '@/db/prisma';
 import { requireAdmin } from '../auth-guard';
+import { withActionMessage } from '../action-messages';
 import { formatError, slugifyCategory } from '../utils';
 import type { ActionState } from '@/types';
 
@@ -57,14 +58,14 @@ export async function createCategory(
     const exists = await prisma.category.findUnique({
       where: { slug: category.slug },
     });
-    if (exists) throw new Error('Slug already exists');
+    if (exists) throw new Error(await withActionMessage('slugExists'));
 
     await prisma.category.create({ data: category });
 
     revalidatePath('/admin/categories');
     revalidatePath('/', 'layout');
 
-    return { success: true, message: 'Category created successfully' };
+    return { success: true, message: await withActionMessage('categoryCreated') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -93,7 +94,7 @@ export async function updateCategory(
       where: { slug: category.slug },
     });
     if (existing && existing.id !== id) {
-      throw new Error('Slug already exists');
+      throw new Error(await withActionMessage('slugExists'));
     }
 
     await prisma.category.update({ where: { id }, data: category });
@@ -101,7 +102,7 @@ export async function updateCategory(
     revalidatePath('/admin/categories');
     revalidatePath('/', 'layout');
 
-    return { success: true, message: 'Category updated successfully' };
+    return { success: true, message: await withActionMessage('categoryUpdated') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -115,7 +116,7 @@ export async function deleteCategory(id: string) {
     const count = await prisma.product.count({ where: { categoryId: id } });
     if (count > 0) {
       throw new Error(
-        `Cannot delete: ${count} product(s) still use this category`
+        await withActionMessage('categoryInUse', { count })
       );
     }
 
@@ -124,7 +125,7 @@ export async function deleteCategory(id: string) {
     revalidatePath('/admin/categories');
     revalidatePath('/', 'layout');
 
-    return { success: true, message: 'Category deleted successfully' };
+    return { success: true, message: await withActionMessage('categoryDeleted') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { prisma } from '@/db/prisma';
 import { requireAdmin } from '../auth-guard';
+import { withActionMessage } from '../action-messages';
 import {
   SITE_FONT_KEY,
   SITE_LOCALE_KEY,
@@ -17,7 +18,7 @@ export async function updateSiteLocale(locale: SiteLocale) {
     await requireAdmin();
 
     if (locale !== 'fa' && locale !== 'en') {
-      throw new Error('Invalid locale');
+      throw new Error(await withActionMessage('invalidValue'));
     }
 
     await prisma.setting.upsert({
@@ -29,11 +30,11 @@ export async function updateSiteLocale(locale: SiteLocale) {
     // Re-render the whole app in the new language
     revalidatePath('/', 'layout');
 
-    return { success: true, message: 'Language updated' };
+    return { success: true, message: await withActionMessage('languageUpdated') };
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to update language',
+      message: error instanceof Error ? error.message : await withActionMessage('invalidValue'),
     };
   }
 }
@@ -44,7 +45,7 @@ export async function updateSiteFont(font: SiteFont) {
     await requireAdmin();
 
     if (font !== 'shabnam' && font !== 'vazirmatn') {
-      throw new Error('Invalid font');
+      throw new Error(await withActionMessage('invalidValue'));
     }
 
     await prisma.setting.upsert({
@@ -55,11 +56,11 @@ export async function updateSiteFont(font: SiteFont) {
 
     revalidatePath('/', 'layout');
 
-    return { success: true, message: 'Font updated' };
+    return { success: true, message: await withActionMessage('fontUpdated') };
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to update font',
+      message: error instanceof Error ? error.message : await withActionMessage('invalidValue'),
     };
   }
 }

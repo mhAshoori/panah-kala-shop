@@ -58,11 +58,13 @@ async function main() {
     const categoryRows = await prisma.category.findMany();
     const categoryBySlug = new Map(categoryRows.map((c) => [c.name, c.id]));
 
-    // Products, linked to their category
+    // Products, linked to their category. The first 4 products allow cash
+    // on delivery (per-product opt-in; ZarinPal is always available).
     await prisma.product.createMany({
-      data: sampleData.products.map((p) => ({
+      data: sampleData.products.map((p, index) => ({
         ...p,
         categoryId: categoryBySlug.get(p.category) ?? null,
+        codAvailable: index < 4,
       })),
     });
 

@@ -10,6 +10,8 @@ import { prisma } from '@/db/prisma';
 import { CartItem, Order } from '@/types';
 import { sendOrderReceipt } from '../email/order-receipt';
 import { getValidUserId } from '../auth-helpers';
+import { canPayCashOnDelivery } from './product.actions';
+import { withActionMessage } from '../action-messages';
 
 // Create an order from the current cart (transactional, decrements stock)
 export async function createOrder() {
@@ -22,21 +24,39 @@ export async function createOrder() {
     const user = await getUserById(userId);
 
     if (!cart || cart.items.length === 0) {
-      return { success: false, message: 'Your cart is empty', redirectTo: '/cart' };
+      return {
+        success: false,
+        message: await withActionMessage('cartEmpty'),
+        redirectTo: '/cart',
+      };
     }
     if (!user.address) {
       return {
         success: false,
-        message: 'Please add a shipping address',
+        message: await withActionMessage('addShippingAddress'),
         redirectTo: '/shipping-address',
       };
     }
     if (!user.paymentMethod) {
       return {
         success: false,
-        message: 'Please select a payment method',
+        message: await withActionMessage('selectPaymentMethod'),
         redirectTo: '/payment-method',
       };
+    }
+
+    // COD requires every product in the cart to opt in
+    if (user.paymentMethod === 'cod') {
+      const codAllowed = await canPayCashOnDelivery([
+        ...new Set((cart.items as CartItem[]).map((i) => i.productId)),
+      ]);
+      if (!codAllowed) {
+        return {
+          success: false,
+          message: await withActionMessage('codNotAvailable'),
+          redirectTo: '/payment-method',
+        };
+      }
     }
 
     const order = insertOrderSchema.parse({
@@ -105,7 +125,7 @@ export async function createOrder() {
 
     return {
       success: true,
-      message: 'Order successfully created',
+      message: await withActionMessage('orderCreated'),
       redirectTo: `/order/${insertedOrderId}`,
     };
   } catch (error) {

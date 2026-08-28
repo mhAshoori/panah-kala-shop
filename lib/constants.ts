@@ -53,4 +53,5 @@ export const productDefaultValues = {
   images: [] as string[],
   isFeatured: false,
   banner: null as string | null,
+  codAvailable: false,
 };

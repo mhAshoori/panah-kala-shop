@@ -1,4 +1,4 @@
-﻿'use server';
+'use server';
 
 import { redirect } from 'next/navigation';
 import { auth, signIn, signOut } from '@/auth';
@@ -19,6 +19,7 @@ import {
 import { formatError } from '../utils';
 import { PAGE_SIZE } from '../constants';
 import { requireAdmin } from '../auth-guard';
+import { withActionMessage } from '../action-messages';
 import type { ActionState, ShippingAddress } from '@/types';
 
 // Update the signed-in user's profile (name only; email is fixed)
@@ -66,7 +67,7 @@ export async function updateUserPaymentMethod(
       data: { paymentMethod: paymentMethod.type },
     });
 
-    return { success: true, message: 'User updated successfully' };
+    return { success: true, message: await withActionMessage('userUpdated') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -269,7 +270,7 @@ export async function updateUser(
       data: { name: user.name, role: user.role },
     });
 
-    return { success: true, message: 'User updated successfully' };
+    return { success: true, message: await withActionMessage('userUpdated') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -281,12 +282,12 @@ export async function deleteUser(id: string) {
     const session = await requireAdmin();
 
     if (session.user?.id === id) {
-      throw new Error('You cannot delete your own account');
+      throw new Error(await withActionMessage('cannotDeleteSelf'));
     }
 
     await prisma.user.delete({ where: { id } });
 
-    return { success: true, message: 'User deleted successfully' };
+    return { success: true, message: await withActionMessage('userDeleted') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

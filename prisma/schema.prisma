@@ -51,6 +51,7 @@ model Product {
   numReviews    Int         @default(0)
   isFeatured    Boolean     @default(false)
   banner        String?
+  codAvailable  Boolean     @default(false)
   createdAt     DateTime    @default(now()) @db.Timestamp(6)
   categoryRef   Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "product_categoryId_category_id_fk")
   orderItems    OrderItem[]

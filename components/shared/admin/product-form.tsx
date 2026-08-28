@@ -73,6 +73,9 @@ const ProductForm = ({
   const [isFeatured, setIsFeatured] = useState(
     product?.isFeatured ?? productDefaultValues.isFeatured
   );
+  const [codAvailable, setCodAvailable] = useState(
+    product?.codAvailable ?? productDefaultValues.codAvailable
+  );
   const [banner, setBanner] = useState(product?.banner ?? '');
 
   const action = type === 'Create' ? createProduct : updateProduct;
@@ -113,6 +116,9 @@ const ProductForm = ({
       />
       {isFeatured && (
         <input type='hidden' name='isFeatured' value='on' />
+      )}
+      {codAvailable && (
+        <input type='hidden' name='codAvailable' value='on' />
       )}
       {/* Category selection: existing category fills name fields, or new ones */}
       {selectedCategory && (
@@ -326,6 +332,13 @@ const ProductForm = ({
               onCheckedChange={(checked) => setIsFeatured(checked === true)}
             />
             {t('featured')}
+          </Label>
+          <Label className='flex items-center gap-2 font-normal'>
+            <Checkbox
+              checked={codAvailable}
+              onCheckedChange={(checked) => setCodAvailable(checked === true)}
+            />
+            {t('codAvailable')}
           </Label>
           {isFeatured && (
             <Card size='sm'>
