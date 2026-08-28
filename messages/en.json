@@ -46,7 +46,9 @@
     "hours": "Hours",
     "minutes": "Min",
     "seconds": "Sec",
-    "shopNow": "Shop Now"
+    "shopNow": "Shop Now",
+    "heroTitle": "Everything you need, delivered fast",
+    "heroSubtitle": "Mobile phones, laptops, accessories and more — with the best prices and genuine warranty"
   },
   "product": {
     "addToCart": "Add To Cart",
