@@ -133,10 +133,10 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* Inter for Latin, Vazirmatn for Persian (fallback chain) */
-  --font-sans: var(--font-inter), var(--font-vazirmatn), ui-sans-serif,
+  /* Persian typeface (admin-switchable) with Inter fallback for Latin */
+  --font-sans: var(--font-persian), var(--font-inter), ui-sans-serif,
     system-ui, sans-serif;
-  --font-heading: var(--font-inter), var(--font-vazirmatn), ui-sans-serif,
+  --font-heading: var(--font-persian), var(--font-inter), ui-sans-serif,
     system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -160,10 +160,16 @@
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
+
+  /* Persian typeface switch (admin-controlled, Shabnam default) */
   html {
-    font-family: var(--font-shabnam), var(--font-inter), ui-sans-serif,
+    --font-persian: var(--font-shabnam);
+    font-family: var(--font-persian), var(--font-inter), ui-sans-serif,
       system-ui, sans-serif;
-    @apply font-sans;
+  }
+
+  html[data-font='vazirmatn'] {
+    --font-persian: var(--font-vazirmatn);
   }
 }
 

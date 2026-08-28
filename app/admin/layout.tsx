@@ -4,7 +4,9 @@ import { getTranslations } from 'next-intl/server';
 
 import AdminSidebar from '@/components/shared/admin/sidebar';
 import SiteLanguageToggle from '@/components/shared/admin/site-language-toggle';
+import SiteFontToggle from '@/components/shared/admin/site-font-toggle';
 import { auth } from '@/auth';
+import { getSiteFont } from '@/lib/site-settings';
 import { APP_NAME } from '@/lib/constants';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,6 +21,7 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
   if (session.user?.role !== 'admin') redirect('/user/orders');
 
   const t = await getTranslations('admin');
+  const font = await getSiteFont();
 
   return (
     <div className='flex min-h-screen flex-col md:flex-row'>
@@ -27,8 +30,9 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
           {t('dashboard')}
         </p>
         <AdminSidebar />
-        <div className='mt-4 border-t pt-4'>
+        <div className='mt-4 space-y-2 border-t pt-4'>
           <SiteLanguageToggle />
+          <SiteFontToggle current={font} />
         </div>
       </aside>
       <main className='flex-1 p-4 md:p-6'>{children}</main>

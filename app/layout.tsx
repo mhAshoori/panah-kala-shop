@@ -6,7 +6,7 @@ import { Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
 
 import { dir } from '@/i18n/config';
-import { getSiteLocale } from '@/lib/site-settings';
+import { getSiteFont, getSiteLocale } from '@/lib/site-settings';
 import { ThemeProvider } from '@/components/theme-provider';
 import TopProgress from '@/components/shared/top-progress';
 import {
@@ -14,7 +14,7 @@ import {
   organizationJsonLd,
   websiteJsonLd,
 } from '@/lib/seo';
-import { shabnamFont } from './fonts';
+import { shabnamFont, vazirmatnFont } from './fonts';
 import './globals.css';
 
 // Self-hosted Latin font
@@ -66,10 +66,17 @@ export default async function LocaleLayout({
   children: React.ReactNode;
 }) {
   const locale = await getSiteLocale();
+  const font = await getSiteFont();
 
   return (
-    <html lang={locale} dir={dir(locale)} suppressHydrationWarning>
-      <body className={`${inter.variable} ${shabnamFont.variable} font-sans`}>
+    <html
+      lang={locale}
+      dir={dir(locale)}
+      data-font={font}
+      suppressHydrationWarning
+      className={`${inter.variable} ${shabnamFont.variable} ${vazirmatnFont.variable}`}
+    >
+      <body className='font-sans'>
         <NextIntlClientProvider>
           <ThemeProvider
             attribute="class"
