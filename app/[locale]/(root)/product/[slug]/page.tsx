@@ -3,6 +3,8 @@ import { getTranslations } from 'next-intl/server';
 import ProductPrice from '@/components/product/product-price';
 import ProductImages from '@/components/product/product-images';
 import AddToCart from '@/components/shared/product/add-to-cart';
+import StarRating from '@/components/shared/product/star-rating';
+import ReviewsSection from '@/components/shared/product/reviews-section';
 import { Card, CardContent } from '@/components/ui/card';
 import { getProductBySlug } from '@/lib/actions/product.actions';
 import { getMyCart } from '@/lib/actions/cart.actions';
@@ -36,9 +38,12 @@ const ProductDetailsPage = async (props: {
               {isFa ? product.categoryFa : product.category} · {product.brand}
             </p>
             <h1 className="h3-bold">{isFa ? product.nameFa : product.name}</h1>
-            <p>
-              {Number(product.rating)} ★ ({product.numReviews} {t('reviews')})
-            </p>
+            <div className='flex items-center gap-2'>
+              <StarRating value={Number(product.rating)} />
+              <span className='text-sm text-muted-foreground'>
+                {Number(product.rating).toFixed(1)} · {product.numReviews} {t('reviews')}
+              </span>
+            </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <ProductPrice
                 value={Number(product.price)}
@@ -89,6 +94,13 @@ const ProductDetailsPage = async (props: {
           </Card>
         </div>
       </div>
+
+      {/* Reviews */}
+      <ReviewsSection
+        productId={product.id}
+        rating={Number(product.rating)}
+        numReviews={product.numReviews}
+      />
     </section>
   );
 };

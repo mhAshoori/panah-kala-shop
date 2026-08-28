@@ -139,6 +139,17 @@
     "sortHighest": "Price: High to Low",
     "sortRating": "Top Rated"
   },
+  "review": {
+    "title": "Customer Reviews",
+    "count": "reviews",
+    "write": "Write a Review",
+    "edit": "Edit Your Review",
+    "subtitle": "Share your experience with this product",
+    "rating": "Your Rating",
+    "titleLabel": "Title",
+    "descriptionLabel": "Your Review",
+    "empty": "No reviews yet. Be the first to share your thoughts!"
+  },
   "order": {
     "title": "Order",
     "myOrders": "My Orders",

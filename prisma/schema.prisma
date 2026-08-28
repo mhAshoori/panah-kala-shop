@@ -7,6 +7,20 @@ datasource db {
   provider = "postgresql"
 }
 
+model Review {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @db.Uuid
+  productId   String   @db.Uuid
+  rating      Int
+  title       String
+  description String
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reviews_productId_product_id_fk")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reviews_userId_user_id_fk")
+
+  @@unique([productId, userId], map: "reviews_productId_userId_key")
+}
+
 model Product {
   id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
@@ -26,6 +40,7 @@ model Product {
   banner        String?
   createdAt     DateTime    @default(now()) @db.Timestamp(6)
   orderItems    OrderItem[]
+  reviews       Review[]
 }
 
 model Cart {
@@ -91,6 +106,7 @@ model User {
   session       Session[]
   carts         Cart[]
   orders        Order[]
+  reviews       Review[]
 }
 
 model Account {
