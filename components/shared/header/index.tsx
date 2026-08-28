@@ -36,7 +36,7 @@ const Header = async () => {
         <div className='hidden md:block flex-1 justify-center'>
           <SearchBar />
         </div>
-        <Menu categories={categories} />
+        <Menu />
       </div>
     </header>
   );

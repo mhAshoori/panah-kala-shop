@@ -2,10 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
-import { z } from 'zod';
 import { getLocale } from 'next-intl/server';
 
-import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { Prisma } from '@/lib/generated/prisma/client';
 import { cartItemSchema, insertCartSchema } from '../validator';

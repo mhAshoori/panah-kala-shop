@@ -11,9 +11,8 @@ import ModeToggle from './mode-toggle';
 import UserButton from './user-button';
 import CartButton from './cart-button';
 import SearchBar from './search';
-import type { DockCategory } from '@/components/shared/category/category-dock';
 
-const Menu = ({ categories }: { categories: DockCategory[] }) => {
+const Menu = () => {
   const t = useTranslations('header');
 
   return (

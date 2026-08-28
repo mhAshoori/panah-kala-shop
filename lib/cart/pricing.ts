@@ -1,14 +1,13 @@
-import { z } from 'zod';
-
-import {
-  FREE_SHIPPING_THRESHOLD,
-  SHIPPING_FLAT_RATE,
-  TAX_RATE,
-} from '../constants';
 import { round2 } from '../utils';
 
+// Minimal cart-item shape this calculator needs
+type PricedItem = {
+  price: string | number;
+  qty: number;
+};
+
 // Calculate cart prices based on items (Toman, two-decimal strings for Prisma)
-export const calcPrice = (items: z.infer<typeof cartItemPricesSchema>[]) => {
+export const calcPrice = (items: PricedItem[]) => {
   const itemsPrice = round2(
     items.reduce((acc, item) => acc + Number(item.price) * item.qty, 0)
   );
@@ -25,9 +24,3 @@ export const calcPrice = (items: z.infer<typeof cartItemPricesSchema>[]) => {
     totalPrice: totalPrice.toFixed(2),
   };
 };
-
-// Local schema to keep this module dependency-free (shape of a cart item)
-const cartItemPricesSchema = z.object({
-  price: z.union([z.string(), z.number()]),
-  qty: z.number(),
-});
