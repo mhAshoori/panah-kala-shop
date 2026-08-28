@@ -23,7 +23,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import SalesChart from '@/components/shared/admin/sales-chart';
 import { getOrderSummary } from '@/lib/actions/admin.actions';
-import { formatCurrency, formatId } from '@/lib/utils';
+import { formatId } from '@/lib/utils';
+import { formatCurrencyLocale, formatNumberLocale } from '@/lib/persian';
 import { Link } from '@/i18n/navigation';
 
 const AdminOverviewPage = async () => {
@@ -35,12 +36,12 @@ const AdminOverviewPage = async () => {
 
   const summary = await getOrderSummary();
 
-  const cards = [
-    { title: t('totalRevenue'), value: formatCurrency(summary.totalSales), icon: Banknote },
-    { title: t('totalOrders'), value: summary.ordersCount, icon: ShoppingCart },
-    { title: t('totalProducts'), value: summary.productsCount, icon: Package },
-    { title: t('totalUsers'), value: summary.usersCount, icon: Users },
-  ];
+const cards = [
+  { title: t('totalRevenue'), value: formatCurrencyLocale(summary.totalSales, locale), icon: Banknote },
+  { title: t('totalOrders'), value: formatNumberLocale(summary.ordersCount, locale), icon: ShoppingCart },
+  { title: t('totalProducts'), value: formatNumberLocale(summary.productsCount, locale), icon: Package },
+  { title: t('totalUsers'), value: formatNumberLocale(summary.usersCount, locale), icon: Users },
+];
 
   return (
     <div className='space-y-6'>
@@ -115,7 +116,7 @@ const AdminOverviewPage = async () => {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
+                    <TableCell>{formatCurrencyLocale(order.totalPrice, locale)}</TableCell>
                     <TableCell>
                       {order.isPaid ? (
                         <Badge variant='secondary'>{t('paid')}</Badge>

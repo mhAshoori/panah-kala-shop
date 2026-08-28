@@ -3,7 +3,7 @@
 import { useTransition } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Minus, Plus, ShoppingCart } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import {
   addItemToCart,
   removeItemFromCart,
 } from '@/lib/actions/cart.actions';
-import { formatCurrency } from '@/lib/utils';
+import { formatNumberLocale } from '@/lib/persian';
 import { Link, useRouter } from '@/i18n/navigation';
 import { Cart } from '@/types';
 
@@ -26,6 +26,7 @@ const CartTable = ({
   const router = useRouter();
   const t = useTranslations('cart');
   const tc = useTranslations('common');
+  const locale = useLocale();
   const [isPending, startTransition] = useTransition();
 
   const totalQty = cart?.items.reduce((a, c) => a + c.qty, 0) ?? 0;
@@ -69,7 +70,7 @@ const CartTable = ({
                       {item.nameFa ?? item.name}
                     </Link>
                     <p className='mt-1 text-sm text-muted-foreground'>
-                      {formatCurrency(item.price)}{' '}
+                      {formatNumberLocale(item.price, locale)}{' '}
                       <span className='text-xs'>{tc('currency')}</span>
                     </p>
                   </div>
@@ -91,7 +92,7 @@ const CartTable = ({
                       <Minus className='h-4 w-4' />
                     </Button>
                     <span className='w-8 text-center text-sm font-medium tabular-nums'>
-                      {item.qty}
+                      {formatNumberLocale(item.qty, locale)}
                     </span>
                     <Button
                       disabled={isPending}
@@ -111,7 +112,7 @@ const CartTable = ({
                     </Button>
                   </div>
                   <div className='w-24 text-end text-sm font-semibold'>
-                    {formatCurrency(Number(item.price) * item.qty)}
+                    {formatNumberLocale(Number(item.price) * item.qty, locale)}
                     <span className='ms-1 text-xs font-normal text-muted-foreground'>
                       {tc('currency')}
                     </span>
@@ -132,7 +133,7 @@ const CartTable = ({
               <div className='flex justify-between border-t pt-3 text-base font-semibold'>
                 <span>{t('totalPrice')}</span>
                 <span>
-                  {formatCurrency(cart.itemsPrice)}
+                  {formatNumberLocale(cart.itemsPrice, locale)}
                   <span className='ms-1 text-xs font-normal text-muted-foreground'>
                     {tc('currency')}
                   </span>

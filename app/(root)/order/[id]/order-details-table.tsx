@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -17,13 +17,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { formatCurrency, formatDateTime, formatId } from '@/lib/utils';
+import { formatDateTime, formatId } from '@/lib/utils';
+import { formatNumberLocale } from '@/lib/persian';
 import ZarinpalButton from './zarinpal-button';
 import type { Order } from '@/types';
 
 const OrderDetailsTable = ({ order }: { order: Order }) => {
   const t = useTranslations('order');
   const tc = useTranslations('checkout');
+  const locale = useLocale();
   const searchParams = useSearchParams();
 
   // Show a toast after a ZarinPal callback redirect
@@ -120,7 +122,7 @@ const OrderDetailsTable = ({ order }: { order: Order }) => {
                         <span className='px-2 tabular-nums'>{item.qty}</span>
                       </TableCell>
                       <TableCell className='text-end tabular-nums'>
-                        {formatCurrency(item.price)}
+                        {formatNumberLocale(item.price, locale)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -137,19 +139,19 @@ const OrderDetailsTable = ({ order }: { order: Order }) => {
               <h2 className='text-xl pb-4'>{t('orderSummary')}</h2>
               <div className='flex justify-between'>
                 <div>{t('itemsPrice')}</div>
-                <div>{formatCurrency(itemsPrice)}</div>
+                <div>{formatNumberLocale(itemsPrice, locale)}</div>
               </div>
               <div className='flex justify-between'>
                 <div>{t('taxPrice')}</div>
-                <div>{formatCurrency(taxPrice)}</div>
+                <div>{formatNumberLocale(taxPrice, locale)}</div>
               </div>
               <div className='flex justify-between'>
                 <div>{t('shippingPrice')}</div>
-                <div>{formatCurrency(shippingPrice)}</div>
+                <div>{formatNumberLocale(shippingPrice, locale)}</div>
               </div>
               <div className='flex justify-between font-semibold border-t pt-3'>
                 <div>{t('total')}</div>
-                <div>{formatCurrency(totalPrice)}</div>
+                <div>{formatNumberLocale(totalPrice, locale)}</div>
               </div>
 
               {!isPaid && paymentMethod === 'zarinpal' && (

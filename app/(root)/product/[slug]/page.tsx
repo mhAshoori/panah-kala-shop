@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { getProductBySlug } from '@/lib/actions/product.actions';
 import { getMyCart } from '@/lib/actions/cart.actions';
 import { Badge } from '@/components/ui/badge';
+import { formatNumberLocale } from '@/lib/persian';
 import {
   breadcrumbJsonLd,
   buildAlternates,
@@ -117,7 +118,8 @@ const ProductDetailsPage = async (props: {
             <div className='flex items-center gap-2'>
               <StarRating value={Number(product.rating)} />
               <span className='text-sm text-muted-foreground'>
-                {Number(product.rating).toFixed(1)} · {product.numReviews} {t('reviews')}
+                {formatNumberLocale(Number(product.rating).toFixed(1), locale)} ·{' '}
+                {formatNumberLocale(product.numReviews, locale)} {t('reviews')}
               </span>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

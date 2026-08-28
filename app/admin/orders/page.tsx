@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 import {
   Table,
@@ -13,11 +13,13 @@ import AdminSearch from '@/components/shared/admin/search';
 import OrderActions from '@/components/shared/admin/order-actions';
 import Pagination from '@/components/shared/pagination';
 import { getAllOrders } from '@/lib/actions/admin.actions';
-import { formatCurrency, formatDateTime, formatId } from '@/lib/utils';
+import { formatDateTime, formatId } from '@/lib/utils';
+import { formatCurrencyLocale } from '@/lib/persian';
 
 const AdminOrdersPage = async (props: {
   searchParams: Promise<{ page: string; q?: string }>;
 }) => {
+  const locale = await getLocale();
   const { page, q } = await props.searchParams;
 
   const t = await getTranslations('admin');
@@ -69,7 +71,7 @@ const AdminOrdersPage = async (props: {
                     </div>
                   </TableCell>
                   <TableCell>{formatDateTime(order.createdAt).dateOnly}</TableCell>
-                  <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
+                  <TableCell>{formatCurrencyLocale(order.totalPrice, locale)}</TableCell>
                   <TableCell>
                     {order.isPaid ? (
                       <Badge variant='secondary'>{t('paid')}</Badge>

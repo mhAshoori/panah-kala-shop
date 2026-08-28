@@ -1,22 +1,23 @@
+import { getLocale } from 'next-intl/server';
 import { cn } from '@/lib/utils';
+import { formatCurrencyLocale } from '@/lib/persian';
 
-// Formats a Toman amount with Persian digit grouping handled by the caller's locale.
-const formatToman = (value: number) =>
-  new Intl.NumberFormat('en-US').format(value);
-
-const ProductPrice = ({
+const ProductPrice = async ({
   value,
   className,
 }: {
   value: number;
   className?: string;
 }) => {
-  const formatted = formatToman(value);
+  const locale = await getLocale();
+  const formatted = formatCurrencyLocale(value, locale);
 
   return (
     <p className={cn('text-2xl', className)}>
       {formatted}
-      <span className='text-xs align-super ms-1'>تومان</span>
+      <span className='text-xs align-super ms-1'>
+        {locale === 'fa' ? 'تومان' : 'Toman'}
+      </span>
     </p>
   );
 };

@@ -1,10 +1,11 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import { useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatNumberLocale } from '@/lib/persian';
 
 const Pagination = ({
   page,
@@ -14,6 +15,7 @@ const Pagination = ({
   totalPages: number;
 }) => {
   const t = useTranslations('common');
+  const locale = useLocale();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -51,7 +53,7 @@ const Pagination = ({
               : 'border hover:bg-muted'
           )}
         >
-          {p}
+          {formatNumberLocale(p, locale)}
         </Link>
       ))}
 

@@ -14,7 +14,8 @@ import Pagination from '@/components/shared/pagination';
 import AdminSearch from '@/components/shared/admin/search';
 import DeleteDialog from '@/components/shared/delete-dialog';
 import { getAllProducts, deleteProduct } from '@/lib/actions/product.actions';
-import { formatCurrency, formatId } from '@/lib/utils';
+import { formatId } from '@/lib/utils';
+import { formatNumberLocale } from '@/lib/persian';
 import { Link } from '@/i18n/navigation';
 
 const AdminProductsPage = async (props: {
@@ -85,9 +86,9 @@ const AdminProductsPage = async (props: {
                   <TableCell>
                     {locale === 'fa' ? product.categoryFa : product.category}
                   </TableCell>
-                  <TableCell>{formatCurrency(product.price)}</TableCell>
-                  <TableCell>{product.stock}</TableCell>
-                  <TableCell>{product.rating}</TableCell>
+                  <TableCell>{formatNumberLocale(product.price, locale)}</TableCell>
+                  <TableCell>{formatNumberLocale(product.stock, locale)}</TableCell>
+                  <TableCell>{formatNumberLocale(product.rating, locale)}</TableCell>
                   <TableCell className='flex justify-end gap-1'>
                     <Button asChild size='sm' variant='outline'>
                       <Link href={`/admin/products/${product.id}`}>
