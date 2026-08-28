@@ -9,16 +9,15 @@ import { PAGE_SIZE } from '../constants';
 import { prisma } from '@/db/prisma';
 import { CartItem, Order } from '@/types';
 import { sendOrderReceipt } from '../email/order-receipt';
+import { getValidUserId } from '../auth-helpers';
 
 // Create an order from the current cart (transactional, decrements stock)
 export async function createOrder() {
   try {
-    const session = await auth();
-    if (!session) throw new Error('User is not authenticated');
+    const userId = await getValidUserId();
+    if (!userId) throw new Error('Your session has expired — please sign in again');
 
     const cart = await getMyCart();
-    const userId = session?.user?.id;
-    if (!userId) throw new Error('User not found');
 
     const user = await getUserById(userId);
 

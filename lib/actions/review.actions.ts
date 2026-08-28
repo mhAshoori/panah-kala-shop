@@ -1,10 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/auth';
 import { formatError } from '../utils';
 import { insertReviewSchema } from '../validator';
 import { prisma } from '@/db/prisma';
+import { getValidUserId } from '../auth-helpers';
 import type { ActionState, Review } from '@/types';
 
 // Create or update the signed-in user's review for a product
@@ -13,15 +13,17 @@ export async function createUpdateReview(
   formData: FormData
 ): Promise<ActionState> {
   try {
-    const session = await auth();
-    if (!session) throw new Error('User is not authenticated');
+    const userId = await getValidUserId();
+    if (!userId) {
+      throw new Error('Your session has expired — please sign in again');
+    }
 
     const review = insertReviewSchema.parse({
       productId: formData.get('productId') as string,
       title: formData.get('title') as string,
       description: formData.get('description') as string,
       rating: Number(formData.get('rating')),
-      userId: session.user?.id,
+      userId,
     });
 
     const product = await prisma.product.findFirst({
@@ -87,11 +89,11 @@ export async function getReviews(productId: string) {
 
 // Get the signed-in user's existing review for a product (if any)
 export async function getReviewByUserAndProduct(productId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return null;
+  const userId = await getValidUserId();
+  if (!userId) return null;
 
   const data = await prisma.review.findFirst({
-    where: { productId, userId: session.user.id },
+    where: { productId, userId },
   });
 
   return data ? (JSON.parse(JSON.stringify(data)) as Review) : null;

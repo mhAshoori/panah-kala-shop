@@ -9,12 +9,9 @@ import { auth } from '@/auth';
 import { prisma } from '@/db/prisma';
 import { Prisma } from '@/lib/generated/prisma/client';
 import { cartItemSchema, insertCartSchema } from '../validator';
-import { convertToPlainObject, formatError, round2 } from '../utils';
-import {
-  FREE_SHIPPING_THRESHOLD,
-  SHIPPING_FLAT_RATE,
-  TAX_RATE,
-} from '../constants';
+import { convertToPlainObject, formatError } from '../utils';
+import { calcPrice } from '../cart/pricing';
+import { getValidUserId } from '../auth-helpers';
 import type { CartItem } from '@/types';
 
 // Localized cart messages (fa default)
@@ -49,23 +46,7 @@ async function msg(key: MessageKey, name?: string): Promise<string> {
   return name ? template.replace('{name}', name) : template;
 }
 
-// Calculate cart prices based on items (Toman)
-const calcPrice = (items: z.infer<typeof cartItemSchema>[]) => {
-  const itemsPrice = round2(
-      items.reduce((acc, item) => acc + Number(item.price) * item.qty, 0)
-    ),
-    shippingPrice = round2(
-      itemsPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FLAT_RATE
-    ),
-    taxPrice = round2(TAX_RATE * itemsPrice),
-    totalPrice = round2(itemsPrice + shippingPrice + taxPrice);
-  return {
-    itemsPrice: itemsPrice.toFixed(2),
-    shippingPrice: shippingPrice.toFixed(2),
-    taxPrice: taxPrice.toFixed(2),
-    totalPrice: totalPrice.toFixed(2),
-  };
-};
+// Calculate cart prices (see lib/cart/pricing.ts — pure & unit-tested)
 
 // Get user cart from database (by user id when signed in, else session cookie)
 export async function getMyCart() {
@@ -73,9 +54,8 @@ export async function getMyCart() {
   const sessionCartId = (await cookies()).get('sessionCartId')?.value;
   if (!sessionCartId) return undefined;
 
-  // Get session and user id
-  const session = await auth();
-  const userId = session?.user.id;
+  // Get session user id (validated against the DB — stale sessions = guest)
+  const userId = await getValidUserId();
 
   // Find the cart
   const cart = await prisma.cart.findFirst({
@@ -129,9 +109,8 @@ export async function addItemToCart(data: CartItem) {
     const sessionCartId = (await cookies()).get('sessionCartId')?.value;
     if (!sessionCartId) throw new Error(await msg('noSession'));
 
-    // Get session and user id
-    const session = await auth();
-    const userId = session?.user.id as string | undefined;
+    // Get session user id (validated against the DB — stale sessions = guest)
+    const userId = await getValidUserId();
 
     // Parse and validate submitted item data
     const item = cartItemSchema.parse(data);
