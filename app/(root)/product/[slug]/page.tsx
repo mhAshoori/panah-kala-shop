@@ -178,6 +178,7 @@ const ProductDetailsPage = async (props: {
         productId={product.id}
         rating={Number(product.rating)}
         numReviews={product.numReviews}
+        slug={product.slug}
       />
     </section>
   );

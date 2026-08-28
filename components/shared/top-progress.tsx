@@ -36,12 +36,19 @@ const TopProgress = () => {
 
   // Start on in-page navigations
   useEffect(() => {
-    const start = () =>
-      setState((prev) => {
-        if (prev === 'running') return prev;
-        startedAt.current = Date.now();
-        return 'running';
-      });
+    // Deferred start: history.pushState is invoked by React itself inside
+    // insertion effects during navigations, where scheduling updates
+    // synchronously is forbidden (useInsertionEffect rule). Breaking out of
+    // the current task with setTimeout keeps React happy.
+    const start = () => {
+      setTimeout(() => {
+        setState((prev) => {
+          if (prev === 'running') return prev;
+          startedAt.current = Date.now();
+          return 'running';
+        });
+      }, 0);
+    };
 
     const onClick = (e: MouseEvent) => {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey) return;
@@ -66,6 +73,7 @@ const TopProgress = () => {
 
     // Catch programmatic navigations (router.push/prefetch, redirects) —
     // they all go through history.pushState/replaceState.
+    const mountedAt = Date.now();
     const history = window.history;
     const origPush = history.pushState.bind(history);
     const origReplace = history.replaceState.bind(history);
@@ -74,8 +82,14 @@ const TopProgress = () => {
       return origPush(...args);
     };
     history.replaceState = (...args: Parameters<typeof origReplace>) => {
-      // Skip the initial hydration replaceState (same URL, no navigation)
-      if (args[2] && String(args[2]) !== window.location.href) start();
+      // Ignore hydration noise right after mount
+      if (
+        Date.now() - mountedAt > 1000 &&
+        args[2] &&
+        String(args[2]) !== window.location.href
+      ) {
+        start();
+      }
       return origReplace(...args);
     };
 
