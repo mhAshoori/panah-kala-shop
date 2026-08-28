@@ -1,7 +1,7 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { MoonIcon, SunIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,8 @@ import {
 const ModeToggle = () => {
   const { theme, setTheme } = useTheme();
   const t = useTranslations('header');
+  const locale = useLocale();
+  const dir = locale === 'fa' ? 'rtl' : 'ltr';
 
   return (
     <DropdownMenu>
@@ -32,8 +34,8 @@ const ModeToggle = () => {
           <MoonIcon className='hidden dark:block' />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel>{t('theme')}</DropdownMenuLabel>
+      <DropdownMenuContent dir={dir} className='text-right' align='end'>
+        <DropdownMenuLabel dir={dir}>{t('theme')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuCheckboxItem
           checked={theme === 'system'}

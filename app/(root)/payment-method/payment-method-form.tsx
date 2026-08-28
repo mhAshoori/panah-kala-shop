@@ -76,21 +76,23 @@ const PaymentMethodForm = ({
             >
               {methods.map((method) => (
                 <Field key={method} orientation='horizontal'>
-                  <FieldLabel
+                  <label
                     htmlFor={method}
                     dir='rtl'
-                    className='flex w-full flex-row-reverse items-center justify-between gap-4 rounded-lg border p-4 font-normal cursor-pointer hover:bg-muted/50'
+                    className='flex w-full cursor-pointer flex-row-reverse items-center justify-between gap-4 rounded-lg border p-4 font-normal hover:bg-muted/50'
                   >
-                    <span className='text-start'>
-                      {t(methodLabelKey[method] ?? 'checkout.zarinpal')}
+                    <span dir='rtl' className='text-right'>
+                      <span className='block'>
+                        {t(methodLabelKey[method] ?? 'checkout.zarinpal')}
+                      </span>
                       {method === 'cod' && (
-                        <span className='block text-xs text-muted-foreground mt-1'>
+                        <span className='mt-1 block text-right text-xs text-muted-foreground'>
                           {t('checkout.codDesc')}
                         </span>
                       )}
                     </span>
                     <RadioGroupItem id={method} value={method} />
-                  </FieldLabel>
+                  </label>
                 </Field>
               ))}
             </RadioGroup>
