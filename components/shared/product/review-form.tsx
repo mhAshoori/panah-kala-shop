@@ -51,7 +51,8 @@ const ReviewForm = ({
   const tCommon = useTranslations('common');
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [rating, setRating] = useState(existingReview?.rating ?? 0);
+  // Pre-select 5 stars so a submit without touching the stars is still valid
+  const [rating, setRating] = useState(existingReview?.rating ?? 5);
   const [hover, setHover] = useState(0);
 
   const [state, formAction] = useActionState(createUpdateReview, {

@@ -2,7 +2,8 @@ import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
-import ProductList from '@/components/shared/product/product-list';
+import ProductCarousel from '@/components/shared/product/product-carousel';
+import ProductCard from '@/components/shared/product/product-card';
 import Hero from '@/components/shared/home/hero';
 import IconBoxes from '@/components/shared/home/icon-boxes';
 import StatsStrip from '@/components/shared/home/stats-strip';
@@ -84,11 +85,33 @@ const HomePage = async () => {
       {/* Categories */}
       <CategoryGrid />
 
-      {/* Latest products */}
-      <ProductList title={t('latestProducts')} data={latestProducts} />
+      {/* Latest products (carousel with pagination dots) */}
+      <ProductCarousel
+        title={t('latestProducts')}
+        action={
+          <Button asChild variant='ghost' size='sm'>
+            <Link href='/search'>{t('viewAll')}</Link>
+          </Button>
+        }
+      >
+        {latestProducts.map((p) => (
+          <ProductCard key={p.slug} product={p} />
+        ))}
+      </ProductCarousel>
 
-      {/* Featured products */}
-      <ProductList title={t('featuredProducts')} data={featuredProducts} />
+      {/* Featured products (carousel with pagination dots) */}
+      <ProductCarousel
+        title={t('featuredProducts')}
+        action={
+          <Button asChild variant='ghost' size='sm'>
+            <Link href='/search'>{t('viewAll')}</Link>
+          </Button>
+        }
+      >
+        {featuredProducts.map((p) => (
+          <ProductCard key={p.slug} product={p} />
+        ))}
+      </ProductCarousel>
 
       {/* Brands marquee */}
       <BrandMarquee />
@@ -96,7 +119,7 @@ const HomePage = async () => {
       {/* Support CTA */}
       <SupportCta />
 
-      {/* View all */}
+      {/* All products grid link */}
       <div className='flex justify-center'>
         <Button asChild variant='outline'>
           <Link href='/search'>{t('viewAll')}</Link>
