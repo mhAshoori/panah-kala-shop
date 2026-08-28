@@ -106,23 +106,34 @@ export async function getAllOrders({
   };
 }
 
-// Mark an order as delivered (COD orders are considered paid on delivery)
+// Mark an order as paid manually (e.g. COD cash collected)
+export async function updateOrderToPaid(orderId: string) {
+  await requireAdmin();
+
+  const order = await prisma.order.findFirst({ where: { id: orderId } });
+  if (!order) throw new Error('Order not found');
+  if (order.isPaid) throw new Error('Order is already paid');
+
+  return await prisma.order.update({
+    where: { id: orderId },
+    data: { isPaid: true, paidAt: new Date() },
+  });
+}
+
+// Mark a paid order as delivered (step 2 — requires payment first)
 export async function updateOrderToDelivered(orderId: string) {
   await requireAdmin();
 
   const order = await prisma.order.findFirst({ where: { id: orderId } });
   if (!order) throw new Error('Order not found');
   if (order.isDelivered) throw new Error('Order is already delivered');
+  if (!order.isPaid) {
+    throw new Error('Order must be paid before it can be delivered');
+  }
 
   return await prisma.order.update({
     where: { id: orderId },
-    data: {
-      isDelivered: true,
-      deliveredAt: new Date(),
-      ...(order.paymentMethod === 'cod'
-        ? { isPaid: true, paidAt: new Date() }
-        : {}),
-    },
+    data: { isDelivered: true, deliveredAt: new Date() },
   });
 }
 

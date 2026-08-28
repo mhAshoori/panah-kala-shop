@@ -91,7 +91,6 @@ const AdminOrdersPage = async (props: {
                       orderId={order.id}
                       isPaid={order.isPaid}
                       isDelivered={order.isDelivered}
-                      paymentMethod={order.paymentMethod}
                     />
                   </TableCell>
                 </TableRow>

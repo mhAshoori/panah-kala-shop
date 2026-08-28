@@ -3,51 +3,36 @@
 import { useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, Loader2, Trash2 } from 'lucide-react';
+import { Banknote, CheckCircle2, Loader2, Trash2, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import {
   deleteOrder,
   updateOrderToDelivered,
+  updateOrderToPaid,
 } from '@/lib/actions/admin.actions';
 
+// Two-step fulfilment: 1) mark as paid, 2) mark as delivered (paid first!)
 const OrderActions = ({
   orderId,
   isPaid,
   isDelivered,
-  paymentMethod,
 }: {
   orderId: string;
   isPaid: boolean;
   isDelivered: boolean;
-  paymentMethod: string;
 }) => {
   const t = useTranslations('admin');
   const tCommon = useTranslations('common');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const markDelivered = () => {
+  const run = (action: () => Promise<unknown>, successMsg?: string) => {
     startTransition(async () => {
       try {
-        await updateOrderToDelivered(orderId);
-        toast.success(t('orderDelivered'));
-        router.refresh();
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : tCommon('error')
-        );
-      }
-    });
-  };
-
-  const remove = () => {
-    if (!window.confirm(t('deleteOrderConfirm'))) return;
-    startTransition(async () => {
-      try {
-        await deleteOrder(orderId);
-        toast.success(t('orderDeleted'));
+        await action();
+        if (successMsg) toast.success(successMsg);
         router.refresh();
       } catch (error) {
         toast.error(
@@ -59,30 +44,57 @@ const OrderActions = ({
 
   return (
     <div className='flex items-center justify-end gap-1'>
-      {!isDelivered && (isPaid || paymentMethod === 'cod') && (
+      {!isPaid && (
         <Button
           size='sm'
           variant='outline'
           disabled={isPending}
-          onClick={markDelivered}
+          onClick={() => run(() => updateOrderToPaid(orderId), t('orderPaid'))}
         >
           {isPending ? (
             <Loader2 className='h-4 w-4 animate-spin' />
           ) : (
-            <CheckCircle2 className='h-4 w-4' />
+            <Banknote className='h-4 w-4' />
           )}
-          <span className='hidden lg:inline'>{t('markDelivered')}</span>
+          <span className='hidden xl:inline'>{t('markPaid')}</span>
+        </Button>
+      )}
+      {isPaid && !isDelivered && (
+        <Button
+          size='sm'
+          variant='outline'
+          disabled={isPending}
+          onClick={() =>
+            run(() => updateOrderToDelivered(orderId), t('orderDelivered'))
+          }
+        >
+          {isPending ? (
+            <Loader2 className='h-4 w-4 animate-spin' />
+          ) : (
+            <Truck className='h-4 w-4' />
+          )}
+          <span className='hidden xl:inline'>{t('markDelivered')}</span>
         </Button>
       )}
       <Button
         size='sm'
         variant='destructive'
         disabled={isPending}
-        onClick={remove}
+        onClick={() => {
+          if (!window.confirm(t('deleteOrderConfirm'))) return;
+          run(() => deleteOrder(orderId), t('orderDeleted'));
+        }}
       >
-        <Trash2 className='h-4 w-4' />
-        <span className='hidden lg:inline'>{t('delete')}</span>
+        {isPending ? (
+          <Loader2 className='h-4 w-4 animate-spin' />
+        ) : (
+          <Trash2 className='h-4 w-4' />
+        )}
+        <span className='hidden xl:inline'>{t('delete')}</span>
       </Button>
+      {isDelivered && (
+        <CheckCircle2 className='h-4 w-4 text-primary' aria-label={t('orderDelivered')} />
+      )}
     </div>
   );
 };

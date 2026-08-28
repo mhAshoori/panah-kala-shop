@@ -228,6 +228,8 @@
     "searchPlaceholder": "Search by user name or email",
     "user": "User",
     "markDelivered": "Mark as Delivered",
+    "markPaid": "Mark as Paid",
+    "orderPaid": "Order marked as paid",
     "deleteOrderConfirm": "Are you sure you want to delete this order?",
     "orderDelivered": "Order marked as delivered",
     "orderDeleted": "Order deleted successfully",

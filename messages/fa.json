@@ -228,6 +228,8 @@
     "searchPlaceholder": "جستجو بر اساس نام یا ایمیل کاربر",
     "user": "کاربر",
     "markDelivered": "ثبت تحویل",
+    "markPaid": "ثبت پرداخت",
+    "orderPaid": "سفارش به عنوان پرداخت‌شده ثبت شد",
     "deleteOrderConfirm": "آیا از حذف این سفارش مطمئن هستید؟",
     "orderDelivered": "سفارش به عنوان تحویل‌شده ثبت شد",
     "orderDeleted": "سفارش با موفقیت حذف شد",
