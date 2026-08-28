@@ -67,6 +67,10 @@ export async function createZarinpalPayment(orderId: string) {
   }
 }
 
+// UUID v4 format check — garbage params must never reach Prisma
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Verify a payment when ZarinPal redirects back to /api/zarinpal/callback.
  * Makes the verify call, records the result, and returns a redirect location.
@@ -77,6 +81,12 @@ export async function verifyZarinpalPayment(params: {
   status: string;
 }) {
   const { orderId, authority, status } = params;
+
+  // Invalid/missing params — redirect straight to the failure page
+  if (!UUID_RE.test(orderId) || !authority || authority.length > 100) {
+    return { redirectTo: '/order/invalid', success: false as const };
+  }
+
   try {
     const order = await getOrderById(orderId);
     if (!order) {
@@ -89,11 +99,24 @@ export async function verifyZarinpalPayment(params: {
 
     // User cancelled / payment not completed on the gateway
     if (status === 'NOK') {
+      // Already-paid orders stay paid regardless of a later NOK callback
+      if (order.isPaid) {
+        return { ...base, success: true as const, refId: order.paymentResult?.refId };
+      }
       await prisma.order.update({
         where: { id: order.id },
         data: { paymentResult: { status: 'NOK' } },
       });
       return { ...base, success: false as const };
+    }
+
+    // Duplicate callback for an already-verified order — short-circuit
+    if (order.isPaid) {
+      return {
+        ...base,
+        success: true as const,
+        refId: order.paymentResult?.refId,
+      };
     }
 
     const verification = await zarinpalVerifyPayment({

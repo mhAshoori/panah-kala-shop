@@ -184,11 +184,10 @@ export async function removeItemFromCart(productId: string) {
     const sessionCartId = (await cookies()).get('sessionCartId')?.value;
     if (!sessionCartId) throw new Error(await msg('noSession'));
 
-    // Get product
+    // Get product (may be deleted — removal must always be possible)
     const product = await prisma.product.findFirst({
       where: { id: productId },
     });
-    if (!product) throw new Error(await msg('productNotFound'));
 
     // Get user cart
     const cart = await getMyCart();
@@ -201,7 +200,11 @@ export async function removeItemFromCart(productId: string) {
     if (!exist) throw new Error(await msg('itemNotFound'));
 
     const locale = await getLocale();
-    const displayName = locale === 'fa' ? product.nameFa : product.name;
+    const displayName = product
+      ? locale === 'fa'
+        ? product.nameFa
+        : product.name
+      : exist.name;
 
     // If only one left, remove it entirely; otherwise decrease quantity
     let items: CartItem[];
@@ -217,8 +220,10 @@ export async function removeItemFromCart(productId: string) {
 
     await saveCart({ sessionCartId, existingCartId: cart.id, items });
 
-    // Revalidate localized product page
-    revalidatePath(`/product/${product.slug}`);
+    // Revalidate localized product page (if the product still exists)
+    if (product) {
+      revalidatePath(`/product/${product.slug}`);
+    }
     // Refresh the header cart badge everywhere
     revalidatePath('/', 'layout');
 

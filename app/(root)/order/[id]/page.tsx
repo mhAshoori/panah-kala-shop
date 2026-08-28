@@ -3,7 +3,9 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 
+import { auth } from '@/auth';
 import { getOrderById } from '@/lib/actions/order.actions';
+import { getValidUserId } from '@/lib/auth-helpers';
 import OrderDetailsTable from './order-details-table';
 import type { ShippingAddress } from '@/types';
 
@@ -17,8 +19,17 @@ const OrderDetailsPage = async (props: {
 }) => {
   const { id } = await props.params;
 
-  const order = await getOrderById(id);
+  // Privacy: only the buyer or an admin may view an order
+  const [order, userId, session] = await Promise.all([
+    getOrderById(id),
+    getValidUserId(),
+    auth(),
+  ]);
   if (!order) notFound();
+
+  const isOwner = userId && order.userId === userId;
+  const isAdmin = session?.user?.role === 'admin';
+  if (!isOwner && !isAdmin) notFound();
 
   const ct = await getTranslations('common');
 

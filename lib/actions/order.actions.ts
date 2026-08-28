@@ -71,11 +71,32 @@ export async function createOrder() {
     });
 
     const insertedOrderId = await prisma.$transaction(async (tx) => {
+      // Worst-case guard: stock may have changed since the item was added.
+      // Re-check every product inside the transaction to prevent overselling
+      // and to skip items whose product was deleted.
+      const items = cart.items as CartItem[];
+      for (const item of items) {
+        const product = await tx.product.findFirst({
+          where: { id: item.productId },
+          select: { stock: true },
+        });
+        if (!product) {
+          throw new Error(
+            await withActionMessage('productNoLongerAvailable', {
+              name: item.name,
+            })
+          );
+        }
+        if (product.stock < item.qty) {
+          throw new Error(await withActionMessage('notEnoughStock'));
+        }
+      }
+
       // Create order
       const insertedOrder = await tx.order.create({ data: order });
 
       // Create order items + decrement stock
-      for (const item of cart.items as CartItem[]) {
+      for (const item of items) {
         await tx.orderItem.create({
           data: {
             productId: item.productId,

@@ -9,6 +9,14 @@ const messages = {
     // Session
     sessionExpired: 'Your session has expired — please sign in again',
     unauthorized: 'You are not allowed to perform this action',
+    tooManyAttempts:
+      'Too many attempts. Please try again in {seconds} seconds.',
+    // Stock / availability
+    notEnoughStock: 'Not enough stock available',
+    productNoLongerAvailable:
+      '{name} is no longer available and was removed from your order',
+    productHasOrders:
+      'Cannot delete: {count} order(s) reference this product. Set its stock to 0 instead.',
     // Cart / order
     cartEmpty: 'Your cart is empty',
     addShippingAddress: 'Please add a shipping address first',
@@ -47,6 +55,12 @@ const messages = {
     // Session
     sessionExpired: 'نشست شما منقضی شده است — لطفاً دوباره وارد شوید',
     unauthorized: 'اجازه انجام این کار را ندارید',
+    tooManyAttempts: 'تلاش‌های بیش از حد. لطفاً پس از {seconds} ثانیه دوباره تلاش کنید.',
+    // Stock / availability
+    notEnoughStock: 'موجودی کافی نیست',
+    productNoLongerAvailable: '{name} دیگر موجود نیست و از سفارش شما حذف شد',
+    productHasOrders:
+      'حذف ناممکن است: {count} سفارش به این محصول وابسته است. به جای حذف، موجودی را صفر کنید.',
     // Cart / order
     cartEmpty: 'سبد خرید شما خالی است',
     addShippingAddress: 'لطفاً ابتدا آدرس تحویل را وارد کنید',

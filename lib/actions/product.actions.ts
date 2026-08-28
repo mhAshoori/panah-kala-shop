@@ -165,6 +165,27 @@ export async function canPayCashOnDelivery(productIds: string[]) {
   return codCount === total;
 }
 
+// Sanitize user-supplied filter params so malformed input can never reach
+// Prisma (NaN comparisons crash with a 500).
+function parsePriceFilter(price: string | undefined): { gte: number; lte?: number } | undefined {
+  if (!price || price === 'all') return undefined;
+  const [minRaw, maxRaw] = price.split('-');
+  const min = Number(minRaw);
+  const max = Number(maxRaw);
+  if (!Number.isFinite(min) || min < 0) return undefined;
+  return {
+    gte: min,
+    ...(Number.isFinite(max) && max >= min ? { lte: max } : {}),
+  };
+}
+
+function parseRatingFilter(rating: string | undefined): { gte: number } | undefined {
+  if (!rating || rating === 'all') return undefined;
+  const value = Number(rating);
+  if (!Number.isFinite(value) || value < 0 || value > 5) return undefined;
+  return { gte: value };
+}
+
 // Get products for the public search page with filters + sorting + pagination
 export async function getFilteredProducts({
   query,
@@ -183,29 +204,34 @@ export async function getFilteredProducts({
   limit?: number;
   page: number;
 }) {
+  // Cap query length and page number (worst-case abuse guard)
+  const q = query ? query.slice(0, 100).trim() : '';
+  const safePage = Math.max(1, Math.min(Number(page) || 1, 10_000));
+
   const filters: Record<string, unknown> = {};
 
-  if (query && query.trim() !== '') {
+  if (q !== '') {
     filters.OR = [
-      { name: { contains: query, mode: 'insensitive' as const } },
-      { nameFa: { contains: query } },
-      { brand: { contains: query, mode: 'insensitive' as const } },
-      { description: { contains: query, mode: 'insensitive' as const } },
-      { descriptionFa: { contains: query } },
+      { name: { contains: q, mode: 'insensitive' as const } },
+      { nameFa: { contains: q } },
+      { brand: { contains: q, mode: 'insensitive' as const } },
+      { description: { contains: q, mode: 'insensitive' as const } },
+      { descriptionFa: { contains: q } },
     ];
   }
 
-  if (category && category !== 'all') {
+  if (category && category !== 'all' && category.length <= 100) {
     filters.category = category;
   }
 
-  if (price && price !== 'all') {
-    const [min, max] = price.split('-').map(Number);
-    filters.price = { gte: min, ...(Number.isFinite(max) ? { lte: max } : {}) };
+  const priceFilter = parsePriceFilter(price);
+  if (priceFilter) {
+    filters.price = priceFilter;
   }
 
-  if (rating && rating !== 'all') {
-    filters.rating = { gte: Number(rating) };
+  const ratingFilter = parseRatingFilter(rating);
+  if (ratingFilter) {
+    filters.rating = ratingFilter;
   }
 
   const orderBy =
@@ -221,7 +247,7 @@ export async function getFilteredProducts({
     where: filters,
     orderBy,
     take: limit,
-    skip: (page - 1) * limit,
+    skip: (safePage - 1) * limit,
   });
 
   const dataCount = await prisma.product.count({ where: filters });
@@ -390,7 +416,8 @@ export async function updateProduct(
   }
 }
 
-// Delete a product (admin)
+// Delete a product (admin). Refuses when the product appears in orders —
+// deleting it would cascade-delete historical order items.
 export async function deleteProduct(id: string) {
   try {
     await requireAdmin();
@@ -400,6 +427,15 @@ export async function deleteProduct(id: string) {
     });
     if (!productExists)
       throw new Error(await withActionMessage('productNotFound'));
+
+    const orderItemCount = await prisma.orderItem.count({
+      where: { productId: id },
+    });
+    if (orderItemCount > 0) {
+      throw new Error(
+        await withActionMessage('productHasOrders', { count: orderItemCount })
+      );
+    }
 
     await prisma.product.delete({ where: { id } });
 

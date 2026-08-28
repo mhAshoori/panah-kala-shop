@@ -20,6 +20,7 @@ import { formatError } from '../utils';
 import { PAGE_SIZE } from '../constants';
 import { requireAdmin } from '../auth-guard';
 import { withActionMessage } from '../action-messages';
+import { rateLimit } from '../rate-limit';
 import type { ActionState, ShippingAddress } from '@/types';
 
 // Update the signed-in user's profile (name only; email is fixed)
@@ -177,6 +178,18 @@ export async function signInWithCredentials(
 ): Promise<ActionState> {
   const callbackUrl = formData.get('callbackUrl')?.toString() || '/';
   try {
+    // Brute-force guard: 5 attempts / 5 minutes per email
+    const emailRaw =
+      (formData.get('email') as string | null)?.toLowerCase() || 'unknown';
+    const rl = rateLimit(`signin:${emailRaw}`, 5, 5 * 60 * 1000);
+    if (!rl.allowed) {
+      return {
+        success: false,
+        message: await withActionMessage('tooManyAttempts', {
+          seconds: rl.retryAfterSeconds ?? 60,
+        }),
+      };
+    }
 
     const parsed = signInFormSchema.safeParse({
       email: formData.get('email'),
@@ -300,6 +313,18 @@ export async function signUpUser(
 ): Promise<ActionState> {
   const callbackUrl = formData.get('callbackUrl')?.toString() || '/';
   try {
+    // Abuse guard: 3 sign-ups / hour per email
+    const emailRaw =
+      (formData.get('email') as string | null)?.toLowerCase() || 'unknown';
+    const rl = rateLimit(`signup:${emailRaw}`, 3, 60 * 60 * 1000);
+    if (!rl.allowed) {
+      return {
+        success: false,
+        message: await withActionMessage('tooManyAttempts', {
+          seconds: rl.retryAfterSeconds ?? 60,
+        }),
+      };
+    }
 
     const parsed = signUpFormSchema.safeParse({
       name: formData.get('name'),
