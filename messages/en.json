@@ -306,7 +306,17 @@
     "fIconBoxDesc4": "Box 4 Description",
     "fStatProducts": "Products Label",
     "fStatOrders": "Orders Label",
-    "fStatCustomers": "Customers Label"
+    "fStatCustomers": "Customers Label",
+    "fLink": "Link (path)",
+    "fPhone": "Phone",
+    "fEmail": "Email",
+    "fAddress": "Address",
+    "fHours": "Working Hours",
+    "fMetaTitle": "Site Title (SEO)",
+    "fMetaDescription": "Site Description (SEO)",
+    "fKeywords": "Keywords (comma-separated)",
+    "blockContact": "Contact Page Content",
+    "blockMeta": "SEO & Metadata"
   },
   "common": {
     "email": "Email",

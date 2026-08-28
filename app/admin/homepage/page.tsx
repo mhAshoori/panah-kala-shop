@@ -3,7 +3,11 @@ import { getTranslations } from 'next-intl/server';
 import HomeBlockEditor, {
   type BlockField,
 } from '@/components/shared/admin/home-block-editor';
-import { getHomeConfig } from '@/lib/home-content';
+import {
+  getHomeConfig,
+  getContactContent,
+  getSiteMeta,
+} from '@/lib/home-content';
 import { prisma } from '@/db/prisma';
 
 const ICON_OPTIONS = [
@@ -18,7 +22,11 @@ const ICON_OPTIONS = [
 
 const AdminHomepagePage = async () => {
   const t = await getTranslations('admin');
-  const config = await getHomeConfig();
+  const [config, contact, meta] = await Promise.all([
+    getHomeConfig(),
+    getContactContent(),
+    getSiteMeta(),
+  ]);
 
   // Product picker for the deal block
   const products = await prisma.product.findMany({
@@ -49,6 +57,7 @@ const AdminHomepagePage = async () => {
           { path: 'title', label: 'fTitle', type: 'text', localized: true },
           { path: 'subtitle', label: 'fSubtitle', type: 'textarea', localized: true },
           { path: 'cta', label: 'fCta', type: 'text', localized: true },
+          { path: 'link', label: 'fLink', type: 'text' },
         ]}
       />
 
@@ -146,6 +155,35 @@ const AdminHomepagePage = async () => {
           { path: 'title', label: 'fTitle', type: 'text', localized: true },
           { path: 'desc', label: 'fDescription', type: 'textarea', localized: true },
           { path: 'cta', label: 'fCta', type: 'text', localized: true },
+          { path: 'link', label: 'fLink', type: 'text' },
+        ]}
+      />
+
+      {/* Contact page content */}
+      <HomeBlockEditor
+        blockKey='contact'
+        title={t('blockContact')}
+        initialEnabled={true}
+        initialData={contact as unknown as Record<string, unknown>}
+        fields={[
+          { path: 'phone', label: 'fPhone', type: 'text' },
+          { path: 'email', label: 'fEmail', type: 'text' },
+          { path: 'address', label: 'fAddress', type: 'text', localized: true },
+          { path: 'hours', label: 'fHours', type: 'text', localized: true },
+          { path: 'desc', label: 'fDescription', type: 'textarea', localized: true },
+        ]}
+      />
+
+      {/* Site SEO metadata */}
+      <HomeBlockEditor
+        blockKey='meta'
+        title={t('blockMeta')}
+        initialEnabled={true}
+        initialData={meta as unknown as Record<string, unknown>}
+        fields={[
+          { path: 'title', label: 'fMetaTitle', type: 'text', localized: true },
+          { path: 'description', label: 'fMetaDescription', type: 'textarea', localized: true },
+          { path: 'keywords', label: 'fKeywords', type: 'textarea', localized: true },
         ]}
       />
     </div>

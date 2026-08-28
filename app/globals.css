@@ -227,12 +227,6 @@
   }
 }
 
-@keyframes spin-slow {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @layer utilities {
   .animate-fade-up {
     animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -269,40 +263,12 @@
     animation: shine-sweep 4s linear infinite;
   }
 
-  /* Rotating conic border (wrap content with padding inside) */
-  .animated-border {
-    position: relative;
-    isolation: isolate;
-  }
-  .animated-border::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1.5px;
-    background: conic-gradient(
-      from var(--angle, 0deg),
-      transparent 0%,
-      var(--primary) 10%,
-      oklch(0.82 0.15 85) 20%,
-      transparent 30%
-    );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    animation: spin-slow 5s linear infinite;
-    z-index: -1;
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-up,
     .animate-ken-burns,
     .animate-marquee,
     .animate-float-y,
-    .text-shine,
-    .animated-border::before {
+    .text-shine {
       animation: none;
     }
   }

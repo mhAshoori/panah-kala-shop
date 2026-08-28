@@ -12,6 +12,7 @@ type HeroProps = {
   title?: LocalizedText;
   subtitle?: LocalizedText;
   cta?: LocalizedText;
+  link?: string;
 };
 
 // Pick text for the active locale, falling back to the other language,
@@ -34,6 +35,7 @@ const Hero = async ({
   title,
   subtitle,
   cta,
+  link = '/search',
 }: HeroProps) => {
   const t = await getTranslations('home');
   const locale = await getLocale();
@@ -98,7 +100,7 @@ const Hero = async ({
           style={{ animationDelay: '360ms' }}
         >
           <Button asChild size='lg'>
-            <Link href='/search'>
+            <Link href={link}>
               {ctaText}
               <ArrowLeft className='h-4 w-4 rtl:hidden' />
               <ArrowRight className='h-4 w-4 ltr:hidden rtl:-scale-x-100' />

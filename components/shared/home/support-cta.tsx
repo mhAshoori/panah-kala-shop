@@ -20,10 +20,12 @@ const SupportCta = async ({
   title: titleOverride,
   desc: descOverride,
   cta: ctaOverride,
+  link = '/user/orders',
 }: {
   title?: LocalizedText;
   desc?: LocalizedText;
   cta?: LocalizedText;
+  link?: string;
 }) => {
   const t = await getTranslations('home');
   const locale = await getLocale();
@@ -51,7 +53,7 @@ const SupportCta = async ({
           </div>
         </div>
         <Button asChild size='lg' className='shrink-0'>
-          <Link href='/user/orders'>
+          <Link href={link}>
             <MessageCircle className='h-4 w-4' />
             {ctaText}
           </Link>

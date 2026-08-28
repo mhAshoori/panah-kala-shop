@@ -59,6 +59,7 @@ const HomePage = async () => {
           title={config.hero.title}
           subtitle={config.hero.subtitle}
           cta={config.hero.cta}
+          link={config.hero.link}
         />
       )}
 
@@ -70,9 +71,9 @@ const HomePage = async () => {
         <StatsStrip stats={stats} labels={config.stats.labels} />
       )}
 
-      {/* Deal of the day (rotating gradient border) */}
+      {/* Deal of the day */}
       {config.deal.enabled && dealProduct && (
-        <section className='animated-border rounded-2xl'>
+        <section>
           <div className='relative overflow-hidden rounded-2xl border'>
             <Image
               src={dealProduct.banner ?? '/images/banner-1.webp'}
@@ -167,6 +168,7 @@ const HomePage = async () => {
           title={config.support.title}
           desc={config.support.desc}
           cta={config.support.cta}
+          link={config.support.link}
         />
       )}
 

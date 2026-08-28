@@ -306,7 +306,17 @@
     "fIconBoxDesc4": "توضیح باکس ۴",
     "fStatProducts": "برچسب کالاها",
     "fStatOrders": "برچسب سفارش‌ها",
-    "fStatCustomers": "برچسب مشتریان"
+    "fStatCustomers": "برچسب مشتریان",
+    "fLink": "لینک (مسیر)",
+    "fPhone": "تلفن",
+    "fEmail": "ایمیل",
+    "fAddress": "نشانی",
+    "fHours": "ساعات کاری",
+    "fMetaTitle": "عنوان سایت (سئو)",
+    "fMetaDescription": "توضیحات سایت (سئو)",
+    "fKeywords": "کلمات کلیدی (با ویرگول جدا کنید)",
+    "blockContact": "محتوای صفحه تماس با ما",
+    "blockMeta": "سئو و متادیتا"
   },
   "common": {
     "email": "ایمیل",

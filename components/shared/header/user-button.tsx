@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,8 +14,10 @@ import { SignOutUser } from '@/lib/actions/user.actions';
 
 const UserButton = async () => {
   const session = await auth();
+  const locale = await getLocale();
   const t = await getTranslations('header');
   const tAdmin = await getTranslations('admin');
+  const dir = locale === 'fa' ? 'rtl' : 'ltr';
 
   if (!session)
     return (
@@ -39,7 +41,12 @@ const UserButton = async () => {
             </Button>
           </div>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className='w-56' align='end' forceMount>
+        <DropdownMenuContent
+          className='w-56 text-right'
+          align='end'
+          forceMount
+          style={{ direction: dir }}
+        >
           <DropdownMenuLabel className='font-normal'>
             <div className='flex flex-col space-y-1'>
               <p className='text-sm font-medium leading-none'>

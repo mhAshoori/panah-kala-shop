@@ -9,11 +9,12 @@ import { requireAdmin } from '../auth-guard';
 import { withActionMessage } from '../action-messages';
 import {
   HOME_BLOCK_KEYS,
+  EXTRA_BLOCK_KEYS,
 } from '../home-content';
 import type { ActionState } from '@/types';
 
 // Whitelisted block keys
-const blockKeySchema = z.enum(HOME_BLOCK_KEYS);
+const blockKeySchema = z.enum([...HOME_BLOCK_KEYS, ...EXTRA_BLOCK_KEYS]);
 
 // Block payloads are JSON objects stored verbatim (validated as records)
 const blockDataSchema = z.record(z.string(), z.unknown());

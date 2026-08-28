@@ -18,6 +18,7 @@ export type HomeBlocks = {
     title: LocalizedText;
     subtitle: LocalizedText;
     cta: LocalizedText;
+    link: string;
   };
   iconBoxes: {
     enabled: boolean;
@@ -59,6 +60,7 @@ export type HomeBlocks = {
     title: LocalizedText;
     desc: LocalizedText;
     cta: LocalizedText;
+    link: string;
   };
 };
 
@@ -76,6 +78,53 @@ export const HOME_BLOCK_KEYS = [
 
 export type HomeBlockKey = (typeof HOME_BLOCK_KEYS)[number];
 
+/** Non-homepage blocks stored in the same table (contact page, SEO meta). */
+export const EXTRA_BLOCK_KEYS = ['contact', 'meta'] as const;
+export type ExtraBlockKey = (typeof EXTRA_BLOCK_KEYS)[number];
+
+export type ContactContent = {
+  phone: string;
+  email: string;
+  address: LocalizedText;
+  hours: LocalizedText;
+  desc: LocalizedText;
+};
+
+export type SiteMeta = {
+  title: LocalizedText;
+  description: LocalizedText;
+  keywords: LocalizedText;
+};
+
+export const DEFAULT_CONTACT: ContactContent = {
+  phone: '+98 21 0000 0000',
+  email: 'support@panahkala.ir',
+  address: {
+    fa: 'تهران، ایران',
+    en: 'Tehran, Iran',
+  },
+  hours: {
+    fa: 'شنبه تا پنجشنبه، ۹ تا ۱۸',
+    en: 'Saturday to Thursday, 9–18',
+  },
+  desc: {
+    fa: 'سوالی دارید؟ تیم پشتیبانی پناه کالا آماده پاسخ‌گویی است.',
+    en: 'Questions? The Panah Kala support team is ready to help.',
+  },
+};
+
+export const DEFAULT_SITE_META: SiteMeta = {
+  title: { fa: 'فروشگاه پناه کالا', en: 'Panah Kala Shop' },
+  description: {
+    fa: 'فروشگاه اینترنتی پناه کالا — خرید آنلاین با بهترین قیمت و کیفیت',
+    en: 'Panah Kala online store — shop with the best prices and quality',
+  },
+  keywords: {
+    fa: 'فروشگاه اینترنتی، خرید آنلاین، موبایل، لپ تاپ، لوازم جانبی، پناه کالا',
+    en: 'online shop, iran, mobile, laptop, accessories, panah kala',
+  },
+};
+
 /** Defaults mirror the current i18n strings so the homepage works with an
  *  empty HomeBlock table. Admins override any part of any block. */
 export const DEFAULT_HOME_BLOCKS: HomeBlocks = {
@@ -92,6 +141,7 @@ export const DEFAULT_HOME_BLOCKS: HomeBlocks = {
       en: 'Mobile phones, laptops, accessories and more — with the best prices and genuine warranty',
     },
     cta: { fa: 'خرید کنید', en: 'Shop Now' },
+    link: '/search',
   },
   iconBoxes: {
     enabled: true,
@@ -169,6 +219,7 @@ export const DEFAULT_HOME_BLOCKS: HomeBlocks = {
       en: 'Questions about your order, shipping or returns? Our support team answers around the clock — fast, in Persian, and to the point.',
     },
     cta: { fa: 'تماس با پشتیبانی', en: 'Contact Support' },
+    link: '/user/orders',
   },
 };
 
@@ -198,4 +249,30 @@ export const getHomeConfig = cache(async (): Promise<HomeBlocks> => {
   }
 
   return config;
+});
+
+/** Contact-page content — admin-editable, defaults provided. */
+export const getContactContent = cache(async (): Promise<ContactContent> => {
+  try {
+    const row = await prisma.homeBlock.findUnique({ where: { key: 'contact' } });
+    if (row) {
+      return mergeBlock(DEFAULT_CONTACT, row.data) as ContactContent;
+    }
+  } catch {
+    // DB unavailable — defaults
+  }
+  return DEFAULT_CONTACT;
+});
+
+/** Site-wide SEO metadata — admin-editable, defaults provided. */
+export const getSiteMeta = cache(async (): Promise<SiteMeta> => {
+  try {
+    const row = await prisma.homeBlock.findUnique({ where: { key: 'meta' } });
+    if (row) {
+      return mergeBlock(DEFAULT_SITE_META, row.data) as SiteMeta;
+    }
+  } catch {
+    // DB unavailable — defaults
+  }
+  return DEFAULT_SITE_META;
 });

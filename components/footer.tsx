@@ -14,7 +14,8 @@ const Footer = () => {
 
   const serviceLinks = [
     { href: '/search', label: th('latestProducts') },
-    { href: '/user/orders', label: th('moneyBack') },
+    { href: '/contact-us', label: t('contactUs') },
+    { href: '/user/orders', label: t('faq') },
     { href: '/cart', label: th('freeShipping') },
   ];
 

@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { NextIntlClientProvider } from 'next-intl';
-import { getTranslations } from 'next-intl/server';
 import { Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
 
 import { dir } from '@/i18n/config';
 import { getSiteFont, getSiteLocale } from '@/lib/site-settings';
+import { getSiteMeta } from '@/lib/home-content';
 import { ThemeProvider } from '@/components/theme-provider';
 import TopProgress from '@/components/shared/top-progress';
 import {
@@ -22,31 +22,50 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getSiteLocale();
-  const t = await getTranslations({ locale, namespace: 'metadata' });
+  const meta = await getSiteMeta();
   const siteUrl = getSiteUrl();
+
+  // Admin-editable SEO content with fallbacks between languages
+  const title =
+    (locale === 'fa' ? meta.title.fa || meta.title.en : meta.title.en || meta.title.fa) ||
+    'فروشگاه پناه کالا';
+  const description =
+    (locale === 'fa'
+      ? meta.description.fa || meta.description.en
+      : meta.description.en || meta.description.fa) || '';
+  const keywords =
+    (locale === 'fa'
+      ? meta.keywords.fa || meta.keywords.en
+      : meta.keywords.en || meta.keywords.fa) || '';
 
   return {
     metadataBase: new URL(siteUrl),
     title: {
-      default: t('title'),
-      template: `%s | ${t('title')}`,
+      default: title,
+      template: `%s | ${title}`,
     },
-    description: t('description'),
-    applicationName: t('title'),
+    description,
+    keywords: keywords
+      .split(/[،,]/)
+      .map((k) => k.trim())
+      .filter(Boolean),
+    applicationName: title,
     formatDetection: { telephone: false, address: false, email: false },
     alternates: { canonical: '/' },
     openGraph: {
       type: 'website',
-      siteName: t('title'),
-      title: t('title'),
-      description: t('description'),
+      siteName: title,
+      title,
+      description,
       locale: locale === 'fa' ? 'fa_IR' : 'en_US',
       url: siteUrl,
+      images: [{ url: '/images/banner-2.webp', width: 1920, height: 680, alt: title }],
     },
     twitter: {
-      card: 'summary',
-      title: t('title'),
-      description: t('description'),
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/images/banner-2.webp'],
     },
     robots: {
       index: true,
@@ -59,6 +78,13 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 }
+
+export const viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f1f7fa' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a1826' },
+  ],
+} as const;
 
 export default async function LocaleLayout({
   children,
