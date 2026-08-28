@@ -1,7 +1,9 @@
 import { useTranslations } from 'next-intl';
+import { Check } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
+// Numbered checkout progress steps (RTL-safe with logical gaps)
 const CheckoutSteps = ({ current = 0 }: { current: number }) => {
   const t = useTranslations();
 
@@ -13,23 +15,43 @@ const CheckoutSteps = ({ current = 0 }: { current: number }) => {
   ];
 
   return (
-    <div className='flex-between flex-col md:flex-row space-x-2 space-y-2 mb-10'>
-      {steps.map((step, index) => (
-        <div key={step} className='flex items-center'>
-          <div
-            className={cn(
-              'p-2 w-full md:w-56 rounded-full text-center text-sm whitespace-nowrap',
-              index === current ? 'bg-secondary text-secondary-foreground' : ''
+    <ol className='mb-10 flex flex-wrap items-center gap-y-3'>
+      {steps.map((step, index) => {
+        const isDone = index < current;
+        const isCurrent = index === current;
+        return (
+          <li key={step} className='flex items-center gap-2'>
+            <div
+              className={cn(
+                'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors',
+                isDone && 'border-primary bg-primary text-primary-foreground',
+                isCurrent && 'border-primary text-primary',
+                !isDone && !isCurrent && 'border-border text-muted-foreground'
+              )}
+            >
+              {isDone ? <Check className='h-4 w-4' /> : index + 1}
+            </div>
+            <span
+              className={cn(
+                'text-sm whitespace-nowrap',
+                isCurrent ? 'font-semibold' : 'text-muted-foreground'
+              )}
+            >
+              {step}
+            </span>
+            {index !== steps.length - 1 && (
+              <span
+                aria-hidden='true'
+                className={cn(
+                  'mx-3 hidden h-px w-10 sm:block',
+                  isDone ? 'bg-primary' : 'bg-border'
+                )}
+              />
             )}
-          >
-            {step}
-          </div>
-          {index !== steps.length - 1 && (
-            <hr className='w-16 border-t border-border mx-2' />
-          )}
-        </div>
-      ))}
-    </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 };
 

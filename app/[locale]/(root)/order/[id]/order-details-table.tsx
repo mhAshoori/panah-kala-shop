@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Link } from '@/i18n/navigation';
 import {
   Table,
   TableBody,
@@ -99,24 +100,24 @@ const OrderDetailsTable = ({ order }: { order: Order }) => {
                   {orderItems.map((item) => (
                     <TableRow key={item.slug}>
                       <TableCell>
-                        <a
+                        <Link
                           href={`/product/${item.slug}`}
-                          className='flex items-center'
+                          className='flex items-center gap-2'
                         >
                           <Image
                             src={item.image}
                             alt={item.name}
-                            width={50}
-                            height={50}
-                            className='rounded'
+                            width={56}
+                            height={56}
+                            className='h-14 w-14 rounded-lg object-cover'
                           />
-                          <span className='px-2'>{item.name}</span>
-                        </a>
+                          <span className='text-sm'>{item.name}</span>
+                        </Link>
                       </TableCell>
                       <TableCell>
-                        <span className='px-2'>{item.qty}</span>
+                        <span className='px-2 tabular-nums'>{item.qty}</span>
                       </TableCell>
-                      <TableCell className='text-end'>
+                      <TableCell className='text-end tabular-nums'>
                         {formatCurrency(item.price)}
                       </TableCell>
                     </TableRow>

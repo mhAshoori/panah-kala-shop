@@ -19,6 +19,8 @@
     "allCategories": "All Categories"
   },
   "footer": {
+    "brand": "Panah Kala",
+    "tagline": "Your trusted online store for mobile phones, laptops, accessories and more — with genuine warranty and fast delivery.",
     "copyright": "© {year} Panah Kala Shop. All rights reserved.",
     "customerService": "Customer Service",
     "aboutUs": "About Us",
@@ -79,7 +81,8 @@
     "tax": "Tax",
     "totalPrice": "Total Price",
     "checkout": "Checkout",
-    "remove": "Remove",
+    "remove": "Decrease",
+    "add": "Increase",
     "quantity": "Qty",
     "price": "Price",
     "item": "Item",

@@ -75,14 +75,17 @@ const ProductDetailsPage = async (props: {
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
       />
-      <div className="grid grid-cols-1 md:grid-cols-5">
+      <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5'>
         {/* Images Column */}
-        <div className="col-span-2">
-          <ProductImages images={product.images} />
+        <div className='lg:col-span-2'>
+          <ProductImages
+            images={product.images}
+            name={isFa ? product.nameFa : product.name}
+          />
         </div>
 
         {/* Details Column */}
-        <div className="col-span-2 p-5">
+        <div className='lg:col-span-2 lg:p-5'>
           <div className="flex flex-col gap-6">
             <p className="text-muted-foreground">
               {isFa ? product.categoryFa : product.category} · {product.brand}
@@ -101,16 +104,18 @@ const ProductDetailsPage = async (props: {
               />
             </div>
           </div>
-          <div className="mt-10">
-            <p className="font-semibold mb-2">{t('description')}:</p>
-            <p>{isFa ? product.descriptionFa : product.description}</p>
+          <div className='mt-10'>
+            <p className='font-semibold mb-2'>{t('description')}:</p>
+            <p className='leading-relaxed text-muted-foreground'>
+              {isFa ? product.descriptionFa : product.description}
+            </p>
           </div>
         </div>
 
         {/* Action Column */}
-        <div>
-          <Card>
-            <CardContent className="p-4">
+        <div className='lg:col-span-1'>
+          <Card className='lg:sticky lg:top-24'>
+            <CardContent className='p-4'>
               <div className="mb-2 flex justify-between">
                 <div>{t('details')}</div>
                 <div>

@@ -10,7 +10,7 @@ const Header = () => {
   const t = useTranslations('header');
 
   return (
-    <header className="w-full border-b">
+    <header className='sticky top-0 z-40 w-full border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/75'>
       <div className="wrapper flex-between gap-4">
         <div className="flex-start">
           <Link href="/" className="flex-start">

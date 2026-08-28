@@ -1,40 +1,60 @@
 import Image from 'next/image';
+import { getLocale, getTranslations } from 'next-intl/server';
 
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Link } from '@/i18n/navigation';
 import ProductPrice from '@/components/product/product-price';
+import StarRating from '@/components/shared/product/star-rating';
 import type { Product } from '@/types';
 
-const ProductCard = ({ product }: { product: Product }) => {
-  const isFa = product.nameFa && product.nameFa.length > 0;
+const ProductCard = async ({ product }: { product: Product }) => {
+  const locale = await getLocale();
+  const t = await getTranslations('product');
+  const name = locale === 'fa' ? product.nameFa : product.name;
+  const category = locale === 'fa' ? product.categoryFa : product.category;
+
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader className="p-0 items-center">
-        <Link href={`/product/${product.slug}`}>
-          <Image
-            priority={true}
-            src={product.images[0]}
-            alt={isFa ? product.nameFa : product.name}
-            className="aspect-square object-cover rounded-t-lg"
-            height={300}
-            width={300}
-          />
+    <Card className='group w-full h-full pt-0 gap-3 transition-all duration-300 hover:shadow-lg hover:-translate-y-1'>
+      <Link
+        href={`/product/${product.slug}`}
+        className='relative block aspect-square overflow-hidden rounded-t-xl bg-muted'
+      >
+        <Image
+          priority
+          src={product.images[0]}
+          alt={name}
+          fill
+          sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
+          className='object-cover transition-transform duration-500 group-hover:scale-105'
+        />
+        {product.stock === 0 && (
+          <div className='absolute inset-0 flex items-center justify-center bg-background/60'>
+            <Badge variant='destructive'>{t('outOfStock')}</Badge>
+          </div>
+        )}
+      </Link>
+
+      <CardContent className='flex flex-1 flex-col gap-2 px-4'>
+        <p className='text-xs text-muted-foreground'>
+          {category} · {product.brand}
+        </p>
+        <Link href={`/product/${product.slug}`} className='line-clamp-2'>
+          <h2 className='text-sm font-medium leading-snug hover:text-primary transition-colors'>
+            {name}
+          </h2>
         </Link>
-      </CardHeader>
-      <CardContent className="p-4 grid gap-4">
-        <div className="text-xs text-muted-foreground">
-          {product.categoryFa} · {product.brand}
-        </div>
-        <Link href={`/product/${product.slug}`}>
-          <h2 className="text-sm font-medium">{product.nameFa}</h2>
-        </Link>
-        <div className="flex-between gap-4">
-          <p>{Number(product.rating)} ★</p>
+        <div className='mt-auto flex items-center justify-between gap-2 pt-1'>
           {product.stock > 0 ? (
-            <ProductPrice value={Number(product.price)} />
+            <ProductPrice value={Number(product.price)} className='text-lg' />
           ) : (
-            <p className="text-destructive">Out of Stock</p>
+            <span className='text-sm font-medium text-destructive'>
+              {t('outOfStock')}
+            </span>
           )}
+          <div className='flex items-center gap-1'>
+            <StarRating value={Number(product.rating)} />
+          </div>
         </div>
       </CardContent>
     </Card>
