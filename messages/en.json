@@ -121,6 +121,22 @@
       "placeOrder": "Place Order"
     }
   },
+  "search": {
+    "title": "Search Products",
+    "results": "Results",
+    "resultsFor": "Search results for",
+    "category": "Category",
+    "allCategories": "All Categories",
+    "priceAny": "Any Price",
+    "priceUnder": "Under",
+    "priceOver": "Over",
+    "ratingAny": "Any Rating",
+    "sortBy": "Sort By",
+    "sortNewest": "Newest",
+    "sortLowest": "Price: Low to High",
+    "sortHighest": "Price: High to Low",
+    "sortRating": "Top Rated"
+  },
   "order": {
     "title": "Order",
     "myOrders": "My Orders",
@@ -228,6 +244,8 @@
     "previous": "Previous",
     "notFound": "The page you requested was not found",
     "currency": "Toman",
-    "rials": "Rials"
+    "rials": "Rials",
+    "price": "Price",
+    "rating": "Rating"
   }
 }

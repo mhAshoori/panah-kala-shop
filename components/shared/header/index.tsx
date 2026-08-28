@@ -4,13 +4,14 @@ import Image from 'next/image';
 import { APP_NAME } from '@/lib/constants';
 import { Link } from '@/i18n/navigation';
 import Menu from './menu';
+import SearchBar from './search';
 
 const Header = () => {
   const t = useTranslations('header');
 
   return (
     <header className="w-full border-b">
-      <div className="wrapper flex-between">
+      <div className="wrapper flex-between gap-4">
         <div className="flex-start">
           <Link href="/" className="flex-start">
             <Image
@@ -24,6 +25,9 @@ const Header = () => {
               {t('brandName')}
             </span>
           </Link>
+        </div>
+        <div className="hidden md:block flex-1 justify-center">
+          <SearchBar />
         </div>
         <Menu />
       </div>

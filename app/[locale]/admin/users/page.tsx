@@ -86,7 +86,7 @@ const AdminUsersPage = async (props: {
         </Table>
       </div>
 
-      <Pagination page={Number(page) || 1} totalPages={users.totalPages} query={q} />
+      <Pagination page={Number(page) || 1} totalPages={users.totalPages} />
     </div>
   );
 };

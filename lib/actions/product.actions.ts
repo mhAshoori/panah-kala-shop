@@ -27,6 +27,92 @@ export async function getProductBySlug(slug: string) {
   });
 }
 
+// Get all distinct categories (fa/en pairs) with product counts
+export async function getAllCategories() {
+  const products = await prisma.product.findMany({
+    select: { category: true, categoryFa: true },
+  });
+
+  const map = new Map<string, { category: string; categoryFa: string; _count: number }>();
+  for (const p of products) {
+    const entry = map.get(p.category);
+    if (entry) {
+      entry._count += 1;
+    } else {
+      map.set(p.category, { category: p.category, categoryFa: p.categoryFa, _count: 1 });
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => b._count - a._count);
+}
+
+// Get products for the public search page with filters + sorting + pagination
+export async function getFilteredProducts({
+  query,
+  category,
+  price,
+  rating,
+  sort,
+  limit = PAGE_SIZE,
+  page,
+}: {
+  query?: string;
+  category?: string;
+  price?: string;
+  rating?: string;
+  sort?: string;
+  limit?: number;
+  page: number;
+}) {
+  const filters: Record<string, unknown> = {};
+
+  if (query && query.trim() !== '') {
+    filters.OR = [
+      { name: { contains: query, mode: 'insensitive' as const } },
+      { nameFa: { contains: query } },
+      { brand: { contains: query, mode: 'insensitive' as const } },
+      { description: { contains: query, mode: 'insensitive' as const } },
+      { descriptionFa: { contains: query } },
+    ];
+  }
+
+  if (category && category !== 'all') {
+    filters.category = category;
+  }
+
+  if (price && price !== 'all') {
+    const [min, max] = price.split('-').map(Number);
+    filters.price = { gte: min, ...(Number.isFinite(max) ? { lte: max } : {}) };
+  }
+
+  if (rating && rating !== 'all') {
+    filters.rating = { gte: Number(rating) };
+  }
+
+  const orderBy =
+    sort === 'lowest'
+      ? { price: 'asc' as const }
+      : sort === 'highest'
+        ? { price: 'desc' as const }
+        : sort === 'rating'
+          ? { rating: 'desc' as const }
+          : { createdAt: 'desc' as const };
+
+  const data = await prisma.product.findMany({
+    where: filters,
+    orderBy,
+    take: limit,
+    skip: (page - 1) * limit,
+  });
+
+  const dataCount = await prisma.product.count({ where: filters });
+
+  return {
+    data: convertToPlainObject(data),
+    totalPages: Math.ceil(dataCount / limit),
+  };
+}
+
 // Get all products for the admin table with optional name/category search + pagination
 export async function getAllProducts({
   query,

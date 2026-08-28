@@ -2,31 +2,30 @@
 
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
+import { useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Pagination = ({
   page,
   totalPages,
-  query,
 }: {
   page: number;
   totalPages: number;
-  /** Optional search query to preserve across pages */
-  query?: string;
 }) => {
   const t = useTranslations('common');
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   if (totalPages <= 1) return null;
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   const hrefFor = (p: number) => {
-    const params = new URLSearchParams();
-    if (query) params.set('q', query);
+    const params = new URLSearchParams(searchParams);
     params.set('page', String(p));
-    return `${pathname}?${params.toString()}`;
+    const qs = params.toString();
+    return qs ? `${pathname}?${qs}` : pathname;
   };
 
   return (

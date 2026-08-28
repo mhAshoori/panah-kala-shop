@@ -11,6 +11,7 @@ import ModeToggle from './mode-toggle';
 import LanguageToggle from './language-toggle';
 import UserButton from './user-button';
 import CartButton from './cart-button';
+import SearchBar from './search';
 
 const Menu = () => {
   const t = useTranslations('header');
@@ -25,16 +26,19 @@ const Menu = () => {
       </nav>
       <nav className="md:hidden">
         <Sheet>
-          <SheetTrigger className="align-middle">
+          <SheetTrigger className="align-middle" aria-label={t('menu')}>
             <EllipsisVertical />
           </SheetTrigger>
           <SheetContent className="flex flex-col items-start gap-3">
             <SheetTitle>{t('menu')}</SheetTitle>
+            <div className="w-full">
+              <SearchBar />
+            </div>
             <ModeToggle />
             <LanguageToggle />
             <CartButton />
             <UserButton />
-            <SheetDescription></SheetDescription>
+            <SheetDescription className="sr-only">{t('menu')}</SheetDescription>
           </SheetContent>
         </Sheet>
       </nav>

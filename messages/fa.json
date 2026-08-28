@@ -121,6 +121,22 @@
       "placeOrder": "ثبت سفارش"
     }
   },
+  "search": {
+    "title": "جستجوی محصولات",
+    "results": "نتایج",
+    "resultsFor": "نتایج جستجو برای",
+    "category": "دسته‌بندی",
+    "allCategories": "همه دسته‌بندی‌ها",
+    "priceAny": "هر قیمتی",
+    "priceUnder": "کمتر از",
+    "priceOver": "بیشتر از",
+    "ratingAny": "هر امتیازی",
+    "sortBy": "مرتب‌سازی",
+    "sortNewest": "جدیدترین",
+    "sortLowest": "ارزان‌ترین",
+    "sortHighest": "گران‌ترین",
+    "sortRating": "بهترین امتیاز"
+  },
   "order": {
     "title": "سفارش",
     "myOrders": "سفارش‌های من",
@@ -228,6 +244,8 @@
     "previous": "قبلی",
     "notFound": "صفحه مورد نظر یافت نشد",
     "currency": "تومان",
-    "rials": "ریال"
+    "rials": "ریال",
+    "price": "قیمت",
+    "rating": "امتیاز"
   }
 }
