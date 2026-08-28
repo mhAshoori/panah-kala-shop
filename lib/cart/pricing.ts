@@ -1,3 +1,8 @@
+import {
+  FREE_SHIPPING_THRESHOLD,
+  SHIPPING_FLAT_RATE,
+  TAX_RATE,
+} from '../constants';
 import { round2 } from '../utils';
 
 // Minimal cart-item shape this calculator needs
