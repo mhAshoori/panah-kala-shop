@@ -260,7 +260,12 @@
     "name": "Name",
     "role": "Role",
     "createdAt": "Created At",
-    "userDeleted": "User deleted successfully"
+    "userDeleted": "User deleted successfully",
+    "categories": "Categories",
+    "createCategory": "Create Category",
+    "editCategory": "Edit Category",
+    "icon": "Icon",
+    "sortOrder": "Sort Order"
   },
   "common": {
     "email": "Email",

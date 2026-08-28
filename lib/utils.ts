@@ -70,6 +70,14 @@ export function formatId(id: string) {
   return `..${id.substring(id.length - 6)}`;
 }
 
+// Slugify an English category name
+export function slugifyCategory(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
 // Format a date in 3 useful ways (date-time, date-only, time-only)
 export function formatDateTime(dateString: Date | string) {
   const dateTimeOptions: Intl.DateTimeFormatOptions = {

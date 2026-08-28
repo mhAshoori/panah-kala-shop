@@ -43,14 +43,28 @@ const ProductForm = ({
   type,
   product,
   productId,
+  categories = [],
 }: {
   type: 'Create' | 'Update';
   product?: Product;
   productId?: string;
+  categories?: {
+    id: string;
+    slug: string;
+    name: string;
+    nameFa: string;
+  }[];
 }) => {
   const t = useTranslations('admin');
   const tCommon = useTranslations('common');
   const router = useRouter();
+
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
+    product?.categoryId && categories.some((c) => c.id === product.categoryId)
+      ? product.categoryId
+      : '__new__'
+  );
+  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
   const [images, setImages] = useState<string[]>(
     product?.images ?? productDefaultValues.images
@@ -99,6 +113,17 @@ const ProductForm = ({
       />
       {isFeatured && (
         <input type='hidden' name='isFeatured' value='on' />
+      )}
+      {/* Category selection: existing category fills name fields, or new ones */}
+      {selectedCategory && (
+        <>
+          <input type='hidden' name='category' value={selectedCategory.name} />
+          <input
+            type='hidden'
+            name='categoryFa'
+            value={selectedCategory.nameFa}
+          />
+        </>
       )}
 
       <FieldGroup>
@@ -151,27 +176,54 @@ const ProductForm = ({
           </div>
         </Field>
 
+        {/* Category: select existing or create inline */}
         <div className='flex flex-col gap-5 md:flex-row'>
-          <Field className='w-full'>
-            <FieldLabel htmlFor='category'>{t('categoryEn')}</FieldLabel>
-            <Input
-              id='category'
-              name='category'
-              defaultValue={product?.category}
-              placeholder='Category (English)'
-              required
-            />
+          <Field className='w-full md:max-w-xs'>
+            <FieldLabel htmlFor='categoryId'>{t('category')}</FieldLabel>
+            <select
+              id='categoryId'
+              name='categoryId'
+              value={selectedCategoryId}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              className='h-9 w-full rounded-md border bg-transparent px-2 text-sm outline-none'
+            >
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nameFa} ({c.name})
+                </option>
+              ))}
+              <option value='__new__'>+ {t('createCategory')}</option>
+            </select>
           </Field>
-          <Field className='w-full'>
-            <FieldLabel htmlFor='categoryFa'>{t('categoryFa')}</FieldLabel>
-            <Input
-              id='categoryFa'
-              name='categoryFa'
-              defaultValue={product?.categoryFa}
-              placeholder='دسته‌بندی (فارسی)'
-              required
-            />
-          </Field>
+          {selectedCategoryId === '__new__' ? (
+            <>
+              <Field className='w-full'>
+                <FieldLabel htmlFor='category'>{t('categoryEn')}</FieldLabel>
+                <Input
+                  id='category'
+                  name='category'
+                  defaultValue={product?.category}
+                  placeholder='Category (English)'
+                  required
+                />
+              </Field>
+              <Field className='w-full'>
+                <FieldLabel htmlFor='categoryFa'>{t('categoryFa')}</FieldLabel>
+                <Input
+                  id='categoryFa'
+                  name='categoryFa'
+                  defaultValue={product?.categoryFa}
+                  placeholder='دسته‌بندی (فارسی)'
+                  required
+                />
+              </Field>
+            </>
+          ) : (
+            <Field className='w-full'>
+              <FieldLabel>{t('categoryEn')}</FieldLabel>
+              <Input value={selectedCategory?.name ?? ''} disabled />
+            </Field>
+          )}
         </div>
 
         <div className='flex flex-col gap-5 md:flex-row'>

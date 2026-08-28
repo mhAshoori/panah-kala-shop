@@ -260,7 +260,12 @@
     "name": "نام",
     "role": "نقش",
     "createdAt": "تاریخ عضویت",
-    "userDeleted": "کاربر با موفقیت حذف شد"
+    "userDeleted": "کاربر با موفقیت حذف شد",
+    "categories": "دسته‌بندی‌ها",
+    "createCategory": "افزودن دسته‌بندی",
+    "editCategory": "ویرایش دسته‌بندی",
+    "icon": "آیکون",
+    "sortOrder": "ترتیب نمایش"
   },
   "common": {
     "email": "ایمیل",
