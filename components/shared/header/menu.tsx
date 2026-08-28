@@ -11,7 +11,6 @@ import ModeToggle from './mode-toggle';
 import UserButton from './user-button';
 import CartButton from './cart-button';
 import SearchBar from './search';
-import { CategoryList } from './category-menu';
 import type { DockCategory } from '@/components/shared/category/category-dock';
 
 const Menu = ({ categories }: { categories: DockCategory[] }) => {
@@ -29,15 +28,18 @@ const Menu = ({ categories }: { categories: DockCategory[] }) => {
           <SheetTrigger className='align-middle' aria-label={t('menu')}>
             <EllipsisVertical />
           </SheetTrigger>
-          <SheetContent className='flex flex-col items-start gap-4 overflow-y-auto'>
-            <SheetTitle>{t('menu')}</SheetTitle>
+          <SheetContent className='flex flex-col items-start gap-5 overflow-y-auto p-6'>
+            <SheetTitle className='mb-1'>{t('menu')}</SheetTitle>
             <div className='w-full'>
               <SearchBar />
             </div>
-            <CategoryList categories={categories} />
-            <ModeToggle />
-            <CartButton />
-            <UserButton />
+            {/* Categories live in the floating dock on small screens — no
+                duplicate list here. */}
+            <div className='mt-1 space-y-4'>
+              <ModeToggle />
+              <CartButton />
+              <UserButton />
+            </div>
             <SheetDescription className='sr-only'>{t('menu')}</SheetDescription>
           </SheetContent>
         </Sheet>
