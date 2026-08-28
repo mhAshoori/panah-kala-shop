@@ -12,7 +12,7 @@ import {
 import { getLocale } from 'next-intl/server';
 import { buildAlternates, getSiteUrl } from '@/lib/seo';
 import { Link } from '@/i18n/navigation';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Breadcrumbs from '@/components/shared/breadcrumbs';
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;
@@ -61,17 +61,11 @@ const CategoryPage = async (props: {
 
   return (
     <div className='space-y-4'>
-      {/* Breadcrumb */}
-      <nav className='flex items-center gap-1 text-sm text-muted-foreground'>
-        <Link href='/' className='hover:text-primary transition-colors'>
-          {isFa ? 'خانه' : 'Home'}
-        </Link>
-        <ChevronLeft className='h-3.5 w-3.5 rtl:hidden' />
-        <ChevronRight className='h-3.5 w-3.5 ltr:hidden rtl:rotate-180' />
-        <span className='font-medium text-foreground'>
-          {isFa ? result.category.nameFa : result.category.name}
-        </span>
-      </nav>
+      {/* Breadcrumb trail */}
+      <Breadcrumbs
+        className='mb-2'
+        items={[{ label: isFa ? result.category.nameFa : result.category.name }]}
+      />
 
       <div className='flex flex-wrap items-center justify-between gap-2'>
         <h1 className='h2-bold'>

@@ -97,6 +97,11 @@ export async function getCategoriesWithCount() {
   }[];
 }
 
+// Get a single category by id
+export async function getCategoryById(id: string) {
+  return prisma.category.findUnique({ where: { id } });
+}
+
 // Get a single category by slug
 export async function getCategoryBySlug(slug: string) {
   return prisma.category.findUnique({ where: { slug } });

@@ -6,6 +6,7 @@ import ProductImages from '@/components/product/product-images';
 import AddToCart from '@/components/shared/product/add-to-cart';
 import StarRating from '@/components/shared/product/star-rating';
 import ReviewsSection from '@/components/shared/product/reviews-section';
+import Breadcrumbs from '@/components/shared/breadcrumbs';
 import { Card, CardContent } from '@/components/ui/card';
 import { getProductBySlug } from '@/lib/actions/product.actions';
 import { getMyCart } from '@/lib/actions/cart.actions';
@@ -16,6 +17,7 @@ import {
   getSiteUrl,
   productJsonLd,
 } from '@/lib/seo';
+import { getCategoryById } from '@/lib/actions/product.actions';
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;
@@ -59,6 +61,11 @@ const ProductDetailsPage = async (props: {
   // Load the visitor's cart so AddToCart can show +/- controls
   const cart = await getMyCart();
 
+  const categoryRow = product.categoryId
+    ? await getCategoryById(product.categoryId)
+    : null;
+  const categorySlug = categoryRow?.slug ?? null;
+
   const categoryName = isFa ? product.categoryFa : product.category;
   const jsonLd = productJsonLd(product, locale);
   const breadcrumbs = breadcrumbJsonLd([
@@ -76,6 +83,20 @@ const ProductDetailsPage = async (props: {
       <script
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
+      />
+
+      {/* Breadcrumb trail — ends with the product name */}
+      <Breadcrumbs
+        className='mb-4'
+        items={[
+          {
+            label: isFa ? product.categoryFa : product.category,
+            href: categorySlug
+              ? `/category/${categorySlug}`
+              : `/search?category=${encodeURIComponent(product.category)}`,
+          },
+          { label: isFa ? product.nameFa : product.name },
+        ]}
       />
       <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5'>
         {/* Images Column */}

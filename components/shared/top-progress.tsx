@@ -64,6 +64,21 @@ const TopProgress = () => {
       }
     };
 
+    // Catch programmatic navigations (router.push/prefetch, redirects) —
+    // they all go through history.pushState/replaceState.
+    const history = window.history;
+    const origPush = history.pushState.bind(history);
+    const origReplace = history.replaceState.bind(history);
+    history.pushState = (...args: Parameters<typeof origPush>) => {
+      start();
+      return origPush(...args);
+    };
+    history.replaceState = (...args: Parameters<typeof origReplace>) => {
+      // Skip the initial hydration replaceState (same URL, no navigation)
+      if (args[2] && String(args[2]) !== window.location.href) start();
+      return origReplace(...args);
+    };
+
     document.addEventListener('click', onClick, true);
     document.addEventListener('submit', onSubmit, true);
     window.addEventListener('popstate', start);
@@ -71,6 +86,8 @@ const TopProgress = () => {
       document.removeEventListener('click', onClick, true);
       document.removeEventListener('submit', onSubmit, true);
       window.removeEventListener('popstate', start);
+      history.pushState = origPush;
+      history.replaceState = origReplace;
     };
   }, []);
 
