@@ -38,3 +38,19 @@ export const signUpDefaultValues = {
   password: '',
   confirmPassword: '',
 };
+
+export const productDefaultValues = {
+  name: '',
+  nameFa: '',
+  slug: '',
+  category: '',
+  categoryFa: '',
+  brand: '',
+  description: '',
+  descriptionFa: '',
+  stock: 0,
+  price: '0',
+  images: [] as string[],
+  isFeatured: false,
+  banner: null as string | null,
+};

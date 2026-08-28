@@ -3,17 +3,8 @@
 import { prisma } from '@/db/prisma';
 import { convertToPlainObject } from '../utils';
 import { PAGE_SIZE } from '../constants';
-import { auth } from '@/auth';
+import { requireAdmin } from '../auth-guard';
 import { Order } from '@/types';
-
-// Throw unless the current session belongs to an admin user
-async function requireAdmin() {
-  const session = await auth();
-  if (session?.user?.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-  return session;
-}
 
 // Get dashboard summary: counts, total sales, monthly sales and latest sales
 export async function getOrderSummary() {
