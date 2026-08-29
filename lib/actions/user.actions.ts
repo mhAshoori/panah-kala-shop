@@ -162,9 +162,10 @@ async function clearAuthCookies() {
 }
 
 /**
- * Perform a credentials sign-in against Auth.js with redirect disabled and
- * inspect the resulting URL: a failed attempt resolves to the configured
- * error page (`?error=...`) instead of throwing, so we detect that here.
+ * Perform a credentials sign-in against Auth.js with redirect disabled.
+ * Success detection: signIn() only throws CredentialsSignin on BAD
+ * credentials. If it resolves — regardless of its return shape (some
+ * platforms return undefined) — the session cookie was written.
  * Returns true when a session cookie has been established.
  */
 async function establishCredentialsSession(
@@ -177,13 +178,17 @@ async function establishCredentialsSession(
       password,
       redirect: false,
     });
-    if (typeof result !== 'string') return false;
-    try {
-      const url = new URL(result, 'http://localhost');
-      if (url.searchParams.has('error')) return false;
-      if (/sign-in/i.test(url.pathname)) return false;
-    } catch {
-      /* non-URL result — treat as success path below */
+
+    // Only an explicit error parameter means failure. Missing/odd return
+    // shapes are success — the reload behavior proved the cookie is set.
+    if (typeof result === 'string') {
+      try {
+        const url = new URL(result, 'http://localhost');
+        if (url.searchParams.has('error')) return false;
+        if (/sign-in/i.test(url.pathname)) return false;
+      } catch {
+        /* non-URL result — treat as success */
+      }
     }
     return true;
   } catch (error) {
@@ -235,6 +240,15 @@ export async function signInWithCredentials(
         message: await msg('invalidCredentials'),
       };
     }
+
+    // Admins land on the admin panel unless a specific path was requested
+    if (callbackUrl === '/') {
+      const user = await prisma.user.findUnique({
+        where: { email: parsed.data.email },
+        select: { role: true },
+      });
+      if (user?.role === 'admin') redirect('/admin');
+    }
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
     if (error instanceof RetryableSignInError) {
@@ -246,9 +260,9 @@ export async function signInWithCredentials(
   redirect(callbackUrl);
 }
 
-// Sign user out
+// Sign user out — back to the sign-in page
 export async function SignOutUser() {
-  await signOut({ redirectTo: '/' });
+  await signOut({ redirectTo: '/sign-in' });
 }
 
 // Get all users for the admin table with optional name/email search + pagination
