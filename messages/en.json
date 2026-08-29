@@ -233,7 +233,12 @@
     "sheba": "Sheba Number (optional)",
     "birthDate": "Birth Date (optional)",
     "defaultAddressHint": "Your default shipping address",
-    "manageAddresses": "Manage Addresses"
+    "manageAddresses": "Manage Addresses",
+    "favorites": "Favorites",
+    "noFavorites": "You haven't starred any products yet",
+    "signInToFavorite": "Sign in to save favorites",
+    "favoriteAdd": "Add to favorites",
+    "favoriteRemove": "Remove from favorites"
   },
   "admin": {
     "overview": "Overview",

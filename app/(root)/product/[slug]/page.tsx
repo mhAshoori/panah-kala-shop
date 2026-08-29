@@ -4,12 +4,14 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import ProductPrice from '@/components/product/product-price';
 import ProductImages from '@/components/product/product-images';
 import AddToCart from '@/components/shared/product/add-to-cart';
+import FavoriteToggle from '@/components/shared/product/favorite-toggle';
 import StarRating from '@/components/shared/product/star-rating';
 import ReviewsSection from '@/components/shared/product/reviews-section';
 import Breadcrumbs from '@/components/shared/breadcrumbs';
 import { Card, CardContent } from '@/components/ui/card';
 import { getProductBySlug } from '@/lib/actions/product.actions';
 import { getMyCart } from '@/lib/actions/cart.actions';
+import { isProductFavorited } from '@/lib/actions/favorite.actions';
 import { Badge } from '@/components/ui/badge';
 import { formatNumberLocale } from '@/lib/persian';
 import {
@@ -61,6 +63,7 @@ const ProductDetailsPage = async (props: {
 
   // Load the visitor's cart so AddToCart can show +/- controls
   const cart = await getMyCart();
+  const isFavorited = await isProductFavorited(product.id);
 
   const categoryRow = product.categoryId
     ? await getCategoryById(product.categoryId)
@@ -156,17 +159,23 @@ const ProductDetailsPage = async (props: {
                 )}
               </div>
               {product.stock > 0 && (
-                <div className='mt-4'>
-                  <AddToCart
-                    cart={cart}
-                    item={{
-                      productId: product.id,
-                      name: product.name,
-                      nameFa: product.nameFa,
-                      slug: product.slug,
-                      price: product.price,
-                      image: product.images[0],
-                    }}
+                <div className='mt-4 flex items-center gap-2'>
+                  <div className='flex-1'>
+                    <AddToCart
+                      cart={cart}
+                      item={{
+                        productId: product.id,
+                        name: product.name,
+                        nameFa: product.nameFa,
+                        slug: product.slug,
+                        price: product.price,
+                        image: product.images[0],
+                      }}
+                    />
+                  </div>
+                  <FavoriteToggle
+                    productId={product.id}
+                    initialFavorited={isFavorited}
                   />
                 </div>
               )}

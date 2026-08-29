@@ -233,7 +233,12 @@
     "sheba": "شماره شبا (اختیاری)",
     "birthDate": "تاریخ تولد (اختیاری)",
     "defaultAddressHint": "نشانی پیش‌فرض ارسال سفارش‌ها",
-    "manageAddresses": "مدیریت نشانی‌ها"
+    "manageAddresses": "مدیریت نشانی‌ها",
+    "favorites": "علاقه‌مندی‌ها",
+    "noFavorites": "هنوز محصولی را نشان نکرده‌اید",
+    "signInToFavorite": "برای ذخیره علاقه‌مندی‌ها وارد شوید",
+    "favoriteAdd": "افزودن به علاقه‌مندی‌ها",
+    "favoriteRemove": "حذف از علاقه‌مندی‌ها"
   },
   "admin": {
     "overview": "نمای کلی",
