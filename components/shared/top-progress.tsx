@@ -71,28 +71,10 @@ const TopProgress = () => {
       }
     };
 
-    // Catch programmatic navigations (router.push/prefetch, redirects) —
-    // they all go through history.pushState/replaceState.
-    const mountedAt = Date.now();
-    const history = window.history;
-    const origPush = history.pushState.bind(history);
-    const origReplace = history.replaceState.bind(history);
-    history.pushState = (...args: Parameters<typeof origPush>) => {
-      start();
-      return origPush(...args);
-    };
-    history.replaceState = (...args: Parameters<typeof origReplace>) => {
-      // Ignore hydration noise right after mount
-      if (
-        Date.now() - mountedAt > 1000 &&
-        args[2] &&
-        String(args[2]) !== window.location.href
-      ) {
-        start();
-      }
-      return origReplace(...args);
-    };
-
+    // Catch programmatic navigations is intentionally NOT done by patching
+    // history.pushState — monkey-patching it breaks Next's router wiring on
+    // some touch devices (buttons stop responding). Link clicks, GET submits
+    // and popstate cover the visible cases.
     document.addEventListener('click', onClick, true);
     document.addEventListener('submit', onSubmit, true);
     window.addEventListener('popstate', start);
@@ -100,8 +82,6 @@ const TopProgress = () => {
       document.removeEventListener('click', onClick, true);
       document.removeEventListener('submit', onSubmit, true);
       window.removeEventListener('popstate', start);
-      history.pushState = origPush;
-      history.replaceState = origReplace;
     };
   }, []);
 

@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { signIn } from 'next-auth/react';
 import { AuthError } from 'next-auth';
 import { Loader2, Smartphone, KeyRound } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -99,17 +100,18 @@ const CredentialsSignInForm = () => {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [, startTransition] = useTransition();
+  const router = useRouter();
 
   const passwordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     startTransition(async () => {
       try {
-        await signIn('credentials', {
-          email,
-          password,
-          redirectTo: callbackUrl,
-        });
+        // No redirectTo: without it Auth.js THROWS on failure so we can show
+        // the message; on success we navigate manually.
+        await signIn('credentials', { email, password, redirect: false });
+        router.push(callbackUrl);
+        router.refresh();
       } catch (err) {
         if (err instanceof AuthError) {
           setError(t('invalidCredentials'));
@@ -125,7 +127,9 @@ const CredentialsSignInForm = () => {
     setError('');
     startTransition(async () => {
       try {
-        await signIn('sms', { phone, code, redirectTo: callbackUrl });
+        await signIn('sms', { phone, code, redirect: false });
+        router.push(callbackUrl);
+        router.refresh();
       } catch (err) {
         if (err instanceof AuthError) {
           const code = (err as AuthError & { code?: string }).code;
