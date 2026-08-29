@@ -27,7 +27,7 @@ const ProfileForm = ({
   defaultAddress,
 }: {
   name: string;
-  email: string;
+  email?: string | null;
   mobile?: string | null;
   nationalId?: string | null;
   cardNumber?: string | null;
@@ -62,7 +62,7 @@ const ProfileFormInner = ({
   defaultAddress,
 }: {
   name: string;
-  email: string;
+  email?: string | null;
   mobile?: string | null;
   nationalId?: string | null;
   cardNumber?: string | null;
@@ -79,7 +79,7 @@ const ProfileFormInner = ({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
       name,
-      email,
+      email: email ?? undefined,
       mobile: mobile ?? '',
       nationalId: nationalId ?? '',
       cardNumber: cardNumber ?? '',
@@ -90,7 +90,8 @@ const ProfileFormInner = ({
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof updateProfileSchema>) => {
+  const onSubmit = form.handleSubmit(
+    async (values: z.infer<typeof updateProfileSchema>) => {
     startTransition(async () => {
       const res = await updateProfile(values);
 
@@ -103,10 +104,10 @@ const ProfileFormInner = ({
       await update({ name: values.name });
       toast.success(t('saved'));
     });
-  };
+  });
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+    <form onSubmit={onSubmit} className='space-y-4'>
       <FieldGroup>
         <Controller
           name='name'

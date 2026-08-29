@@ -131,7 +131,7 @@ model OrderItem {
 model User {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String    @default("NO_NAME")
-  email         String    @unique(map: "user_email_idx")
+  email         String?   @unique(map: "user_email_idx")
   password      String?
   role          String    @default("user")
   mobile        String?

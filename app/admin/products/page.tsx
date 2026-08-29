@@ -78,9 +78,12 @@ const AdminProductsPage = async (props: {
                         height={40}
                         unoptimized
                       />
-                      <span className='max-w-48 truncate'>
+                      <Link
+                        href={`/product/${product.slug}`}
+                        className='max-w-48 truncate hover:text-primary transition-colors'
+                      >
                         {locale === 'fa' ? product.nameFa : product.name}
-                      </span>
+                      </Link>
                     </div>
                   </TableCell>
                   <TableCell>

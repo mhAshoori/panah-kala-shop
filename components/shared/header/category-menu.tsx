@@ -19,9 +19,10 @@ export type DockCategory = {
 };
 
 /**
- * Header "Categories" mega menu with the full category tree:
- * main categories expand (accordion) to reveal their subcategories.
- * Opens on hover and click, closes on outside click / Escape / navigation.
+ * Header "Categories" mega menu with the full category tree.
+ * Opens on hover (desktop) and click/tap (touch); closes on outside click,
+ * Escape, navigation or mouse-leave. On touch the trigger only opens —
+ * closing happens via outside tap, which is the natural gesture.
  */
 const CategoryMenu = ({ categories }: { categories: DockCategory[] }) => {
   const t = useTranslations('header');
@@ -29,12 +30,15 @@ const CategoryMenu = ({ categories }: { categories: DockCategory[] }) => {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const canHover =
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(hover: hover)').matches;
 
   const mains = categories.filter((c) => !c.parentId);
   const subsOf = (parentId: string) =>
     categories.filter((c) => c.parentId === parentId);
 
-  // Close on outside click
+  // Close on outside click (touch) — only bind hover for mouse devices
   useEffect(() => {
     if (!open) return;
     const onClick = (e: MouseEvent) => {
@@ -57,8 +61,8 @@ const CategoryMenu = ({ categories }: { categories: DockCategory[] }) => {
     <div
       ref={ref}
       className='relative'
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={canHover ? () => setOpen(true) : undefined}
+      onMouseLeave={canHover ? () => setOpen(false) : undefined}
     >
       <Button
         variant='ghost'

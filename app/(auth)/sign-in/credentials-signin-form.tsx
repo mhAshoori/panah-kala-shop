@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useActionState } from 'react';
+import { useState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -34,36 +34,55 @@ const SubmitButton = ({ label }: { label: string }) => {
   );
 };
 
-// Send-code button posts to the requestPhoneOtp action
-const SendCodeForm = ({ phone }: { phone: string }) => {
+// Sends the OTP by calling the server action directly (no nested <form>)
+const SendCodeButton = ({ phone }: { phone: string }) => {
   const t = useTranslations('auth');
-  const [, action] = useActionState(requestPhoneOtp, {
-    success: false,
-    message: '',
-  });
+  const tCommon = useTranslations('common');
+  const [isPending, startTransition] = useTransition();
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+
+  const send = () => {
+    if (!phone) return;
+    setError('');
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set('phone', phone);
+      const res = await requestPhoneOtp(null, fd);
+      if (res.success) {
+        setSent(true);
+      } else {
+        setError(res.message || tCommon('error'));
+      }
+    });
+  };
 
   if (sent) {
     return (
-      <p className='text-center text-xs text-muted-foreground' dir='rtl'>
+      <p dir='rtl' className='text-center text-xs text-muted-foreground'>
         {t('otpSentHint')}
       </p>
     );
   }
 
   return (
-    <form action={action}>
-      <input type='hidden' name='phone' value={phone} />
+    <div>
       <Button
-        type='submit'
+        type='button'
         variant='outline'
         className='w-full'
-        disabled={!phone}
-        onClick={() => setSent(true)}
+        disabled={!phone || isPending}
+        onClick={send}
       >
+        {isPending && <Loader2 className='h-4 w-4 animate-spin' />}
         {t('sendCode')}
       </Button>
-    </form>
+      {error && (
+        <p className='mt-1 text-xs text-destructive' dir='rtl'>
+          {error}
+        </p>
+      )}
+    </div>
   );
 };
 
@@ -139,9 +158,7 @@ const CredentialsSignInForm = () => {
           onClick={() => setMode('phone')}
           className={cn(
             'flex items-center justify-center gap-1.5 rounded-md py-1.5 text-sm font-medium transition-colors',
-            mode === 'phone'
-              ? 'bg-background shadow-sm'
-              : 'text-muted-foreground'
+            mode === 'phone' ? 'bg-background shadow-sm' : 'text-muted-foreground'
           )}
         >
           <Smartphone className='h-3.5 w-3.5' />
@@ -151,7 +168,6 @@ const CredentialsSignInForm = () => {
 
       {mode === 'password' ? (
         <form onSubmit={passwordSubmit}>
-          <input type='hidden' name='callbackUrl' value={callbackUrl} />
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor='email'>{t('email')}</FieldLabel>
@@ -215,7 +231,7 @@ const CredentialsSignInForm = () => {
                 placeholder='09121234567'
               />
             </Field>
-            <SendCodeForm phone={phone} />
+            <SendCodeButton phone={phone} />
             <Field>
               <FieldLabel htmlFor='code'>{t('otpCodeLabel')}</FieldLabel>
               <Input

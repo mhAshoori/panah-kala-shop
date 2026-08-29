@@ -118,7 +118,10 @@
     "phoneSignIn": "SMS Code",
     "sendCode": "Send Code",
     "otpSentHint": "Code sent. Use 123456 for testing.",
-    "otpCodeLabel": "SMS Code"
+    "otpCodeLabel": "SMS Code",
+    "mobile": "Mobile Number",
+    "emailOrPhone": "Email or Mobile",
+    "chooseSignupMethod": "Sign-up method"
   },
   "checkout": {
     "shippingAddress": "Shipping Address",
@@ -147,7 +150,8 @@
   },
   "category": {
     "title": "Product Categories",
-    "all": "All Categories"
+    "all": "All Categories",
+    "empty": "No products in this category yet"
   },
   "search": {
     "title": "Search Products",

@@ -11,8 +11,14 @@ import { cn } from '@/lib/utils';
 
 type CategoryOption = { value: string; label: string };
 
-// Header search. Client-side submit (SPA navigation → progress bar works),
-// dir="auto" so mixed Persian/Latin queries render correctly on Android.
+/**
+ * Header search. Client-side submit (SPA navigation → progress bar works),
+ * dir="auto" so mixed Persian/Latin queries render correctly on Android.
+ *
+ * - Desktop: a unified bordered row [category select | input | button]
+ * - Compact (mobile sheet): right-aligned input + button (categories live in
+ *   the sheet's own tree right above it)
+ */
 const SearchBar = ({
   categories,
   compact = false,
@@ -40,28 +46,13 @@ const SearchBar = ({
     router.push(`/search${qs ? `?${qs}` : ''}`);
   };
 
-  return (
-    <form
-      onSubmit={submit}
-      className={cn('flex w-full min-w-0 items-center gap-2', className)}
-    >
-      <div className='relative flex min-w-0 flex-1 items-center'>
-        {!compact && categories.length > 0 && (
-          <select
-            name='category'
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            aria-label={t('categories')}
-            className='absolute start-0 top-0 z-10 h-full max-w-[9.5rem] cursor-pointer appearance-none truncate border-e bg-transparent px-2 text-xs text-muted-foreground outline-none'
-          >
-            <option value='all'>{t('allCategories')}</option>
-            {categories.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        )}
+  if (compact) {
+    return (
+      <form
+        onSubmit={submit}
+        dir='rtl'
+        className={cn('flex w-full min-w-0 items-center gap-2', className)}
+      >
         <Input
           name='q'
           type='search'
@@ -71,12 +62,59 @@ const SearchBar = ({
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t('searchPlaceholder')}
-          className={
-            compact ? 'min-w-0' : 'ps-40 pe-12 min-w-0'
-          }
+          className='min-w-0 text-right'
         />
-      </div>
-      <Button type='submit' size='icon' aria-label={t('search')} className='shrink-0'>
+        <Button
+          type='submit'
+          size='icon'
+          aria-label={t('search')}
+          className='shrink-0'
+        >
+          <Search className='h-4 w-4 rtl:-scale-x-100' />
+        </Button>
+      </form>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      className={cn(
+        'flex h-9 w-full min-w-0 items-stretch overflow-hidden rounded-md border bg-transparent shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50',
+        className
+      )}
+    >
+      <select
+        name='category'
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        aria-label={t('categories')}
+        className='w-28 shrink-0 cursor-pointer appearance-none border-e bg-muted/50 px-2 text-xs text-muted-foreground outline-none'
+      >
+        <option value='all'>{t('allCategories')}</option>
+        {categories.map((c) => (
+          <option key={c.value} value={c.value}>
+            {c.label}
+          </option>
+        ))}
+      </select>
+      <Input
+        name='q'
+        type='search'
+        dir='auto'
+        enterKeyHint='search'
+        autoComplete='off'
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder={t('searchPlaceholder')}
+        className='min-w-0 flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 dark:bg-transparent'
+      />
+      <Button
+        type='submit'
+        size='icon'
+        aria-label={t('search')}
+        className='w-10 shrink-0 rounded-none border-0 bg-transparent text-muted-foreground shadow-none hover:bg-muted hover:text-foreground dark:bg-transparent'
+      >
         <Search className='h-4 w-4 rtl:-scale-x-100' />
       </Button>
     </form>

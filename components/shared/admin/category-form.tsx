@@ -8,6 +8,24 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import slugify from 'slugify';
+import {
+  Camera,
+  CreditCard,
+  Gamepad2,
+  Headphones,
+  Headset,
+  Laptop,
+  Monitor,
+  Package,
+  ShieldCheck,
+  Smartphone,
+  Star,
+  Tablet,
+  Truck,
+  Undo2,
+  Watch,
+  type LucideIcon,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,18 +35,57 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { createCategory, updateCategory } from '@/lib/actions/category.actions';
+import { cn } from '@/lib/utils';
 
-const ICON_OPTIONS = [
-  'smartphone',
-  'laptop',
-  'headphones',
-  'watch',
-  'tablet',
-  'camera',
-  'monitor',
-  'gamepad-2',
-  'package',
-];
+// Icon picker catalogue — rendered so the admin chooses by appearance
+const ICON_CATALOGUE: Record<string, LucideIcon> = {
+  smartphone: Smartphone,
+  laptop: Laptop,
+  headphones: Headphones,
+  headset: Headset,
+  watch: Watch,
+  tablet: Tablet,
+  camera: Camera,
+  monitor: Monitor,
+  'gamepad-2': Gamepad2,
+  truck: Truck,
+  shield: ShieldCheck,
+  undo: Undo2,
+  'credit-card': CreditCard,
+  star: Star,
+  package: Package,
+};
+
+// Rendered icon picker grid
+const IconPicker = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) => {
+  return (
+    <div className='grid grid-cols-5 gap-1.5 sm:grid-cols-8'>
+      {Object.entries(ICON_CATALOGUE).map(([key, Icon]) => (
+        <button
+          key={key}
+          type='button'
+          aria-label={key}
+          title={key}
+          onClick={() => onChange(key)}
+          className={cn(
+            'flex h-10 w-full items-center justify-center rounded-lg border transition-colors',
+            value === key
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          )}
+        >
+          <Icon className='h-4 w-4' />
+        </button>
+      ))}
+    </div>
+  );
+};
 
 const SubmitButton = ({ label }: { label: string }) => {
   const { pending } = useFormStatus();
@@ -63,6 +120,7 @@ const CategoryForm = ({
   const tCommon = useTranslations('common');
   const router = useRouter();
   const [parentId, setParentId] = useState<string>(category?.parentId ?? '');
+  const [icon, setIcon] = useState<string>(category?.icon ?? 'package');
 
   const action = type === 'Create' ? createCategory : updateCategory;
   const [state, formAction] = useActionState(action, {
@@ -155,19 +213,9 @@ const CategoryForm = ({
             </div>
           </Field>
           <Field className='w-full'>
-            <FieldLabel htmlFor='icon'>{t('icon')}</FieldLabel>
-            <select
-              id='icon'
-              name='icon'
-              defaultValue={category?.icon ?? 'package'}
-              className='h-9 w-full rounded-md border bg-transparent px-2 text-sm outline-none'
-            >
-              {ICON_OPTIONS.map((icon) => (
-                <option key={icon} value={icon}>
-                  {icon}
-                </option>
-              ))}
-            </select>
+            <FieldLabel>{t('icon')}</FieldLabel>
+            <input type='hidden' name='icon' value={icon} />
+            <IconPicker value={icon} onChange={setIcon} />
           </Field>
           <Field className='w-full md:max-w-32'>
             <FieldLabel htmlFor='sortOrder'>{t('sortOrder')}</FieldLabel>

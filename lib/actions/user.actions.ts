@@ -266,7 +266,7 @@ async function establishSmsSession(
  * Rate limited: 3 requests / 10 minutes per phone.
  */
 export async function requestPhoneOtp(
-  _prevState: ActionState,
+  _prevState: ActionState | null,
   formData: FormData
 ): Promise<ActionState> {
   try {
@@ -432,21 +432,30 @@ export async function signUpUser(
 
     const { name, email, mobile, password, otpCode } = parsed.data;
 
-    // Duplicate email / mobile guard with a friendly message
-    const existing = await prisma.user.findFirst({
-      where: { OR: [{ email }, { mobile }] },
-    });
-    if (existing) {
-      return {
-        success: false,
-        message: await withActionMessage('accountExists'),
-      };
+    // Duplicate guard with a friendly message (when a value is provided)
+    const dupConditions = [];
+    if (email) dupConditions.push({ email });
+    if (mobile) dupConditions.push({ mobile });
+    if (dupConditions.length > 0) {
+      const existing = await prisma.user.findFirst({
+        where: { OR: dupConditions },
+      });
+      if (existing) {
+        return {
+          success: false,
+          message: await withActionMessage('accountExists'),
+        };
+      }
     }
 
-    // OTP mode: verify the code server-side before creating the account.
-    // Password mode: a password is required.
     const useOtp = !password;
     if (useOtp) {
+      if (!mobile) {
+        return {
+          success: false,
+          message: await withActionMessage('invalidValue'),
+        };
+      }
       if (!otpCode || otpCode !== MOCK_OTP_CODE) {
         return {
           success: false,
@@ -458,25 +467,28 @@ export async function signUpUser(
     await prisma.user.create({
       data: {
         name,
-        email,
-        mobile,
+        email: email || null,
+        mobile: mobile || null,
         password: password ? hashSync(password, 10) : null,
       },
     });
 
     if (password) {
-      const ok = await establishCredentialsSession(email, password);
+      const ok = await establishCredentialsSession(email!, password);
       if (!ok) {
         // Account exists but auto sign-in failed — send to sign-in page.
         redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
       }
     } else {
       // OTP sign-up: sign in via the SMS provider
-      const ok = await establishSmsSession(mobile, otpCode!);
+      const ok = await establishSmsSession(mobile!, otpCode!);
       if (!ok) {
         redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
       }
     }
+
+    // New users complete their profile next
+    redirect('/user/profile');
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
     if (error instanceof RetryableSignInError) {

@@ -57,8 +57,10 @@ const Header = async () => {
               {t('brandName')}
             </span>
           </Link>
-          {/* Category mega menu — available at every screen size */}
-          <CategoryMenu categories={flat} />
+          {/* Category mega menu — desktop only (small screens use the sheet) */}
+          <div className='hidden md:block'>
+            <CategoryMenu categories={flat} />
+          </div>
         </div>
         <div className='hidden md:block min-w-0 flex-1 justify-center'>
           <SearchBar

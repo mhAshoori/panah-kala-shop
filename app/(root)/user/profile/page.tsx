@@ -37,8 +37,7 @@ const ProfilePage = async () => {
       <ProfileForm
         name={user.name}
         email={user.email}
-        mobile={user.mobile}
-        nationalId={user.nationalId}
+        mobile={user.mobile}        nationalId={user.nationalId}
         cardNumber={user.cardNumber}
         sheba={user.sheba}
         birthDate={user.birthDate}

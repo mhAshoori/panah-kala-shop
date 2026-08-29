@@ -39,15 +39,23 @@ export const signInFormSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-// Schema for signing up a user — mobile is required; password optional
-// when the user signs up via SMS one-time code
+// Schema for signing up a user. Two account types:
+//  - email account (password required, mobile optional)
+//  - phone account  (SMS OTP required, email optional)
+// At least one of email/mobile must be provided.
 export const signUpFormSchema = z
   .object({
     name: z.string().min(3, 'Name must be at least 3 characters'),
-    email: z.string().email('Invalid email address'),
+    email: z
+      .string()
+      .email('Invalid email address')
+      .optional()
+      .or(z.literal('')),
     mobile: z
       .string()
-      .regex(/^(\+?\d{7,15})$/, 'Enter a valid phone number'),
+      .regex(/^(\+?\d{7,15})$/, 'Enter a valid phone number')
+      .optional()
+      .or(z.literal('')),
     password: z
       .string()
       .min(6, 'Password must be at least 6 characters')
@@ -58,7 +66,14 @@ export const signUpFormSchema = z
   })
   .refine(
     (data) =>
-      (data.password && data.password.length >= 6) || (data.otpCode ?? '').length >= 4,
+      (data.email && data.email.length > 3) ||
+      (data.mobile && data.mobile.length >= 7),
+    { message: 'Enter an email or a mobile number', path: ['email'] }
+  )
+  .refine(
+    (data) =>
+      (data.password && data.password.length >= 6) ||
+      (data.otpCode ?? '').length >= 4,
     { message: 'Enter a password or request an SMS code', path: ['password'] }
   )
   .refine((data) => data.password === data.confirmPassword, {

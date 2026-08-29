@@ -58,6 +58,7 @@ const CategoryPage = async (props: {
   if (!result) notFound();
 
   const t = await getTranslations('search');
+  const tCategory = await getTranslations('category');
   const tHome = await getTranslations('home');
 
   return (
@@ -75,10 +76,18 @@ const CategoryPage = async (props: {
         <SortDropdown />
       </div>
 
-      <ProductList
-        title={`${t('results')} (${formatNumberLocale(result.data.length, locale)})`}
-        data={result.data}
-      />
+      {/* Results — or an explicit "empty" message (never a not-found) */}
+      {result.data.length === 0 ? (
+        <p className='py-12 text-center text-sm text-muted-foreground'>
+          {tCategory('empty')}
+        </p>      ) : (
+        <>
+          <ProductList
+            title={`${t('results')} (${formatNumberLocale(result.data.length, locale)})`}
+            data={result.data}
+          />
+        </>
+      )}
 
       <Pagination page={Number(page) || 1} totalPages={result.totalPages} />
 
