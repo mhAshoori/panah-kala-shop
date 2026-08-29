@@ -12,8 +12,6 @@ import {
   Shapes,
   Users,
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { Link, usePathname } from '@/i18n/navigation';
 import { SignOutUser } from '@/lib/actions/user.actions';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +31,7 @@ const MENU_ITEMS: {
 
 const AdminSidebar = () => {
   const t = useTranslations('admin');
+  const tHeader = useTranslations('header');
   const pathname = usePathname();
 
   return (
