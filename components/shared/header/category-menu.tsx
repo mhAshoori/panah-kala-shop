@@ -76,7 +76,7 @@ const CategoryMenu = ({ categories }: { categories: DockCategory[] }) => {
       {/* Mega panel */}
       <div
         className={cn(
-          'absolute start-0 top-full z-50 w-80 rounded-2xl border bg-popover/95 p-2 shadow-xl backdrop-blur transition-all duration-200',
+          'absolute start-0 top-full z-50 w-80 max-w-[min(20rem,calc(100vw-2rem))] rounded-2xl border bg-popover/95 p-2 shadow-xl backdrop-blur transition-all duration-200',
           open
             ? 'pointer-events-auto translate-y-0 opacity-100'
             : 'pointer-events-none translate-y-2 opacity-0'

@@ -24,6 +24,7 @@ const PlaceOrderForm = () => {
         return;
       }
 
+      toast.success(res.message);
       if (res.redirectTo) router.push(res.redirectTo);
     });
   };

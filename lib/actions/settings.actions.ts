@@ -8,8 +8,10 @@ import { withActionMessage } from '../action-messages';
 import {
   SITE_FONT_KEY,
   SITE_LOCALE_KEY,
+  SITE_THEME_KEY,
   type SiteFont,
   type SiteLocale,
+  type SiteTheme,
 } from '../site-settings';
 
 // Change the site-wide display language (admin only)
@@ -57,6 +59,32 @@ export async function updateSiteFont(font: SiteFont) {
     revalidatePath('/', 'layout');
 
     return { success: true, message: await withActionMessage('fontUpdated') };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : await withActionMessage('invalidValue'),
+    };
+  }
+}
+
+// Change the default color theme for new visitors (admin only)
+export async function updateSiteTheme(theme: SiteTheme) {
+  try {
+    await requireAdmin();
+
+    if (theme !== 'light' && theme !== 'dark' && theme !== 'system') {
+      throw new Error(await withActionMessage('invalidValue'));
+    }
+
+    await prisma.setting.upsert({
+      where: { key: SITE_THEME_KEY },
+      create: { key: SITE_THEME_KEY, value: theme },
+      update: { key: SITE_THEME_KEY, value: theme },
+    });
+
+    revalidatePath('/', 'layout');
+
+    return { success: true, message: await withActionMessage('themeUpdated') };
   } catch (error) {
     return {
       success: false,

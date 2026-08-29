@@ -48,6 +48,7 @@ const messages = {
     // Settings
     languageUpdated: 'Language updated',
     fontUpdated: 'Font updated',
+    themeUpdated: 'Default theme updated',
     homeSaved: 'Homepage content saved',
     invalidValue: 'Invalid value',
   },
@@ -92,6 +93,7 @@ const messages = {
     // Settings
     languageUpdated: 'زبان سایت به‌روزرسانی شد',
     fontUpdated: 'فونت سایت به‌روزرسانی شد',
+    themeUpdated: 'پوسته پیش‌فرض به‌روزرسانی شد',
     homeSaved: 'محتوای صفحه اصلی ذخیره شد',
     invalidValue: 'مقدار نامعتبر است',
   },

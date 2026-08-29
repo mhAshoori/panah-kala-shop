@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { NextIntlClientProvider } from 'next-intl';
 import { Inter } from 'next/font/google';
-import { Toaster } from 'sonner';
+import AppToaster from '@/components/shared/app-toaster';
 
 import { dir } from '@/i18n/config';
-import { getSiteFont, getSiteLocale } from '@/lib/site-settings';
+import { getSiteFont, getSiteLocale, getSiteTheme } from '@/lib/site-settings';
 import { getSiteMeta } from '@/lib/home-content';
 import { ThemeProvider } from '@/components/theme-provider';
 import TopProgress from '@/components/shared/top-progress';
@@ -93,6 +93,7 @@ export default async function LocaleLayout({
 }) {
   const locale = await getSiteLocale();
   const font = await getSiteFont();
+  const theme = await getSiteTheme();
 
   return (
     <html
@@ -102,11 +103,11 @@ export default async function LocaleLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${shabnamFont.variable} ${vazirmatnFont.variable}`}
     >
-      <body className='font-sans'>
+      <body className='font-sans overflow-x-clip'>
         <NextIntlClientProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme={theme}
             enableSystem
             disableTransitionOnChange
           >
@@ -114,10 +115,7 @@ export default async function LocaleLayout({
               <TopProgress />
             </Suspense>
             {children}
-            <Toaster
-              richColors
-              position={locale === 'fa' ? 'top-left' : 'top-right'}
-            />
+            <AppToaster rtl={locale === 'fa'} />
           </ThemeProvider>
         </NextIntlClientProvider>
         {/* Structured data for the Persian market (Google / Yandex / Bing) */}

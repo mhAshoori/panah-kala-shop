@@ -31,10 +31,10 @@ const Header = async () => {
           {/* Category mega menu — available at every screen size */}
           <CategoryMenu categories={categories} />
         </div>
-        <div className='hidden md:block flex-1 justify-center'>
-          <SearchBar />
+        <div className='hidden md:block min-w-0 flex-1 justify-center'>
+          <SearchBar categories={categories} />
         </div>
-        <Menu />
+        <Menu categories={categories} />
       </div>
     </header>
   );

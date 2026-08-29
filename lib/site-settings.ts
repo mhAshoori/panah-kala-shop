@@ -4,9 +4,11 @@ import { prisma } from '@/db/prisma';
 
 export type SiteLocale = 'fa' | 'en';
 export type SiteFont = 'shabnam' | 'vazirmatn';
+export type SiteTheme = 'light' | 'dark' | 'system';
 
 export const SITE_LOCALE_KEY = 'siteLocale';
 export const SITE_FONT_KEY = 'siteFont';
+export const SITE_THEME_KEY = 'siteTheme';
 
 async function readSetting(key: string): Promise<string | null> {
   try {
@@ -31,4 +33,10 @@ export const getSiteLocale = cache(async (): Promise<SiteLocale> => {
 export const getSiteFont = cache(async (): Promise<SiteFont> => {
   const value = await readSetting(SITE_FONT_KEY);
   return value === 'vazirmatn' ? 'vazirmatn' : 'shabnam';
+});
+
+/** The default color theme for new visitors (system default). Admin-set. */
+export const getSiteTheme = cache(async (): Promise<SiteTheme> => {
+  const value = await readSetting(SITE_THEME_KEY);
+  return value === 'light' || value === 'dark' ? value : 'system';
 });

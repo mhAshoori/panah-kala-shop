@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { auth, signIn, signOut } from '@/auth';
 import { CredentialsSignin } from '@auth/core/errors';
 import { getLocale } from 'next-intl/server';
@@ -144,31 +145,54 @@ function isNextRedirectError(error: unknown): boolean {
  * inspect the resulting URL: a failed attempt resolves to the configured
  * error page (`?error=...`) instead of throwing, so we detect that here.
  * Returns true when a session cookie has been established.
+ *
+ * Worst-case guard: a stale/unreadable session cookie makes the FIRST
+ * signIn() throw internally (JWTSessionError). When that happens we clear
+ * the auth cookies and retry once — the second attempt then succeeds.
  */
 async function establishCredentialsSession(
   email: string,
   password: string
 ): Promise<boolean> {
-  try {
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    });
-    if (typeof result !== 'string') return false;
+  for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const url = new URL(result, 'http://localhost');
-      if (url.searchParams.has('error')) return false;
-      if (/(sign-in|sign-in)/i.test(url.pathname)) return false;
-    } catch {
-      /* non-URL result — treat as success path below */
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+      if (typeof result !== 'string') return false;
+      try {
+        const url = new URL(result, 'http://localhost');
+        if (url.searchParams.has('error')) return false;
+        if (/sign-in/i.test(url.pathname)) return false;
+      } catch {
+        /* non-URL result — treat as success path below */
+      }
+      return true;
+    } catch (error) {
+      if (isNextRedirectError(error)) throw error;
+      if (error instanceof CredentialsSignin) return false;
+
+      // Stale session cookie — clear it and retry once
+      if (attempt === 0) {
+        try {
+          const store = await cookies();
+          for (const name of [
+            'authjs.session-token',
+            '__Secure-authjs.session-token',
+          ]) {
+            store.delete(name);
+          }
+        } catch {
+          /* cookie store unavailable — nothing to clear */
+        }
+        continue;
+      }
+      throw error;
     }
-    return true;
-  } catch (error) {
-    if (isNextRedirectError(error)) throw error;
-    if (error instanceof CredentialsSignin) return false;
-    throw error;
   }
+  return false;
 }
 
 // Sign in the user with credentials
