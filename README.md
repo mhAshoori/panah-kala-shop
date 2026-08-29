@@ -26,11 +26,16 @@ A production-oriented, bilingual (Persian/English) e-commerce storefront built w
 # 1. Install dependencies
 npm install
 
-# 2. Start PostgreSQL
+# 2. Configure environment
+cp .env.example .env   # then fill in the values
+
+# 3a. Local development with PostgreSQL (Docker)
 docker compose up -d
 
-# 3. Configure environment
-cp .env.example .env   # then fill in the values
+# 3b. OR use a hosted database (e.g. Neon) — no Docker needed.
+#     Set DATABASE_URL to your Neon connection string, e.g.:
+#     postgresql://user:pass@ep-x.eu-central-1.aws.neon.tech/panah_kala?sslmode=require
+#     (the app appends uselibpqcompat=true automatically to silence the pg SSL warning)
 
 # 4. Apply migrations + seed sample data (12 products, admin + user accounts)
 npx prisma migrate deploy
