@@ -27,7 +27,6 @@ const SiteThemeToggle = ({
   current: string;
   className?: string;
 }) => {
-  const t = useTranslations('admin');
   const tHeader = useTranslations('header');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();

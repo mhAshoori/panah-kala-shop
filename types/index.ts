@@ -55,4 +55,6 @@ export type Order = z.infer<typeof insertOrderSchema> & {
 export type ActionState = {
   success: boolean;
   message: string;
+  /** Client should silently re-submit once (stale auth cookie was cleared) */
+  retry?: boolean;
 };

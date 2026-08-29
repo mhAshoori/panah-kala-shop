@@ -316,7 +316,9 @@
     "fMetaDescription": "توضیحات سایت (سئو)",
     "fKeywords": "کلمات کلیدی (با ویرگول جدا کنید)",
     "blockContact": "محتوای صفحه تماس با ما",
-    "blockMeta": "سئو و متادیتا"
+    "blockMeta": "سئو و متادیتا",
+    "viewStore": "مشاهده فروشگاه",
+    "orderDetails": "جزئیات سفارش"
   },
   "common": {
     "email": "ایمیل",

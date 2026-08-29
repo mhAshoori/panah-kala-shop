@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import AdminSearch from '@/components/shared/admin/search';
 import OrderActions from '@/components/shared/admin/order-actions';
 import Pagination from '@/components/shared/pagination';
+import { Link } from '@/i18n/navigation';
 import { getAllOrders } from '@/lib/actions/admin.actions';
 import { formatDateTime, formatId } from '@/lib/utils';
 import { formatCurrencyLocale } from '@/lib/persian';
@@ -59,8 +60,13 @@ const AdminOrdersPage = async (props: {
             ) : (
               orders.data.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell className='font-mono text-xs'>
-                    {formatId(order.id)}
+                  <TableCell>
+                    <Link
+                      href={`/admin/orders/${order.id}`}
+                      className='font-mono text-xs link text-primary'
+                    >
+                      {formatId(order.id)}
+                    </Link>
                   </TableCell>
                   <TableCell>
                     <div className='flex flex-col'>

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import ProductList from '@/components/shared/product/product-list';
 import SortDropdown from '@/components/shared/product/sort-dropdown';
 import Pagination from '@/components/shared/pagination';
+import SearchBar from '@/components/shared/header/search';
 import { getFilteredProducts, getAllCategories } from '@/lib/actions/product.actions';
 import { formatNumberLocale } from '@/lib/persian';
 import { Link } from '@/i18n/navigation';
@@ -77,7 +78,6 @@ const SearchPage = async (props: {
   });
 
   const categories = await getAllCategories();
-
   const priceLabel = (range: string) => {
     if (range === 'all') return t('priceAny');
     const [min, max] = range.split('-').map(Number);
@@ -112,6 +112,17 @@ const SearchPage = async (props: {
         </h1>
         <SortDropdown />
       </div>
+
+      {/* Search again from the results page */}
+      <SearchBar
+        categories={categories.map((c) => ({
+          value: c.category,
+          label: c.categoryFa,
+        }))}
+        defaultQuery={q}
+        defaultCategory={category}
+        className='max-w-xl'
+      />
 
       {/* Category filters */}
       <div className='flex flex-wrap items-center gap-2'>

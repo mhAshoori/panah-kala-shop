@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-type Category = { name: string; nameFa: string };
+type CategoryOption = { value: string; label: string };
 
 // Header search. Client-side submit (SPA navigation → progress bar works),
 // dir="auto" so mixed Persian/Latin queries render correctly on Android.
@@ -17,15 +17,19 @@ const SearchBar = ({
   categories,
   compact = false,
   className,
+  defaultQuery = '',
+  defaultCategory = 'all',
 }: {
-  categories: Category[];
+  categories: CategoryOption[];
   compact?: boolean;
   className?: string;
+  defaultQuery?: string;
+  defaultCategory?: string;
 }) => {
   const t = useTranslations('header');
   const router = useRouter();
-  const [q, setQ] = useState('');
-  const [category, setCategory] = useState('all');
+  const [q, setQ] = useState(defaultQuery);
+  const [category, setCategory] = useState(defaultCategory);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,8 +56,8 @@ const SearchBar = ({
           >
             <option value='all'>{t('allCategories')}</option>
             {categories.map((c) => (
-              <option key={c.name} value={c.name}>
-                {c.nameFa}
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
           </select>

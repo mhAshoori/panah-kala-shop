@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useRef } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
@@ -34,12 +35,26 @@ const SignUpForm = () => {
     message: '',
   });
 
+  const formRef = useRef<HTMLFormElement>(null);
+  const retriedRef = useRef(false);
+
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const t = useTranslations('auth');
 
+  // Transparent single retry after a stale auth cookie was cleared server-side
+  useEffect(() => {
+    if (data.retry && !retriedRef.current) {
+      retriedRef.current = true;
+      formRef.current?.requestSubmit();
+    }
+    if (!data.retry) {
+      retriedRef.current = false;
+    }
+  }, [data]);
+
   return (
-    <form action={action}>
+    <form action={action} ref={formRef}>
       <input type='hidden' name='callbackUrl' value={callbackUrl} />
       <FieldGroup>
         <Field>

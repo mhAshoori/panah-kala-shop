@@ -46,7 +46,13 @@ const MobileMenuSheet = ({
 
         {/* Compact search: categories live in the header mega menu */}
         <div className='w-full min-w-0'>
-          <SearchBar categories={categories} compact />
+          <SearchBar
+            categories={categories.map((c) => ({
+              value: c.name,
+              label: c.nameFa,
+            }))}
+            compact
+          />
         </div>
 
         {/* Actions inline on one row */}

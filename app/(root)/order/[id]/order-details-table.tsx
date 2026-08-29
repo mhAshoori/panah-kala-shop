@@ -22,7 +22,14 @@ import { formatNumberLocale } from '@/lib/persian';
 import ZarinpalButton from './zarinpal-button';
 import type { Order } from '@/types';
 
-const OrderDetailsTable = ({ order }: { order: Order }) => {
+const OrderDetailsTable = ({
+  order,
+  hidePayButton = false,
+}: {
+  order: Order;
+  /** Admin views: no customer payment button */
+  hidePayButton?: boolean;
+}) => {
   const t = useTranslations('order');
   const tc = useTranslations('checkout');
   const locale = useLocale();
@@ -156,7 +163,7 @@ const OrderDetailsTable = ({ order }: { order: Order }) => {
                 <div>{formatNumberLocale(totalPrice, locale)}</div>
               </div>
 
-              {!isPaid && paymentMethod === 'zarinpal' && (
+              {!hidePayButton && !isPaid && paymentMethod === 'zarinpal' && (
                 <ZarinpalButton orderId={id} />
               )}
             </CardContent>

@@ -316,7 +316,9 @@
     "fMetaDescription": "Site Description (SEO)",
     "fKeywords": "Keywords (comma-separated)",
     "blockContact": "Contact Page Content",
-    "blockMeta": "SEO & Metadata"
+    "blockMeta": "SEO & Metadata",
+    "viewStore": "View Store",
+    "orderDetails": "Order Details"
   },
   "common": {
     "email": "Email",

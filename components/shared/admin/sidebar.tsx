@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import {
+  ExternalLink,
   Home,
   LayoutDashboard,
   Package,
@@ -53,6 +54,15 @@ const AdminSidebar = () => {
           </Link>
         );
       })}
+
+      {/* Back to the storefront */}
+      <Link
+        href='/'
+        className='flex shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+      >
+        <ExternalLink className='h-4 w-4 rtl:-scale-x-100' aria-hidden='true' />
+        <span className='whitespace-nowrap'>{t('viewStore')}</span>
+      </Link>
     </nav>
   );
 };

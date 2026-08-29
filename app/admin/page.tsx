@@ -125,7 +125,10 @@ const cards = [
                       )}
                     </TableCell>
                     <TableCell className='text-end'>
-                      <Link href={`/order/${order.id}`} className='link text-primary'>
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className='link text-primary'
+                      >
                         {tOrder('details')}
                       </Link>
                     </TableCell>

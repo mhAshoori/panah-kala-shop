@@ -141,58 +141,60 @@ function isNextRedirectError(error: unknown): boolean {
 }
 
 /**
+ * Thrown when signIn() fails for a non-credential reason — almost always a
+ * stale session cookie that Auth.js cannot decrypt. The action clears the
+ * cookies and the client transparently retries once.
+ */
+class RetryableSignInError extends Error {}
+
+async function clearAuthCookies() {
+  try {
+    const store = await cookies();
+    for (const name of [
+      'authjs.session-token',
+      '__Secure-authjs.session-token',
+    ]) {
+      store.delete(name);
+    }
+  } catch {
+    /* cookie store unavailable — nothing to clear */
+  }
+}
+
+/**
  * Perform a credentials sign-in against Auth.js with redirect disabled and
  * inspect the resulting URL: a failed attempt resolves to the configured
  * error page (`?error=...`) instead of throwing, so we detect that here.
  * Returns true when a session cookie has been established.
- *
- * Worst-case guard: a stale/unreadable session cookie makes the FIRST
- * signIn() throw internally (JWTSessionError). When that happens we clear
- * the auth cookies and retry once — the second attempt then succeeds.
  */
 async function establishCredentialsSession(
   email: string,
   password: string
 ): Promise<boolean> {
-  for (let attempt = 0; attempt < 2; attempt++) {
+  try {
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    });
+    if (typeof result !== 'string') return false;
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-      if (typeof result !== 'string') return false;
-      try {
-        const url = new URL(result, 'http://localhost');
-        if (url.searchParams.has('error')) return false;
-        if (/sign-in/i.test(url.pathname)) return false;
-      } catch {
-        /* non-URL result — treat as success path below */
-      }
-      return true;
-    } catch (error) {
-      if (isNextRedirectError(error)) throw error;
-      if (error instanceof CredentialsSignin) return false;
-
-      // Stale session cookie — clear it and retry once
-      if (attempt === 0) {
-        try {
-          const store = await cookies();
-          for (const name of [
-            'authjs.session-token',
-            '__Secure-authjs.session-token',
-          ]) {
-            store.delete(name);
-          }
-        } catch {
-          /* cookie store unavailable — nothing to clear */
-        }
-        continue;
-      }
-      throw error;
+      const url = new URL(result, 'http://localhost');
+      if (url.searchParams.has('error')) return false;
+      if (/sign-in/i.test(url.pathname)) return false;
+    } catch {
+      /* non-URL result — treat as success path below */
     }
+    return true;
+  } catch (error) {
+    if (isNextRedirectError(error)) throw error;
+    if (error instanceof CredentialsSignin) return false;
+
+    // Stale/unreadable session cookie (JWTSessionError etc.): clear the
+    // cookies so the NEXT request succeeds, then ask the client to retry.
+    await clearAuthCookies();
+    throw new RetryableSignInError();
   }
-  return false;
 }
 
 // Sign in the user with credentials
@@ -235,6 +237,10 @@ export async function signInWithCredentials(
     }
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
+    if (error instanceof RetryableSignInError) {
+      // Auth cookies were cleared — the client retries once automatically
+      return { success: false, message: '', retry: true };
+    }
     return { success: false, message: formatError(error) };
   }
   redirect(callbackUrl);
@@ -372,6 +378,9 @@ export async function signUpUser(
     }
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
+    if (error instanceof RetryableSignInError) {
+      return { success: false, message: '', retry: true };
+    }
     return { success: false, message: formatError(error) };
   }
   redirect(callbackUrl);

@@ -32,7 +32,12 @@ const Header = async () => {
           <CategoryMenu categories={categories} />
         </div>
         <div className='hidden md:block min-w-0 flex-1 justify-center'>
-          <SearchBar categories={categories} />
+          <SearchBar
+            categories={categories.map((c) => ({
+              value: c.name,
+              label: c.nameFa,
+            }))}
+          />
         </div>
         <Menu categories={categories} />
       </div>
