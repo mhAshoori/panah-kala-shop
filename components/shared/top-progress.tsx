@@ -107,7 +107,7 @@ const TopProgress = () => {
 
   return (
     <div
-      className='fixed inset-x-0 top-0 z-[100] h-1 bg-transparent'
+      className='pointer-events-none fixed inset-x-0 top-0 z-[100] h-1 bg-transparent'
       role='progressbar'
       aria-label='Loading'
       data-state={state}

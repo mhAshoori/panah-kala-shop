@@ -26,7 +26,8 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className='flex min-h-screen flex-col md:flex-row'>
-      <aside className='border-b bg-card p-4 md:w-64 md:border-e md:border-b-0'>
+      {/* Sidebar scrolls independently; the page content scrolls the outer layout */}
+      <aside className='border-b bg-card p-4 md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0 md:overflow-y-auto md:border-e md:border-b-0'>
         <p className='mb-4 hidden px-3 text-sm font-bold md:block'>
           {t('dashboard')}
         </p>
@@ -37,7 +38,9 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
           <SiteThemeToggle current={theme} />
         </div>
       </aside>
-      <main className='flex-1 p-4 md:p-6'>{children}</main>
+      <main className='min-w-0 flex-1 p-4 md:p-6'>
+        <div className='mx-auto w-full max-w-7xl'>{children}</div>
+      </main>
     </div>
   );
 };
