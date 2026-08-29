@@ -120,6 +120,8 @@
     "otpSentHint": "Code sent. Use 123456 for testing.",
     "otpCodeLabel": "SMS Code",
     "mobile": "Mobile Number",
+    "phoneNotRegistered": "This mobile number is not registered — please sign up first",
+    "tooManyAttempts": "Too many attempts — please try again later",
     "emailOrPhone": "Email or Mobile",
     "chooseSignupMethod": "Sign-up method"
   },

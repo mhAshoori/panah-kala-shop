@@ -128,7 +128,14 @@ const CredentialsSignInForm = () => {
         await signIn('sms', { phone, code, redirectTo: callbackUrl });
       } catch (err) {
         if (err instanceof AuthError) {
-          setError(t('invalidCredentials'));
+          const code = (err as AuthError & { code?: string }).code;
+          if (code === 'user_not_found') {
+            setError(t('phoneNotRegistered'));
+          } else if (code === 'rate_limited') {
+            setError(t('tooManyAttempts'));
+          } else {
+            setError(t('invalidOtp'));
+          }
         } else {
           setError(tCommon('error'));
         }

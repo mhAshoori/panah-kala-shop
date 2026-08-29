@@ -1,5 +1,6 @@
 import NextAuth, { type NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { CredentialsSignin } from '@auth/core/errors';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { compareSync } from 'bcrypt-ts-edge';
 
@@ -10,6 +11,14 @@ import { signInFormSchema } from '@/lib/validator';
 // Mock SMS master code — always valid for testing (see README)
 export const MOCK_OTP_CODE = '123456';
 export const OTP_TTL_MS = 5 * 60 * 1000;
+
+// Typed sign-in errors — the client reads `.code` to show the right message
+class SmsUserNotFound extends CredentialsSignin {
+  code = 'user_not_found';
+}
+class SmsRateLimited extends CredentialsSignin {
+  code = 'rate_limited';
+}
 
 // Validate an SMS one-time code against VerificationToken or the mock master
 async function verifySmsOtp(phone: string, code: string): Promise<boolean> {
@@ -86,13 +95,13 @@ export const config: NextAuthConfig = {
 
         // Brute-force guard: 5 attempts / 5 minutes per phone
         const rl = rateLimit(`sms:${phone}`, 5, 5 * 60 * 1000);
-        if (!rl.allowed) return null;
+        if (!rl.allowed) throw new SmsRateLimited();
 
         const valid = await verifySmsOtp(phone, code);
         if (!valid) return null;
 
         const user = await prisma.user.findFirst({ where: { mobile: phone } });
-        if (!user) return null;
+        if (!user) throw new SmsUserNotFound();
 
         return {
           id: user.id,

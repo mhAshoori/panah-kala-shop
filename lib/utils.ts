@@ -19,26 +19,33 @@ export function formatNumberWithDecimal(num: number): string {
 // Format error messages for server actions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function formatError(error: any): string {
-  if (error.name === 'ZodError') {
-    // Handle Zod error
-    const fieldErrors = Object.keys(error.errors).map((field) => {
-      const message = error.errors[field].message;
-      return typeof message === 'string' ? message : JSON.stringify(message);
-    });
-
-    return fieldErrors.join('. ');
+  if (error?.name === 'ZodError') {
+    // zod v4 exposes `issues`; older shapes may expose `errors`
+    const issues: Array<{ message?: string; path?: (string | number)[] }> =
+      error.issues ?? error.errors ?? [];
+    return issues
+      .map((issue) => {
+        const message =
+          typeof issue.message === 'string'
+            ? issue.message
+            : JSON.stringify(issue.message);
+        return issue.path?.length
+          ? `${issue.path.join('.')}: ${message}`
+          : message;
+      })
+      .join('. ');
   } else if (
-    error.name === 'PrismaClientKnownRequestError' &&
-    error.code === 'P2002'
+    error?.name === 'PrismaClientKnownRequestError' &&
+    error?.code === 'P2002'
   ) {
     // Handle Prisma unique-constraint error
     const field = error.meta?.target ? error.meta.target[0] : 'Field';
     return `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
   } else {
     // Handle other errors
-    return typeof error.message === 'string'
+    return typeof error?.message === 'string'
       ? error.message
-      : JSON.stringify(error.message);
+      : JSON.stringify(error?.message);
   }
 }
 

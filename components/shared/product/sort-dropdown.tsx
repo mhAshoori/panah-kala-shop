@@ -2,13 +2,15 @@
 
 import { useTransition } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
-// Native select that pushes the chosen sort into the URL
+// Sort control that works on ANY listing page (/search, /category/[slug]):
+// it keeps the current path and all existing params, only updating `sort`.
 const SortDropdown = () => {
   const t = useTranslations('search');
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
@@ -24,13 +26,15 @@ const SortDropdown = () => {
     params.delete('page');
     const qs = params.toString();
     startTransition(() => {
-      router.push(`/search${qs ? `?${qs}` : ''}`);
+      router.push(`${pathname}${qs ? `?${qs}` : ''}`);
     });
   };
 
   return (
     <div className='relative flex items-center gap-2'>
-      {isPending && <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />}
+      {isPending && (
+        <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
+      )}
       <select
         value={current}
         onChange={(e) => onChange(e.target.value)}

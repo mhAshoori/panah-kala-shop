@@ -44,7 +44,6 @@ const UserButton = async () => {
         <DropdownMenuContent
           className='w-56 text-right'
           align='end'
-          forceMount
           style={{ direction: dir }}
         >
           <DropdownMenuLabel className='font-normal'>
