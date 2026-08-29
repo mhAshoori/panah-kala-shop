@@ -39,14 +39,28 @@ export const signInFormSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-// Schema for signing up a user
+// Schema for signing up a user — mobile is required; password optional
+// when the user signs up via SMS one-time code
 export const signUpFormSchema = z
   .object({
     name: z.string().min(3, 'Name must be at least 3 characters'),
     email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string().min(6, 'Confirm password is required'),
+    mobile: z
+      .string()
+      .regex(/^(\+?\d{7,15})$/, 'Enter a valid phone number'),
+    password: z
+      .string()
+      .min(6, 'Password must be at least 6 characters')
+      .optional()
+      .or(z.literal('')),
+    confirmPassword: z.string().optional().or(z.literal('')),
+    otpCode: z.string().optional().or(z.literal('')),
   })
+  .refine(
+    (data) =>
+      (data.password && data.password.length >= 6) || (data.otpCode ?? '').length >= 4,
+    { message: 'Enter a password or request an SMS code', path: ['password'] }
+  )
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
@@ -74,10 +88,29 @@ export const insertCartSchema = z.object({
   userId: z.string().optional().nullable(),
 });
 
-// Update profile schema
+// Update profile schema — extras are optional and editable later
 export const updateProfileSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters'),
   email: z.string().email('Invalid email address'),
+  nationalId: z
+    .string()
+    .regex(/^\d{10}$/, 'Enter a valid 10-digit national ID')
+    .optional()
+    .or(z.literal('')),
+  mobile: z
+    .string()
+    .regex(/^(\+?\d{7,15})$/, 'Enter a valid phone number'),
+  cardNumber: z
+    .string()
+    .regex(/^\d{16}$/, 'Enter a valid 16-digit card number')
+    .optional()
+    .or(z.literal('')),
+  sheba: z
+    .string()
+    .regex(/^(IR)?\d{24}$/, 'Enter a valid sheba number (IR + 24 digits)')
+    .optional()
+    .or(z.literal('')),
+  birthDate: z.string().optional().or(z.literal('')),
 });
 
 // Update user schema (admin)
@@ -87,7 +120,7 @@ export const updateUserSchema = z.object({
   role: z.enum(['user', 'admin']),
 });
 
-// Shipping address
+// Shipping address (country removed — Iran-only storefront)
 export const shippingAddressSchema = z.object({
   fullName: z.string().min(3, 'Name must be at least 3 characters'),
   streetAddress: z.string().min(3, 'Address must be at least 3 characters'),
@@ -99,7 +132,6 @@ export const shippingAddressSchema = z.object({
   phone: z
     .string()
     .regex(/^(\+?\d{7,15})$/, 'Enter a valid phone number'),
-  country: z.string().min(2, 'Country must be at least 2 characters'),
 });
 
 // Payment method

@@ -11,6 +11,7 @@ const MainNav = ({ className }: { className?: string }) => {
   const links = [
     { title: t('profile'), href: '/user/profile' as const },
     { title: t('orders'), href: '/user/orders' as const },
+    { title: t('addresses'), href: '/user/addresses' as const },
   ];
 
   return (

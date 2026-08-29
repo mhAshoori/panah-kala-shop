@@ -114,7 +114,11 @@
     "welcomeBack": "Welcome back",
     "createAccount": "Create a new account",
     "signInSubtitle": "Enter your information below to sign in to your account",
-    "signUpSubtitle": "Enter your information below to create your account"
+    "signUpSubtitle": "Enter your information below to create your account",
+    "phoneSignIn": "SMS Code",
+    "sendCode": "Send Code",
+    "otpSentHint": "Code sent. Use 123456 for testing.",
+    "otpCodeLabel": "SMS Code"
   },
   "checkout": {
     "shippingAddress": "Shipping Address",
@@ -132,6 +136,8 @@
     "cashOnDelivery": "Cash on Delivery",
     "codDesc": "Pay when your order is delivered",
     "cod": "Cash on Delivery",
+    "addAddress": "Add New Address",
+    "manageHint": "Manage your saved addresses from your account.",
     "orderSummary": "Order Summary",
     "steps": {
       "shipping": "Shipping",
@@ -208,9 +214,26 @@
   "account": {
     "profile": "Profile Details",
     "orders": "My Orders",
+    "addresses": "My Addresses",
     "name": "Full Name",
     "updateProfile": "Update Profile",
-    "saved": "Changes saved"
+    "saved": "Changes saved",
+    "addAddress": "Add New Address",
+    "setDefault": "Set Default",
+    "defaultAddress": "Default",
+    "deleteAddressConfirm": "Are you sure you want to delete this address?",
+    "noAddresses": "No saved addresses yet",
+    "addressSave": "Save Address",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "mobile": "Mobile Number",
+    "nationalId": "National ID (optional)",
+    "cardNumber": "Card Number (optional)",
+    "sheba": "Sheba Number (optional)",
+    "birthDate": "Birth Date (optional)",
+    "defaultAddressHint": "Your default shipping address",
+    "manageAddresses": "Manage Addresses"
   },
   "admin": {
     "overview": "Overview",

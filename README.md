@@ -44,10 +44,12 @@ Open http://localhost:3000 (redirects to `/fa`).
 
 ### Seeded accounts
 
-| Role  | Email              | Password |
-| ----- | ------------------ | -------- |
-| Admin | admin@example.com  | 123456   |
-| User  | jane@example.com   | 123456   |
+| Role  | Email             | Mobile           | Password |
+| ----- | ----------------- | ---------------- | -------- |
+| Admin | admin@example.com | +989120000001    | 123456   |
+| User  | jane@example.com  | +989120000002    | 123456   |
+
+**SMS one-time-code sign-in (mock):** the phone tab on the sign-in page accepts the fixed mock code **`123456`** for any phone number that belongs to a seeded account. Codes are "sent" to the server console (`[SMS:mock]`) and are valid for 5 minutes. Wire a real provider (Kavenegar/Ghasedak) in `requestPhoneOtp` for production.
 
 ## Scripts
 

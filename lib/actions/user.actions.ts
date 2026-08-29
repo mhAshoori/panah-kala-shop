@@ -10,7 +10,6 @@ import { z } from 'zod';
 import { prisma } from '@/db/prisma';
 import { hashSync } from 'bcrypt-ts-edge';
 import {
-  shippingAddressSchema,
   signInFormSchema,
   signUpFormSchema,
   paymentMethodSchema,
@@ -21,29 +20,36 @@ import { formatError } from '../utils';
 import { PAGE_SIZE } from '../constants';
 import { requireAdmin } from '../auth-guard';
 import { withActionMessage } from '../action-messages';
+import { getValidUserId } from '../auth-helpers';
 import { rateLimit } from '../rate-limit';
-import type { ActionState, ShippingAddress } from '@/types';
+import { MOCK_OTP_CODE, OTP_TTL_MS } from '@/auth';
+import type { ActionState } from '@/types';
 
-// Update the signed-in user's profile (name only; email is fixed)
-export async function updateProfile(user: { name: string; email: string }) {
+// Update the signed-in user's profile (extras are optional)
+export async function updateProfile(
+  user: z.infer<typeof updateProfileSchema>
+) {
   try {
-    const session = await auth();
-
-    const currentUser = await prisma.user.findFirst({
-      where: { id: session?.user?.id as string },
-    });
-    if (!currentUser) throw new Error('User not found');
+    const userId = await getValidUserId();
+    if (!userId) throw new Error(await withActionMessage('sessionExpired'));
 
     const profile = updateProfileSchema.parse(user);
 
     await prisma.user.update({
-      where: { id: currentUser.id },
-      data: { name: profile.name },
+      where: { id: userId },
+      data: {
+        name: profile.name,
+        nationalId: profile.nationalId || null,
+        mobile: profile.mobile,
+        cardNumber: profile.cardNumber || null,
+        sheba: profile.sheba || null,
+        birthDate: profile.birthDate ? new Date(profile.birthDate) : null,
+      },
     });
 
     return {
       success: true,
-      message: 'User updated successfully',
+      message: await withActionMessage('userUpdated'),
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -85,32 +91,6 @@ export async function getUserById(userId: string) {
   return user;
 }
 
-// Update the signed-in user's shipping address
-export async function updateUserAddress(data: ShippingAddress) {
-  try {
-    const session = await auth();
-
-    const currentUser = await prisma.user.findFirst({
-      where: { id: session?.user?.id as string },
-    });
-
-    if (!currentUser) throw new Error('User not found');
-
-    const address = shippingAddressSchema.parse(data);
-
-    await prisma.user.update({
-      where: { id: currentUser.id },
-      data: { address },
-    });
-
-    return {
-      success: true,
-      message: 'User updated successfully',
-    };
-  } catch (error) {
-    return { success: false, message: formatError(error) };
-  }
-}
 const messages = {
   en: {
     invalidCredentials: 'Invalid email or password',
@@ -260,6 +240,74 @@ export async function signInWithCredentials(
   redirect(callbackUrl);
 }
 
+/**
+ * SMS-OTP sign-in against the 'sms' provider. Same no-throw success
+ * detection as the credentials flow.
+ */
+async function establishSmsSession(
+  phone: string,
+  code: string
+): Promise<boolean> {
+  try {
+    await signIn('credentials', { phone, code, redirect: false });
+    return true;
+  } catch (error) {
+    if (isNextRedirectError(error)) throw error;
+    if (error instanceof CredentialsSignin) return false;
+
+    await clearAuthCookies();
+    throw new RetryableSignInError();
+  }
+}
+
+/**
+ * Request a one-time code for a phone number. In development the code is
+ * always the mock master code (123456) and is logged to the server console.
+ * Rate limited: 3 requests / 10 minutes per phone.
+ */
+export async function requestPhoneOtp(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const phone = String(formData.get('phone') ?? '').trim();
+    if (!/^\+?\d{7,15}$/.test(phone)) {
+      return {
+        success: false,
+        message: await withActionMessage('invalidValue'),
+      };
+    }
+
+    const rl = rateLimit(`otp:${phone}`, 3, 10 * 60 * 1000);
+    if (!rl.allowed) {
+      return {
+        success: false,
+        message: await withActionMessage('tooManyAttempts', {
+          seconds: rl.retryAfterSeconds ?? 60,
+        }),
+      };
+    }
+
+    // Mock SMS gateway: fixed master code, valid 5 minutes
+    await prisma.verificationToken.create({
+      data: {
+        identifier: `otp:${phone}`,
+        token: MOCK_OTP_CODE,
+        expires: new Date(Date.now() + OTP_TTL_MS),
+      },
+    });
+
+    console.info(`[SMS:mock] OTP for ${phone}: ${MOCK_OTP_CODE}`);
+
+    return {
+      success: true,
+      message: await withActionMessage('otpSent'),
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
 // Sign user out — back to the sign-in page
 export async function SignOutUser() {
   await signOut({ redirectTo: '/sign-in' });
@@ -373,22 +421,61 @@ export async function signUpUser(
     const parsed = signUpFormSchema.safeParse({
       name: formData.get('name'),
       email: formData.get('email'),
+      mobile: formData.get('mobile'),
       password: formData.get('password'),
       confirmPassword: formData.get('confirmPassword'),
+      otpCode: formData.get('otpCode'),
     });
     if (!parsed.success) {
       return { success: false, message: formatError(parsed.error) };
     }
 
-    const { name, email, password } = parsed.data;
+    const { name, email, mobile, password, otpCode } = parsed.data;
+
+    // Duplicate email / mobile guard with a friendly message
+    const existing = await prisma.user.findFirst({
+      where: { OR: [{ email }, { mobile }] },
+    });
+    if (existing) {
+      return {
+        success: false,
+        message: await withActionMessage('accountExists'),
+      };
+    }
+
+    // OTP mode: verify the code server-side before creating the account.
+    // Password mode: a password is required.
+    const useOtp = !password;
+    if (useOtp) {
+      if (!otpCode || otpCode !== MOCK_OTP_CODE) {
+        return {
+          success: false,
+          message: await withActionMessage('invalidOtp'),
+        };
+      }
+    }
+
     await prisma.user.create({
-      data: { name, email, password: hashSync(password, 10) },
+      data: {
+        name,
+        email,
+        mobile,
+        password: password ? hashSync(password, 10) : null,
+      },
     });
 
-    const ok = await establishCredentialsSession(email, password);
-    if (!ok) {
-      // Account exists but auto sign-in failed — send to sign-in page.
-      redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+    if (password) {
+      const ok = await establishCredentialsSession(email, password);
+      if (!ok) {
+        // Account exists but auto sign-in failed — send to sign-in page.
+        redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+      }
+    } else {
+      // OTP sign-up: sign in via the SMS provider
+      const ok = await establishSmsSession(mobile, otpCode!);
+      if (!ok) {
+        redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+      }
     }
   } catch (error) {
     if (isNextRedirectError(error)) throw error;

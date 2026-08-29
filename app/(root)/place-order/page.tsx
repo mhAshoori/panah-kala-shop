@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
@@ -16,11 +16,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { getMyCart } from '@/lib/actions/cart.actions';
+import { prisma } from '@/db/prisma';
 import { getUserById } from '@/lib/actions/user.actions';
 import { formatCurrency } from '@/lib/utils';
 import { getValidUserId } from '@/lib/auth-helpers';
 import PlaceOrderForm from './place-order-form';
-import type { ShippingAddress } from '@/types';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('checkout');
@@ -38,18 +38,21 @@ const PlaceOrderPage = async () => {
   }
 
   const user = await getUserById(userId);
+  const defaultAddress = await prisma.address.findFirst({
+    where: { userId, isDefault: true },
+  });
 
   if (!cart || cart.items.length === 0) {
     redirect('/cart');
   }
-  if (!user.address) {
+  if (!defaultAddress) {
     redirect('/shipping-address');
   }
   if (!user.paymentMethod) {
     redirect('/payment-method');
   }
 
-  const userAddress = user.address as ShippingAddress;
+  const userAddress = defaultAddress;
 
   const [t, tc, cm] = await Promise.all([
     getTranslations('checkout'),
@@ -71,8 +74,8 @@ const PlaceOrderPage = async () => {
               <p>{userAddress.fullName}</p>
               <p className='text-muted-foreground'>
                 {userAddress.streetAddress}, {userAddress.city},{' '}
-                {userAddress.province}, {userAddress.postalCode},{' '}
-                {userAddress.country} · {userAddress.phone}
+                {userAddress.province}, {userAddress.postalCode} ·{' '}
+                {userAddress.phone}
               </p>
               <div className='mt-3'>
                 <Button asChild variant='outline'>

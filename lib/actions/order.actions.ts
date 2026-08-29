@@ -31,13 +31,6 @@ export async function createOrder() {
         redirectTo: '/cart',
       };
     }
-    if (!user.address) {
-      return {
-        success: false,
-        message: await withActionMessage('addShippingAddress'),
-        redirectTo: '/shipping-address',
-      };
-    }
     if (!user.paymentMethod) {
       return {
         success: false,
@@ -60,9 +53,28 @@ export async function createOrder() {
       }
     }
 
+    // Worst-case: the user's default shipping address
+    const defaultAddress = await prisma.address.findFirst({
+      where: { userId, isDefault: true },
+    });
+    if (!defaultAddress) {
+      return {
+        success: false,
+        message: await withActionMessage('addShippingAddress'),
+        redirectTo: '/shipping-address',
+      };
+    }
+
     const order = insertOrderSchema.parse({
       userId: user.id,
-      shippingAddress: user.address,
+      shippingAddress: {
+        fullName: defaultAddress.fullName,
+        streetAddress: defaultAddress.streetAddress,
+        city: defaultAddress.city,
+        province: defaultAddress.province,
+        postalCode: defaultAddress.postalCode,
+        phone: defaultAddress.phone,
+      },
       paymentMethod: user.paymentMethod,
       itemsPrice: cart.itemsPrice,
       shippingPrice: cart.shippingPrice,

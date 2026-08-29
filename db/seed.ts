@@ -151,6 +151,25 @@ async function main() {
 
     await prisma.user.createMany({ data: sampleData.users });
 
+    // Sample saved addresses (checkout requires a default address)
+    const createdUsers = await prisma.user.findMany({
+      select: { id: true, email: true },
+    });
+    for (const u of createdUsers) {
+      await prisma.address.create({
+        data: {
+          userId: u.id,
+          isDefault: true,
+          fullName: u.email === 'admin@example.com' ? 'مدیر سیستم' : 'Jan Doe',
+          streetAddress: 'خیابان ولیعصر، پلاک ۱',
+          city: 'تهران',
+          province: 'تهران',
+          postalCode: '1234567890',
+          phone: '09120000000',
+        },
+      });
+    }
+
     console.log(
       `Database seeded successfully (${mainRows.length} main categories, ${subRows.length} subcategories, ${sampleData.products.length} products)`
     );

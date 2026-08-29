@@ -80,8 +80,8 @@ const OrderDetailsTable = ({
               <p>{shippingAddress.fullName}</p>
               <p className='text-muted-foreground'>
                 {shippingAddress.streetAddress}, {shippingAddress.city},{' '}
-                {shippingAddress.province}, {shippingAddress.postalCode},{' '}
-                {shippingAddress.country} · {shippingAddress.phone}
+                {shippingAddress.province}, {shippingAddress.postalCode} ·{' '}
+                {shippingAddress.phone}
               </p>
               {isDelivered ? (
                 <Badge variant='secondary' className='mt-2'>

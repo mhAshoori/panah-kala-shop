@@ -114,7 +114,11 @@
     "welcomeBack": "خوش آمدید",
     "createAccount": "ساخت حساب کاربری جدید",
     "signInSubtitle": "برای ورود به حساب خود، اطلاعات زیر را وارد کنید",
-    "signUpSubtitle": "برای ساخت حساب کاربری جدید، اطلاعات خود را وارد کنید"
+    "signUpSubtitle": "برای ساخت حساب کاربری جدید، اطلاعات خود را وارد کنید",
+    "phoneSignIn": "کد پیامکی",
+    "sendCode": "ارسال کد",
+    "otpSentHint": "کد ارسال شد. برای تست از کد ۱۲۳۴۵۶ استفاده کنید.",
+    "otpCodeLabel": "کد پیامکی"
   },
   "checkout": {
     "shippingAddress": "آدرس تحویل",
@@ -132,6 +136,8 @@
     "cashOnDelivery": "پرداخت در محل",
     "codDesc": "پرداخت هنگام تحویل کالا",
     "cod": "پرداخت در محل",
+    "addAddress": "افزودن نشانی جدید",
+    "manageHint": "نشانی‌های ذخیره‌شده را می‌توانید از حساب کاربری مدیریت کنید.",
     "orderSummary": "خلاصه سفارش",
     "steps": {
       "shipping": "ارسال",
@@ -208,9 +214,26 @@
   "account": {
     "profile": "اطلاعات حساب",
     "orders": "سفارش‌های من",
+    "addresses": "نشانی‌های من",
     "name": "نام و نام خانوادگی",
     "updateProfile": "به‌روزرسانی اطلاعات",
-    "saved": "تغییرات ذخیره شد"
+    "saved": "تغییرات ذخیره شد",
+    "addAddress": "افزودن نشانی جدید",
+    "setDefault": "پیش‌فرض کردن",
+    "defaultAddress": "پیش‌فرض",
+    "deleteAddressConfirm": "آیا از حذف این نشانی مطمئن هستید؟",
+    "noAddresses": "هنوز نشانی‌ای ثبت نشده است",
+    "addressSave": "ذخیره نشانی",
+    "cancel": "انصراف",
+    "delete": "حذف",
+    "edit": "ویرایش",
+    "mobile": "شماره موبایل",
+    "nationalId": "کد ملی (اختیاری)",
+    "cardNumber": "شماره کارت (اختیاری)",
+    "sheba": "شماره شبا (اختیاری)",
+    "birthDate": "تاریخ تولد (اختیاری)",
+    "defaultAddressHint": "نشانی پیش‌فرض ارسال سفارش‌ها",
+    "manageAddresses": "مدیریت نشانی‌ها"
   },
   "admin": {
     "overview": "نمای کلی",

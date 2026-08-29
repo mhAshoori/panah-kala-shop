@@ -8,6 +8,7 @@ export type SampleUser = {
   email: string;
   password: string;
   role: string;
+  mobile?: string;
 };
 
 const users: SampleUser[] = [
@@ -16,12 +17,14 @@ const users: SampleUser[] = [
     email: 'admin@example.com',
     password: hashSync('123456', 10),
     role: 'admin',
+    mobile: '+989120000001',
   },
   {
     name: 'Jane',
     email: 'jane@example.com',
     password: hashSync('123456', 10),
     role: 'user',
+    mobile: '+989120000002',
   },
 ];
 

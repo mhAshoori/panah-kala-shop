@@ -58,12 +58,30 @@ describe('signUpFormSchema', () => {
   const base = {
     name: 'Ali Rezaei',
     email: 'ali@example.com',
+    mobile: '09121234567',
     password: 'secret123',
     confirmPassword: 'secret123',
   };
 
-  it('accepts matching passwords', () => {
+  it('accepts password sign-up with a mobile number', () => {
     expect(() => signUpFormSchema.parse(base)).not.toThrow();
+  });
+
+  it('accepts OTP sign-up without a password', () => {
+    expect(() =>
+      signUpFormSchema.parse({
+        ...base,
+        password: '',
+        confirmPassword: '',
+        otpCode: '123456',
+      })
+    ).not.toThrow();
+  });
+
+  it('rejects sign-up without password or OTP code', () => {
+    expect(() =>
+      signUpFormSchema.parse({ ...base, password: '', confirmPassword: '' })
+    ).toThrow();
   });
 
   it('rejects mismatched passwords', () => {

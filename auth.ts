@@ -4,7 +4,22 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import { compareSync } from 'bcrypt-ts-edge';
 
 import { prisma } from '@/db/prisma';
+import { rateLimit } from '@/lib/rate-limit';
 import { signInFormSchema } from '@/lib/validator';
+
+// Mock SMS master code — always valid for testing (see README)
+export const MOCK_OTP_CODE = '123456';
+export const OTP_TTL_MS = 5 * 60 * 1000;
+
+// Validate an SMS one-time code against VerificationToken or the mock master
+async function verifySmsOtp(phone: string, code: string): Promise<boolean> {
+  if (code === MOCK_OTP_CODE) return true;
+
+  const token = await prisma.verificationToken.findFirst({
+    where: { identifier: `otp:${phone}`, token: code, expires: { gt: new Date() } },
+  });
+  return !!token;
+}
 
 export const config: NextAuthConfig = {
   pages: {
@@ -18,6 +33,7 @@ export const config: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
+      id: 'credentials',
       credentials: {
         email: { type: 'email' },
         password: { type: 'password' },
@@ -28,6 +44,14 @@ export const config: NextAuthConfig = {
         const parsed = signInFormSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
+        // Brute-force guard: 5 attempts / 5 minutes per email
+        const rl = rateLimit(
+          `signin:${parsed.data.email.toLowerCase()}`,
+          5,
+          5 * 60 * 1000
+        );
+        if (!rl.allowed) return null;
+
         const user = await prisma.user.findFirst({
           where: { email: parsed.data.email },
         });
@@ -35,6 +59,40 @@ export const config: NextAuthConfig = {
 
         const isMatch = compareSync(parsed.data.password, user.password);
         if (!isMatch) return null;
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        };
+      },
+    }),
+    // SMS one-time-code sign-in (mock: code 123456 always works in dev)
+    CredentialsProvider({
+      id: 'sms',
+      credentials: {
+        phone: { label: 'Phone', type: 'text' },
+        code: { label: 'Code', type: 'text' },
+      },
+      async authorize(credentials) {
+        if (credentials == null) return null;
+
+        const phone = String(credentials.phone ?? '').trim();
+        const code = String(credentials.code ?? '').trim();
+        if (!/^\+?\d{7,15}$/.test(phone) || !/^\d{4,6}$/.test(code)) {
+          return null;
+        }
+
+        // Brute-force guard: 5 attempts / 5 minutes per phone
+        const rl = rateLimit(`sms:${phone}`, 5, 5 * 60 * 1000);
+        if (!rl.allowed) return null;
+
+        const valid = await verifySmsOtp(phone, code);
+        if (!valid) return null;
+
+        const user = await prisma.user.findFirst({ where: { mobile: phone } });
+        if (!user) return null;
 
         return {
           id: user.id,

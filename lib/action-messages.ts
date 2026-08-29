@@ -43,6 +43,14 @@ const messages = {
     userUpdated: 'Profile updated successfully',
     userDeleted: 'User deleted successfully',
     cannotDeleteSelf: 'You cannot delete your own account',
+    // Addresses
+    addressSaved: 'Address saved successfully',
+    addressDeleted: 'Address deleted successfully',
+    addressNotFound: 'Address not found',
+    selectAddress: 'Please choose a shipping address first',
+    accountExists: 'An account with this email or mobile already exists',
+    invalidOtp: 'The code is invalid or expired',
+    otpSent: 'Code sent. Use the mock code 123456 for testing.',
     // Reviews
     reviewSaved: 'Your review has been saved',
     // Settings
@@ -88,6 +96,14 @@ const messages = {
     userUpdated: 'پروفایل با موفقیت به‌روزرسانی شد',
     userDeleted: 'کاربر با موفقیت حذف شد',
     cannotDeleteSelf: 'نمی‌توانید حساب کاربری خودتان را حذف کنید',
+    // Addresses
+    addressSaved: 'نشانی با موفقیت ذخیره شد',
+    addressDeleted: 'نشانی با موفقیت حذف شد',
+    addressNotFound: 'نشانی یافت نشد',
+    selectAddress: 'لطفاً ابتدا یک نشانی انتخاب کنید',
+    accountExists: 'با این ایمیل یا شماره موبایل قبلاً حساب ساخته شده است',
+    invalidOtp: 'کد وارد شده نامعتبر یا منقضی شده است',
+    otpSent: 'کد ارسال شد. برای تست از کد ۱۲۳۴۵۶ استفاده کنید.',
     // Reviews
     reviewSaved: 'دیدگاه شما با موفقیت ثبت شد',
     // Settings
