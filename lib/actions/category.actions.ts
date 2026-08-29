@@ -15,26 +15,66 @@ const categoryFormSchema = z.object({
   slug: z.string().min(2, 'Slug must be at least 2 characters'),
   icon: z.string().min(2),
   sortOrder: z.coerce.number().int().min(0),
+  parentId: z.string().uuid().nullable().optional(),
 });
 
-// Get all categories for the admin table (includes product counts)
+// Cycle guard: a parent must be a top-level category and not the node itself
+async function validateParent(parentId: string | null | undefined, selfId?: string) {
+  if (!parentId) return null;
+  const parent = await prisma.category.findUnique({ where: { id: parentId } });
+  if (!parent) throw new Error(await withActionMessage('invalidValue'));
+  if (parent.parentId) throw new Error(await withActionMessage('invalidValue'));
+  if (selfId && parent.id === selfId)
+    throw new Error(await withActionMessage('invalidValue'));
+  return parentId;
+}
+
+// Get all categories for the admin table (hierarchy + product counts)
 export async function getAllCategoriesAdmin() {
   await requireAdmin();
 
   const data = await prisma.category.findMany({
     orderBy: { sortOrder: 'asc' },
-    include: { _count: { select: { products: true } } },
+    include: {
+      parent: { select: { name: true, nameFa: true } },
+      _count: {
+        select: {
+          mainProducts: true,
+          subProducts: true,
+          subSubProducts: true,
+        },
+      },
+    },
   });
 
-  return JSON.parse(JSON.stringify(data)) as {
+  const rows = JSON.parse(JSON.stringify(data)) as Array<{
     id: string;
     name: string;
     nameFa: string;
     slug: string;
     icon: string;
     sortOrder: number;
-    _count: { products: number };
-  }[];
+    parentId: string | null;
+    parent?: { name: string; nameFa: string } | null;
+    _count: {
+      mainProducts: number;
+      subProducts: number;
+      subSubProducts: number;
+    };
+  }>;
+
+  return rows.map((c) => ({
+    id: c.id,
+    name: c.name,
+    nameFa: c.nameFa,
+    slug: c.slug,
+    icon: c.icon,
+    sortOrder: c.sortOrder,
+    parentId: c.parentId as string | null,
+    parentName: c.parent?.nameFa ?? null,
+    count:
+      c._count.mainProducts + c._count.subProducts + c._count.subSubProducts,
+  }));
 }
 
 // Create a category (admin)
@@ -60,7 +100,9 @@ export async function createCategory(
     });
     if (exists) throw new Error(await withActionMessage('slugExists'));
 
-    await prisma.category.create({ data: category });
+    const parentId = await validateParent(formData.get('parentId') as string);
+
+    await prisma.category.create({ data: { ...category, parentId } });
 
     revalidatePath('/admin/categories');
     revalidatePath('/', 'layout');
@@ -97,7 +139,15 @@ export async function updateCategory(
       throw new Error(await withActionMessage('slugExists'));
     }
 
-    await prisma.category.update({ where: { id }, data: category });
+    const parentId = await validateParent(
+      formData.get('parentId') as string,
+      id
+    );
+
+    await prisma.category.update({
+      where: { id },
+      data: { ...category, parentId },
+    });
 
     revalidatePath('/admin/categories');
     revalidatePath('/', 'layout');

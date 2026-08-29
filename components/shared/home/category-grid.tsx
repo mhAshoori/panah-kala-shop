@@ -21,7 +21,9 @@ const CategoryGrid = async ({ title: titleOverride }: { title?: string }) => {
   const t = await getTranslations('home');
   const locale = await getLocale();
   const isFa = locale === 'fa';
-  const categories = await getCategoriesWithCount();
+  const categories = (await getCategoriesWithCount()).filter(
+    (c) => !c.parentId
+  );
 
   if (categories.length === 0) return null;
 
@@ -54,7 +56,7 @@ const CategoryGrid = async ({ title: titleOverride }: { title?: string }) => {
                 {isFa ? c.nameFa : c.name}
               </span>
               <span className='text-xs text-muted-foreground'>
-                {t('productsCount', { count: c._count.products })}
+                {t('productsCount', { count: c.count })}
               </span>
             </Link>
           );

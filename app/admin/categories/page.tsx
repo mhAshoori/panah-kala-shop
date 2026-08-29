@@ -59,12 +59,19 @@ const AdminCategoriesPage = async () => {
                   <TableCell className='font-mono text-xs'>
                     {formatId(c.id)}
                   </TableCell>
-                  <TableCell className='font-medium'>{c.name}</TableCell>
+                  <TableCell className='font-medium'>
+                    {c.parentName && (
+                      <span className='text-xs text-muted-foreground'>
+                        {c.parentName} ›{' '}
+                      </span>
+                    )}
+                    {c.name}
+                  </TableCell>
                   <TableCell>{c.nameFa}</TableCell>
                   <TableCell className='font-mono text-xs'>{c.slug}</TableCell>
                   <TableCell className='font-mono text-xs'>{c.icon}</TableCell>
                   <TableCell>{c.sortOrder}</TableCell>
-                  <TableCell>{c._count.products}</TableCell>
+                  <TableCell>{c.count}</TableCell>
                   <TableCell className='flex justify-end gap-1'>
                     <Button asChild size='sm' variant='outline'>
                       <Link href={`/admin/categories/${c.id}`}>{t('edit')}</Link>

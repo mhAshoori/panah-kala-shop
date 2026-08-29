@@ -6,7 +6,7 @@ import ProductList from '@/components/shared/product/product-list';
 import SortDropdown from '@/components/shared/product/sort-dropdown';
 import Pagination from '@/components/shared/pagination';
 import SearchBar from '@/components/shared/header/search';
-import { getFilteredProducts, getAllCategories } from '@/lib/actions/product.actions';
+import { getFilteredProducts, getCategoriesWithCount } from '@/lib/actions/product.actions';
 import { formatNumberLocale } from '@/lib/persian';
 import { Link } from '@/i18n/navigation';
 
@@ -32,6 +32,7 @@ const SearchPage = async (props: {
   }>;
 }) => {
   const locale = await getLocale();
+  const isFa = locale === 'fa';
   const sp = await props.searchParams;
 
   const q = sp.q ?? '';
@@ -77,7 +78,9 @@ const SearchPage = async (props: {
     page,
   });
 
-  const categories = await getAllCategories();
+  const categories = (await getCategoriesWithCount()).filter(
+    (c) => !c.parentId
+  );
   const priceLabel = (range: string) => {
     if (range === 'all') return t('priceAny');
     const [min, max] = range.split('-').map(Number);
@@ -107,7 +110,7 @@ const SearchPage = async (props: {
           {q
             ? `${t('resultsFor')} “${q}”`
             : category !== 'all'
-              ? `${t('category')}: ${locale === 'fa' ? categories.find((c) => c.category === category)?.categoryFa : category}`
+              ? `${t('category')}: ${locale === 'fa' ? categories.find((c) => c.name === category)?.nameFa : category}`
               : t('title')}
         </h1>
         <SortDropdown />
@@ -116,8 +119,8 @@ const SearchPage = async (props: {
       {/* Search again from the results page */}
       <SearchBar
         categories={categories.map((c) => ({
-          value: c.category,
-          label: c.categoryFa,
+          value: c.name,
+          label: c.nameFa,
         }))}
         defaultQuery={q}
         defaultCategory={category}
@@ -131,11 +134,11 @@ const SearchPage = async (props: {
         </Link>
         {categories.map((c) => (
           <Link
-            key={c.category}
-            href={getFilterUrl({ c: c.category })}
-            className={chip(category === c.category)}
+            key={c.name}
+            href={getFilterUrl({ c: c.name })}
+            className={chip(category === c.name)}
           >
-            {locale === 'fa' ? c.categoryFa : c.category}
+            {isFa ? c.nameFa : c.name}
           </Link>
         ))}
       </div>

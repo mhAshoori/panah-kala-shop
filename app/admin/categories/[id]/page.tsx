@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
 import CategoryForm from '@/components/shared/admin/category-form';
+import { getCategoriesWithCount } from '@/lib/actions/product.actions';
 import { prisma } from '@/db/prisma';
 
 const UpdateCategoryPage = async (props: {
@@ -12,6 +13,10 @@ const UpdateCategoryPage = async (props: {
 
   const category = await prisma.category.findUnique({ where: { id } });
   if (!category) return notFound();
+
+  const parentOptions = (await getCategoriesWithCount())
+    .filter((c) => !c.parentId)
+    .map((c) => ({ id: c.id, nameFa: c.nameFa }));
 
   return (
     <div className='max-w-3xl space-y-6'>
@@ -25,7 +30,9 @@ const UpdateCategoryPage = async (props: {
           slug: category.slug,
           icon: category.icon,
           sortOrder: category.sortOrder,
+          parentId: category.parentId,
         }}
+        parentOptions={parentOptions}
       />
     </div>
   );

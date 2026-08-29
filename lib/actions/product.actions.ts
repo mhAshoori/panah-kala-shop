@@ -80,22 +80,98 @@ export async function getAllCategories() {
   return Array.from(map.values()).sort((a, b) => b._count - a._count);
 }
 
-// Get categories for navigation (dock, grids, filters) with product counts
+export type CategoryNode = {
+  id: string;
+  slug: string;
+  name: string;
+  nameFa: string;
+  icon: string;
+  sortOrder: number;
+  parentId: string | null;
+  count: number;
+  children: CategoryNode[];
+};
+
+// Flat list with product counts; a parent's count includes its descendants.
 export async function getCategoriesWithCount() {
   const categories = await prisma.category.findMany({
     orderBy: { sortOrder: 'asc' },
-    include: { _count: { select: { products: true } } },
+    include: {
+      _count: {
+        select: {
+          mainProducts: true,
+          subProducts: true,
+          subSubProducts: true,
+        },
+      },
+    },
   });
 
-  return convertToPlainObject(categories) as {
-    id: string;
-    slug: string;
-    name: string;
-    nameFa: string;
-    icon: string;
-    sortOrder: number;
-    _count: { products: number };
-  }[];
+  const flat = convertToPlainObject(categories).map((c) => ({
+    id: c.id,
+    slug: c.slug,
+    name: c.name,
+    nameFa: c.nameFa,
+    icon: c.icon,
+    sortOrder: c.sortOrder,
+    parentId: c.parentId as string | null,
+    count:
+      c._count.mainProducts + c._count.subProducts + c._count.subSubProducts,
+  }));
+
+  // Propagate counts up to parents
+  const byId = new Map(flat.map((c) => [c.id, c]));
+  for (const c of flat) {
+    if (c.parentId && byId.has(c.parentId)) {
+      const parent = byId.get(c.parentId)!;
+      parent.count += c.count;
+    }
+  }
+
+  return flat;
+}
+
+// Full category tree (mains with nested children) for the mega menu & forms
+export async function getCategoryTree(): Promise<CategoryNode[]> {
+  const flat = await getCategoriesWithCount();
+
+  const nodes = new Map<string, CategoryNode>();
+  for (const c of flat) {
+    nodes.set(c.id, { ...c, children: [] });
+  }
+  const roots: CategoryNode[] = [];
+  for (const node of nodes.values()) {
+    if (node.parentId && nodes.has(node.parentId)) {
+      nodes.get(node.parentId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return roots;
+}
+
+// Collect a category and all of its descendant ids
+function collectDescendantIds(
+  tree: CategoryNode[],
+  id: string
+): string[] {
+  const ids: string[] = [];
+  const walk = (nodes: CategoryNode[]) => {
+    for (const n of nodes) {
+      if (n.id === id) {
+        const collect = (node: CategoryNode) => {
+          ids.push(node.id);
+          node.children.forEach(collect);
+        };
+        collect(n);
+        return true;
+      }
+      if (walk(n.children)) return true;
+    }
+    return false;
+  };
+  walk(tree);
+  return ids;
 }
 
 // Get a single category by id
@@ -108,7 +184,7 @@ export async function getCategoryBySlug(slug: string) {
   return prisma.category.findUnique({ where: { slug } });
 }
 
-// Get paginated products for a category slug
+// Get paginated products for a category slug (includes subcategory products)
 export async function getProductsByCategorySlug({
   slug,
   sort,
@@ -123,6 +199,9 @@ export async function getProductsByCategorySlug({
   const category = await prisma.category.findUnique({ where: { slug } });
   if (!category) return null;
 
+  const tree = await getCategoryTree();
+  const ids = collectDescendantIds(tree, category.id);
+
   const orderBy =
     sort === 'lowest'
       ? { price: 'asc' as const }
@@ -132,7 +211,13 @@ export async function getProductsByCategorySlug({
           ? { rating: 'desc' as const }
           : { createdAt: 'desc' as const };
 
-  const where = { categoryId: category.id };
+  const where = {
+    OR: [
+      { categoryId: { in: ids } },
+      { subCategoryId: { in: ids } },
+      { subSubCategoryId: { in: ids } },
+    ],
+  };
 
   const data = await prisma.product.findMany({
     where,
@@ -208,31 +293,52 @@ export async function getFilteredProducts({
   const q = query ? query.slice(0, 100).trim() : '';
   const safePage = Math.max(1, Math.min(Number(page) || 1, 10_000));
 
-  const filters: Record<string, unknown> = {};
+  const filters: Record<string, unknown>[] = [];
 
   if (q !== '') {
-    filters.OR = [
-      { name: { contains: q, mode: 'insensitive' as const } },
-      { nameFa: { contains: q } },
-      { brand: { contains: q, mode: 'insensitive' as const } },
-      { description: { contains: q, mode: 'insensitive' as const } },
-      { descriptionFa: { contains: q } },
-    ];
+    filters.push({
+      OR: [
+        { name: { contains: q, mode: 'insensitive' as const } },
+        { nameFa: { contains: q } },
+        { brand: { contains: q, mode: 'insensitive' as const } },
+        { description: { contains: q, mode: 'insensitive' as const } },
+        { descriptionFa: { contains: q } },
+      ],
+    });
   }
 
+  // Category filter includes products in all descendant subcategories
   if (category && category !== 'all' && category.length <= 100) {
-    filters.category = category;
+    const main = await prisma.category.findFirst({
+      where: { OR: [{ name: category }, { nameFa: category }] },
+    });
+    if (main) {
+      const tree = await getCategoryTree();
+      const ids = collectDescendantIds(tree, main.id);
+      filters.push({
+        OR: [
+          { categoryId: { in: ids } },
+          { subCategoryId: { in: ids } },
+          { subSubCategoryId: { in: ids } },
+        ],
+      });
+    } else {
+      // Unknown category — match nothing
+      filters.push({ id: { in: [] } });
+    }
   }
 
   const priceFilter = parsePriceFilter(price);
   if (priceFilter) {
-    filters.price = priceFilter;
+    filters.push({ price: priceFilter });
   }
 
   const ratingFilter = parseRatingFilter(rating);
   if (ratingFilter) {
-    filters.rating = ratingFilter;
+    filters.push({ rating: ratingFilter });
   }
+
+  const where = filters.length > 0 ? { AND: filters } : {};
 
   const orderBy =
     sort === 'lowest'
@@ -244,13 +350,13 @@ export async function getFilteredProducts({
           : { createdAt: 'desc' as const };
 
   const data = await prisma.product.findMany({
-    where: filters,
+    where,
     orderBy,
     take: limit,
     skip: (safePage - 1) * limit,
   });
 
-  const dataCount = await prisma.product.count({ where: filters });
+  const dataCount = await prisma.product.count({ where });
 
   return {
     data: convertToPlainObject(data),
@@ -327,42 +433,35 @@ function productDataFromFormData(formData: FormData) {
   };
 }
 
-// Find or create the Category row for a product's category pair
-async function upsertCategory(category: string, categoryFa: string) {
-  const slug = category
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
 
-  const existing = await prisma.category.findFirst({
-    where: { OR: [{ name: category }, { slug }] },
+// Validate the main -> sub -> sub-sub chain chosen in the product form and
+// return the three ids for storage.
+async function resolveCategoryChain(formData: FormData) {
+  const categoryId = (formData.get('categoryId') as string) || null;
+  const subCategoryId = (formData.get('subCategoryId') as string) || null;
+  const subSubCategoryId = (formData.get('subSubCategoryId') as string) || null;
+
+  if (!categoryId) throw new Error('Main category is required');
+  if (!subCategoryId) throw new Error('Subcategory is required');
+
+  const main = await prisma.category.findFirst({
+    where: { id: categoryId, parentId: null },
   });
+  if (!main) throw new Error('Invalid main category');
 
-  if (existing) {
-    if (existing.nameFa !== categoryFa) {
-      await prisma.category.update({
-        where: { id: existing.id },
-        data: { nameFa: categoryFa },
-      });
-    }
-    return existing.id;
+  const sub = await prisma.category.findFirst({
+    where: { id: subCategoryId, parentId: categoryId },
+  });
+  if (!sub) throw new Error('Invalid subcategory for this main category');
+
+  if (subSubCategoryId) {
+    const subSub = await prisma.category.findFirst({
+      where: { id: subSubCategoryId, parentId: subCategoryId },
+    });
+    if (!subSub) throw new Error('Invalid sub-subcategory for this subcategory');
   }
 
-  const maxOrder = await prisma.category.aggregate({
-    _max: { sortOrder: true },
-  });
-
-  const created = await prisma.category.create({
-    data: {
-      slug,
-      name: category,
-      nameFa: categoryFa,
-      icon: 'package',
-      sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
-    },
-  });
-
-  return created.id;
+  return { categoryId, subCategoryId, subSubCategoryId };
 }
 
 // Create a product (admin)
@@ -374,9 +473,16 @@ export async function createProduct(
     await requireAdmin();
 
     const product = insertProductSchema.parse(productDataFromFormData(formData));
-    const categoryId = await upsertCategory(product.category, product.categoryFa);
+    const chain = await resolveCategoryChain(formData);
 
-    await prisma.product.create({ data: { ...product, categoryId } });
+    await prisma.product.create({
+      data: {
+        ...product,
+        categoryId: chain.categoryId,
+        subCategoryId: chain.subCategoryId,
+        subSubCategoryId: chain.subSubCategoryId,
+      },
+    });
 
     return { success: true, message: await withActionMessage('productCreated') };
   } catch (error) {
@@ -403,11 +509,16 @@ export async function updateProduct(
     if (!productExists)
       throw new Error(await withActionMessage('productNotFound'));
 
-    const categoryId = await upsertCategory(product.category, product.categoryFa);
+    const chain = await resolveCategoryChain(formData);
 
     await prisma.product.update({
       where: { id: product.id },
-      data: { ...product, categoryId },
+      data: {
+        ...product,
+        categoryId: chain.categoryId,
+        subCategoryId: chain.subCategoryId,
+        subSubCategoryId: chain.subSubCategoryId,
+      },
     });
 
     return { success: true, message: await withActionMessage('productUpdated') };

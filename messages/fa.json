@@ -317,6 +317,11 @@
     "fKeywords": "کلمات کلیدی (با ویرگول جدا کنید)",
     "blockContact": "محتوای صفحه تماس با ما",
     "blockMeta": "سئو و متادیتا",
+    "subCategory": "زیردسته‌بندی",
+    "subSubCategory": "زیرِ زیردسته (اختیاری)",
+    "none": "بدون",
+    "parentCategory": "دسته‌بندی والد",
+    "topLevel": "سطح اصلی (دسته اصلی)",
     "viewStore": "مشاهده فروشگاه",
     "orderDetails": "جزئیات سفارش"
   },

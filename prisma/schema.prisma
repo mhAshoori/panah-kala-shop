@@ -21,41 +21,50 @@ model Review {
   @@unique([productId, userId], map: "reviews_productId_userId_key")
 }
 
-// Curated product categories (home dock, /category/[slug] pages, homepage grid)
+// Hierarchical product categories: main -> sub -> (optional) sub-sub
 model Category {
-  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug      String    @unique(map: "category_slug_idx")
-  name      String
-  nameFa    String
-  icon      String    @default("package")
-  sortOrder Int       @default(0)
-  createdAt DateTime  @default(now()) @db.Timestamp(6)
-  products  Product[]
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug           String     @unique(map: "category_slug_idx")
+  name           String
+  nameFa         String
+  icon           String     @default("package")
+  sortOrder      Int        @default(0)
+  parentId       String?    @db.Uuid
+  createdAt      DateTime   @default(now()) @db.Timestamp(6)
+  parent         Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "category_parentId_category_id_fk")
+  children       Category[] @relation("CategoryTree")
+  mainProducts   Product[]  @relation("ProductMainCategory")
+  subProducts    Product[]  @relation("ProductSubCategory")
+  subSubProducts Product[]  @relation("ProductSubSubCategory")
 }
 
 model Product {
-  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String
-  nameFa        String
-  slug          String      @unique(map: "product_slug_idx")
-  category      String
-  categoryFa    String
-  categoryId    String?     @db.Uuid
-  images        String[]
-  brand         String
-  description   String
-  descriptionFa String
-  stock         Int
-  price         Decimal     @default(0) @db.Decimal(12, 2)
-  rating        Decimal     @default(0) @db.Decimal(3, 2)
-  numReviews    Int         @default(0)
-  isFeatured    Boolean     @default(false)
-  banner        String?
-  codAvailable  Boolean     @default(false)
-  createdAt     DateTime    @default(now()) @db.Timestamp(6)
-  categoryRef   Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "product_categoryId_category_id_fk")
-  orderItems    OrderItem[]
-  reviews       Review[]
+  id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String
+  nameFa            String
+  slug              String      @unique(map: "product_slug_idx")
+  category          String
+  categoryFa        String
+  categoryId        String?     @db.Uuid
+  subCategoryId     String?     @db.Uuid
+  subSubCategoryId  String?     @db.Uuid
+  images            String[]
+  brand             String
+  description       String
+  descriptionFa     String
+  stock             Int
+  price             Decimal     @default(0) @db.Decimal(12, 2)
+  rating            Decimal     @default(0) @db.Decimal(3, 2)
+  numReviews        Int         @default(0)
+  isFeatured        Boolean     @default(false)
+  banner            String?
+  codAvailable      Boolean     @default(false)
+  createdAt         DateTime    @default(now()) @db.Timestamp(6)
+  categoryRef       Category?   @relation("ProductMainCategory", fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "product_categoryId_category_id_fk")
+  subCategoryRef    Category?   @relation("ProductSubCategory", fields: [subCategoryId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "product_subCategoryId_category_id_fk")
+  subSubCategoryRef Category?   @relation("ProductSubSubCategory", fields: [subSubCategoryId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "product_subSubCategoryId_category_id_fk")
+  orderItems        OrderItem[]
+  reviews           Review[]
 }
 
 model Cart {
@@ -102,6 +111,7 @@ model OrderItem {
   image     String
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "orderItems_orderId_order_id_fk")
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "orderItems_productId_product_id_fk")
+
   @@id([orderId, productId], map: "orderItems_orderId_productId_pk")
 }
 

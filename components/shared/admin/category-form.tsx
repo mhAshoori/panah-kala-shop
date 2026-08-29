@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useTranslations } from 'next-intl';
@@ -44,6 +44,7 @@ const SubmitButton = ({ label }: { label: string }) => {
 const CategoryForm = ({
   type,
   category,
+  parentOptions = [],
 }: {
   type: 'Create' | 'Update';
   category?: {
@@ -53,11 +54,15 @@ const CategoryForm = ({
     slug: string;
     icon: string;
     sortOrder: number;
+    parentId: string | null;
   };
+  /** Main categories available as parents (exclude self on update) */
+  parentOptions?: { id: string; nameFa: string }[];
 }) => {
   const t = useTranslations('admin');
   const tCommon = useTranslations('common');
   const router = useRouter();
+  const [parentId, setParentId] = useState<string>(category?.parentId ?? '');
 
   const action = type === 'Create' ? createCategory : updateCategory;
   const [state, formAction] = useActionState(action, {
@@ -78,8 +83,26 @@ const CategoryForm = ({
   return (
     <form action={formAction} className='max-w-xl space-y-6'>
       {type === 'Update' && <input type='hidden' name='id' value={category?.id} />}
+      <input type='hidden' name='parentId' value={parentId} />
 
       <FieldGroup>
+        <Field>
+          <FieldLabel>{t('parentCategory')}</FieldLabel>
+          <select
+            value={parentId}
+            onChange={(e) => setParentId(e.target.value)}
+            className='h-9 w-full rounded-md border bg-transparent px-2 text-sm outline-none'
+          >
+            <option value=''>{t('topLevel')}</option>
+            {parentOptions
+              .filter((p) => p.id !== category?.id)
+              .map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nameFa}
+                </option>
+              ))}
+          </select>
+        </Field>
         <div className='flex flex-col gap-5 md:flex-row'>
           <Field className='w-full'>
             <FieldLabel htmlFor='name'>{t('categoryEn')}</FieldLabel>

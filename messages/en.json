@@ -317,6 +317,11 @@
     "fKeywords": "Keywords (comma-separated)",
     "blockContact": "Contact Page Content",
     "blockMeta": "SEO & Metadata",
+    "subCategory": "Subcategory",
+    "subSubCategory": "Sub-subcategory (optional)",
+    "none": "None",
+    "parentCategory": "Parent Category",
+    "topLevel": "Top-level (main category)",
     "viewStore": "View Store",
     "orderDetails": "Order Details"
   },

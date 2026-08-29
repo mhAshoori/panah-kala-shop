@@ -13,6 +13,44 @@ const CATEGORY_ICONS: Record<string, string> = {
   Gaming: 'gamepad-2',
 };
 
+// Two-level tree: each main category gets subcategories
+const SUBCATEGORY_NAMES: Record<string, { name: string; nameFa: string }[]> = {
+  'Mobile Phones': [
+    { name: 'Android Phones', nameFa: 'گوشی اندروید' },
+    { name: 'iPhones', nameFa: 'گوشی اپل' },
+    { name: 'Feature Phones', nameFa: 'گوشی ساده' },
+  ],
+  Laptops: [
+    { name: 'Ultrabooks', nameFa: 'التسبوک' },
+    { name: 'Gaming Laptops', nameFa: 'لپ تاپ گیمینگ' },
+  ],
+  Audio: [
+    { name: 'Headphones', nameFa: 'هدفون و هدست' },
+    { name: 'Earbuds', nameFa: 'هندزفری بی‌سیم' },
+    { name: 'Speakers', nameFa: 'اسپیکر' },
+  ],
+  Wearables: [
+    { name: 'Smart Watches', nameFa: 'ساعت هوشمند' },
+    { name: 'Smart Bands', nameFa: 'دستبند هوشمند' },
+  ],
+  Tablets: [
+    { name: 'Android Tablets', nameFa: 'تبلت اندروید' },
+    { name: 'iPads', nameFa: 'آیپد' },
+  ],
+  Cameras: [
+    { name: 'DSLR', nameFa: 'دوربین دیجیتال' },
+    { name: 'Action Cameras', nameFa: 'دوربین ورزشی' },
+  ],
+  Monitors: [
+    { name: 'Gaming Monitors', nameFa: 'مانیتور گیمینگ' },
+    { name: 'Office Monitors', nameFa: 'مانیتور اداری' },
+  ],
+  Gaming: [
+    { name: 'Consoles', nameFa: 'کنسول بازی' },
+    { name: 'Accessories', nameFa: 'لوازم جانبی گیمینگ' },
+  ],
+};
+
 async function main() {
   try {
     // Delete in FK-safe order
@@ -27,7 +65,7 @@ async function main() {
     await prisma.product.deleteMany();
     await prisma.category.deleteMany();
 
-    // Categories (curated, with icons + display order)
+    // Main categories (curated, with icons + display order)
     const distinctCategories = new Map<
       string,
       { name: string; nameFa: string }
@@ -41,7 +79,7 @@ async function main() {
       }
     }
 
-    const categories = [...distinctCategories.entries()].map(
+    const mainCategories = [...distinctCategories.entries()].map(
       ([name, c], index) => ({
         slug: name
           .toLowerCase()
@@ -54,16 +92,59 @@ async function main() {
       })
     );
 
-    await prisma.category.createMany({ data: categories });
-    const categoryRows = await prisma.category.findMany();
-    const categoryBySlug = new Map(categoryRows.map((c) => [c.name, c.id]));
+    await prisma.category.createMany({ data: mainCategories });
+    const mainRows = await prisma.category.findMany({
+      where: { parentId: null },
+    });
+    const mainIdByName = new Map(mainRows.map((c) => [c.name, c.id]));
 
-    // Products, linked to their category. The first 4 products allow cash
-    // on delivery (per-product opt-in; ZarinPal is always available).
+    // Subcategories under each main
+    const subs: {
+      slug: string;
+      name: string;
+      nameFa: string;
+      icon: string;
+      sortOrder: number;
+      parentId: string;
+    }[] = [];
+    for (const main of mainRows) {
+      const children = SUBCATEGORY_NAMES[main.name] ?? [
+        { name: 'General', nameFa: 'عمومی' },
+      ];
+      children.forEach((sub, index) => {
+        subs.push({
+          slug: `${main.slug}-${sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+          name: sub.name,
+          nameFa: sub.nameFa,
+          icon: main.icon,
+          sortOrder: index,
+          parentId: main.id,
+        });
+      });
+    }
+    await prisma.category.createMany({ data: subs });
+    const subRows = await prisma.category.findMany({
+      where: { parentId: { not: null } },
+    });
+    // Map "main name" -> first sub id (products attach to a subcategory)
+    const firstSubIdByMain = new Map<string, string>();
+    for (const sub of subRows) {
+      const mainId = sub.parentId!;
+      const main = mainRows.find((m) => m.id === mainId)!;
+      if (!firstSubIdByMain.has(main.name)) {
+        firstSubIdByMain.set(main.name, sub.id);
+      }
+    }
+
+    // Products attach to a subcategory of their main category
     await prisma.product.createMany({
       data: sampleData.products.map((p, index) => ({
         ...p,
-        categoryId: categoryBySlug.get(p.category) ?? null,
+        categoryId: mainIdByName.get(p.category) ?? null,
+        subCategoryId:
+          firstSubIdByMain.get(p.category) ??
+          mainIdByName.get(p.category) ??
+          null,
         codAvailable: index < 4,
       })),
     });
@@ -71,7 +152,7 @@ async function main() {
     await prisma.user.createMany({ data: sampleData.users });
 
     console.log(
-      `Database seeded successfully (${categories.length} categories, ${sampleData.products.length} products)`
+      `Database seeded successfully (${mainRows.length} main categories, ${subRows.length} subcategories, ${sampleData.products.length} products)`
     );
   } finally {
     await prisma.$disconnect();

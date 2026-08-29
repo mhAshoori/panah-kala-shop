@@ -14,6 +14,8 @@ import {
 export type Product = z.infer<typeof insertProductSchema> & {
   id: string;
   categoryId?: string | null;
+  subCategoryId?: string | null;
+  subSubCategoryId?: string | null;
   createdAt: Date;
   rating: string;
   numReviews: number;

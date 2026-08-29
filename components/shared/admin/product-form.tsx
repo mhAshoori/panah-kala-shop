@@ -53,18 +53,44 @@ const ProductForm = ({
     slug: string;
     name: string;
     nameFa: string;
+    parentId: string | null;
   }[];
 }) => {
   const t = useTranslations('admin');
   const tCommon = useTranslations('common');
   const router = useRouter();
 
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
-    product?.categoryId && categories.some((c) => c.id === product.categoryId)
+  const mains = categories.filter((c) => !c.parentId);
+  const subsOf = (parentId: string | undefined) =>
+    categories.filter((c) => c.parentId === parentId);
+
+  // Find the initial chain (sub's parent = main, subsub's parent = sub)
+  const initialSub = product?.subCategoryId
+    ? categories.find((c) => c.id === product.subCategoryId)
+    : undefined;
+  const initialSubSub = product?.subSubCategoryId
+    ? categories.find((c) => c.id === product.subSubCategoryId)
+    : undefined;
+  const initialMain =
+    initialSub?.parentId ??
+    (product?.categoryId &&
+    categories.some((c) => c.id === product.categoryId && !c.parentId)
       ? product.categoryId
-      : '__new__'
-  );
-  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
+      : undefined) ??
+    '';
+
+  const [mainId, setMainId] = useState<string>(initialMain || '');
+  const [subId, setSubId] = useState<string>(initialSub?.id ?? '');
+  const [subSubId, setSubSubId] = useState<string>(initialSubSub?.id ?? '');
+
+  const subOptions = mainId ? subsOf(mainId) : [];
+  const subSubOptions = subId ? subsOf(subId) : [];
+
+  // The active leaf defines the legacy category strings
+  const activeLeaf =
+    categories.find((c) => c.id === subSubId) ??
+    categories.find((c) => c.id === subId) ??
+    categories.find((c) => c.id === mainId);
 
   const [images, setImages] = useState<string[]>(
     product?.images ?? productDefaultValues.images
@@ -120,17 +146,17 @@ const ProductForm = ({
       {codAvailable && (
         <input type='hidden' name='codAvailable' value='on' />
       )}
-      {/* Category selection: existing category fills name fields, or new ones */}
-      {selectedCategory && (
-        <>
-          <input type='hidden' name='category' value={selectedCategory.name} />
-          <input
-            type='hidden'
-            name='categoryFa'
-            value={selectedCategory.nameFa}
-          />
-        </>
-      )}
+      {/* Category tree: main -> sub (required) -> sub-sub (optional).
+          The legacy category strings track the most specific selection. */}
+      <input type='hidden' name='categoryId' value={mainId} />
+      <input type='hidden' name='subCategoryId' value={subId} />
+      <input type='hidden' name='subSubCategoryId' value={subSubId} />
+      <input type='hidden' name='category' value={activeLeaf?.name ?? ''} />
+      <input
+        type='hidden'
+        name='categoryFa'
+        value={activeLeaf?.nameFa ?? ''}
+      />
 
       <FieldGroup>
         <div className='flex flex-col gap-5 md:flex-row'>
@@ -182,54 +208,73 @@ const ProductForm = ({
           </div>
         </Field>
 
-        {/* Category: select existing or create inline */}
+        {/* Category tree selects: main -> sub (required) -> sub-sub (optional) */}
         <div className='flex flex-col gap-5 md:flex-row'>
-          <Field className='w-full md:max-w-xs'>
-            <FieldLabel htmlFor='categoryId'>{t('category')}</FieldLabel>
+          <Field className='w-full'>
+            <FieldLabel htmlFor='mainCategory'>{t('category')}</FieldLabel>
             <select
-              id='categoryId'
-              name='categoryId'
-              value={selectedCategoryId}
-              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              id='mainCategory'
+              value={mainId}
+              onChange={(e) => {
+                setMainId(e.target.value);
+                setSubId('');
+                setSubSubId('');
+              }}
               className='h-9 w-full rounded-md border bg-transparent px-2 text-sm outline-none'
+              required
             >
-              {categories.map((c) => (
+              <option value='' disabled>
+                —
+              </option>
+              {mains.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.nameFa} ({c.name})
                 </option>
               ))}
-              <option value='__new__'>+ {t('createCategory')}</option>
             </select>
           </Field>
-          {selectedCategoryId === '__new__' ? (
-            <>
-              <Field className='w-full'>
-                <FieldLabel htmlFor='category'>{t('categoryEn')}</FieldLabel>
-                <Input
-                  id='category'
-                  name='category'
-                  defaultValue={product?.category}
-                  placeholder='Category (English)'
-                  required
-                />
-              </Field>
-              <Field className='w-full'>
-                <FieldLabel htmlFor='categoryFa'>{t('categoryFa')}</FieldLabel>
-                <Input
-                  id='categoryFa'
-                  name='categoryFa'
-                  defaultValue={product?.categoryFa}
-                  placeholder='دسته‌بندی (فارسی)'
-                  required
-                />
-              </Field>
-            </>
-          ) : (
-            <Field className='w-full'>
-              <FieldLabel>{t('categoryEn')}</FieldLabel>
-              <Input value={selectedCategory?.name ?? ''} disabled />
-            </Field>
-          )}
+          <Field className='w-full'>
+            <FieldLabel htmlFor='subCategory'>{t('subCategory')}</FieldLabel>
+            <select
+              id='subCategory'
+              value={subId}
+              onChange={(e) => {
+                setSubId(e.target.value);
+                setSubSubId('');
+              }}
+              disabled={!mainId}
+              className='h-9 w-full rounded-md border bg-transparent px-2 text-sm outline-none disabled:opacity-50'
+              required
+            >
+              <option value='' disabled>
+                —
+              </option>
+              {subOptions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nameFa} ({c.name})
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field className='w-full'>
+            <FieldLabel htmlFor='subSubCategory'>
+              {t('subSubCategory')}
+            </FieldLabel>
+            <select
+              id='subSubCategory'
+              value={subSubId}
+              onChange={(e) => setSubSubId(e.target.value)}
+              disabled={!subId || subSubOptions.length === 0}
+              className='h-9 w-full rounded-md border bg-transparent px-2 text-sm outline-none disabled:opacity-50'
+            >
+              <option value=''>{t('none')}</option>
+              {subSubOptions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nameFa} ({c.name})
+                </option>
+              ))}
+            </select>
+          </Field>
         </div>
 
         <div className='flex flex-col gap-5 md:flex-row'>
