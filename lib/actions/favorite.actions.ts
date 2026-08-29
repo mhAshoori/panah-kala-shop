@@ -5,7 +5,6 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/db/prisma';
 import { getValidUserId } from '../auth-helpers';
 import { withActionMessage } from '../action-messages';
-import type { ActionState } from '@/types';
 
 // Toggle a product star/un-star for the signed-in user
 export async function toggleFavorite(productId: string): Promise<{
