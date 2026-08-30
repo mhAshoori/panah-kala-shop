@@ -107,23 +107,42 @@ const CredentialsSignInForm = () => {
   const [error, setError] = useState('');
   const [, startTransition] = useTransition();
 
+  /**
+   * The beta client signIn() resolves even when credentials fail (401 is
+   * returned, no cookie is set) — the ONLY reliable success check is the
+   * session endpoint. Navigation happens only when a session truly exists.
+   */
+  const verifySession = async (): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/auth/session', { cache: 'no-store' });
+      const session = await res.json();
+      return !!session?.user;
+    } catch {
+      return false;
+    }
+  };
+
   const passwordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     startTransition(async () => {
       try {
-        // No redirectTo: without it Auth.js THROWS on failure so we can show
-        // the message; on success we navigate manually.
         await signIn('credentials', { email, password, redirect: false });
-        router.push(callbackUrl);
-        router.refresh();
       } catch (err) {
         if (err instanceof AuthError) {
           setError(t('invalidCredentials'));
-        } else {
-          setError(tCommon('error'));
+          return;
         }
+        setError(tCommon('error'));
+        return;
       }
+
+      if (!(await verifySession())) {
+        setError(t('invalidCredentials'));
+        return;
+      }
+      router.push(callbackUrl);
+      router.refresh();
     });
   };
 
@@ -142,8 +161,6 @@ const CredentialsSignInForm = () => {
           code,
           redirect: false,
         });
-        router.push(callbackUrl);
-        router.refresh();
       } catch (err) {
         if (err instanceof AuthError) {
           const code = (err as AuthError & { code?: string }).code;
@@ -157,7 +174,15 @@ const CredentialsSignInForm = () => {
         } else {
           setError(tCommon('error'));
         }
+        return;
       }
+
+      if (!(await verifySession())) {
+        setError(t('invalidOtp'));
+        return;
+      }
+      router.push(callbackUrl);
+      router.refresh();
     });
   };
 
