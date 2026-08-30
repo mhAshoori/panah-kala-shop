@@ -124,6 +124,7 @@
     "invalidCredentials": "Invalid email or password",
     "mobile": "Mobile Number",
     "phoneNotRegistered": "This mobile number is not registered — please sign up first",
+    "phoneAlreadyRegistered": "This mobile number is already registered — please sign in",
     "tooManyAttempts": "Too many attempts — please try again later",
     "emailOrPhone": "Email or Mobile",
     "chooseSignupMethod": "Sign-up method"

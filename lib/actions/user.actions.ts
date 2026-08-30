@@ -313,7 +313,9 @@ async function establishSmsSession(
   code: string
 ): Promise<boolean> {
   try {
-    await signIn('credentials', { phone, code, redirect: false });
+    // Must target the 'sms' provider — the credentials provider expects
+    // email/password and would always fail here.
+    await signIn('sms', { phone, code, redirect: false });
     return true;
   } catch (error) {
     if (isNextRedirectError(error)) throw error;

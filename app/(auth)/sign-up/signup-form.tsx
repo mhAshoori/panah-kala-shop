@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { signUpDefaultValues } from '@/lib/constants';
-import { signUpUser, requestPhoneOtp } from '@/lib/actions/user.actions';
+import { signUpUser, requestPhoneOtp, checkPhoneRegistered } from '@/lib/actions/user.actions';
 import { cn } from '@/lib/utils';
 import PhoneField from '@/components/shared/auth/phone-field';
 
@@ -36,7 +36,9 @@ const SignUpButton = () => {
   );
 };
 
-// Sends the OTP by calling the server action directly (no nested <form>)
+// Sends the OTP by calling the server action directly (no nested <form>).
+// First checks the phone is NOT already registered — existing numbers are
+// pointed to sign-in.
 const SendCodeButton = ({ mobile }: { mobile: string }) => {
   const t = useTranslations('auth');
   const [isPending, startTransition] = useTransition();
@@ -47,6 +49,11 @@ const SendCodeButton = ({ mobile }: { mobile: string }) => {
     if (mobile.length !== 10) return;
     setError('');
     startTransition(async () => {
+      const reg = await checkPhoneRegistered(`+98${mobile}`);
+      if (reg.registered) {
+        setError(t('phoneAlreadyRegistered'));
+        return;
+      }
       const fd = new FormData();
       fd.set('phone', mobile);
       const res = await requestPhoneOtp(null, fd);
