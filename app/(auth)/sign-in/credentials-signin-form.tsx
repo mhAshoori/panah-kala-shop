@@ -106,6 +106,9 @@ const CredentialsSignInForm = () => {
   const tCommon = useTranslations('common');
   const router = useRouter();
 
+  // Runtime fallback: a missing i18n key must never blank out an error
+  const authError = (key: string) => (t.has(key) ? t(key) : tCommon('error'));
+
   const [mode, setMode] = useState<Mode>('password');
   const [email, setEmail] = useState(signInDefaultValues.email);
   const [password, setPassword] = useState(signInDefaultValues.password);
@@ -137,7 +140,7 @@ const CredentialsSignInForm = () => {
         await signIn('credentials', { email, password, redirect: false });
       } catch (err) {
         if (err instanceof AuthError) {
-          setError(t('invalidCredentials'));
+          setError(authError('invalidCredentials'));
           return;
         }
         setError(tCommon('error'));
@@ -145,7 +148,7 @@ const CredentialsSignInForm = () => {
       }
 
       if (!(await verifySession())) {
-        setError(t('invalidCredentials'));
+        setError(authError('invalidCredentials'));
         return;
       }
       router.push(callbackUrl);
@@ -172,11 +175,11 @@ const CredentialsSignInForm = () => {
         if (err instanceof AuthError) {
           const code = (err as AuthError & { code?: string }).code;
           if (code === 'user_not_found') {
-            setError(t('phoneNotRegistered'));
+            setError(authError('phoneNotRegistered'));
           } else if (code === 'rate_limited') {
-            setError(t('tooManyAttempts'));
+            setError(authError('tooManyAttempts'));
           } else {
-            setError(t('invalidOtp'));
+            setError(authError('invalidOtp'));
           }
         } else {
           setError(tCommon('error'));
@@ -185,7 +188,7 @@ const CredentialsSignInForm = () => {
       }
 
       if (!(await verifySession())) {
-        setError(t('invalidOtp'));
+        setError(authError('invalidOtp'));
         return;
       }
       router.push(callbackUrl);

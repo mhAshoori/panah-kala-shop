@@ -121,6 +121,7 @@
     "otpCodeLabel": "SMS Code",
     "invalidOtp": "The code is invalid or expired",
     "invalidPhone": "Enter a valid mobile number (9XXXXXXXXX)",
+    "invalidCredentials": "Invalid email or password",
     "mobile": "Mobile Number",
     "phoneNotRegistered": "This mobile number is not registered — please sign up first",
     "tooManyAttempts": "Too many attempts — please try again later",
