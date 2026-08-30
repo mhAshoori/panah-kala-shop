@@ -22,6 +22,7 @@ import { requireAdmin } from '../auth-guard';
 import { withActionMessage } from '../action-messages';
 import { getValidUserId } from '../auth-helpers';
 import { rateLimit } from '../rate-limit';
+import { normalizeIranMobile } from '../phone';
 import { MOCK_OTP_CODE, OTP_TTL_MS } from '@/auth';
 import type { ActionState } from '@/types';
 
@@ -270,11 +271,14 @@ export async function requestPhoneOtp(
   formData: FormData
 ): Promise<ActionState> {
   try {
-    const phone = String(formData.get('phone') ?? '').trim();
-    if (!/^\+?\d{7,15}$/.test(phone)) {
+    // Accepts 09…, 9…, +989… — stored/compared as +989XXXXXXXXX
+    const phone = normalizeIranMobile(
+      (formData.get('phone') as string | null) ?? ''
+    );
+    if (!phone) {
       return {
         success: false,
-        message: await withActionMessage('invalidValue'),
+        message: await withActionMessage('invalidPhone'),
       };
     }
 
@@ -419,18 +423,21 @@ export async function signUpUser(
     }
 
     const parsed = signUpFormSchema.safeParse({
-      name: formData.get('name'),
-      email: formData.get('email'),
-      mobile: formData.get('mobile'),
-      password: formData.get('password'),
-      confirmPassword: formData.get('confirmPassword'),
-      otpCode: formData.get('otpCode'),
+      name: formData.get('name') ?? '',
+      mode: formData.get('mode') ?? 'email',
+      email: (formData.get('email') as string | null) ?? '',
+      mobile: normalizeIranMobile(
+        (formData.get('mobile') as string | null) ?? ''
+      )?.replace('+98', '') ?? '',
+      password: (formData.get('password') as string | null) ?? '',
+      confirmPassword: (formData.get('confirmPassword') as string | null) ?? '',
+      otpCode: (formData.get('otpCode') as string | null) ?? '',
     });
     if (!parsed.success) {
       return { success: false, message: formatError(parsed.error) };
     }
 
-    const { name, email, mobile, password, otpCode } = parsed.data;
+    const { name, mode, email, mobile, password, otpCode } = parsed.data;
 
     // Duplicate guard with a friendly message (when a value is provided)
     const dupConditions = [];
@@ -448,40 +455,24 @@ export async function signUpUser(
       }
     }
 
-    const useOtp = !password;
-    if (useOtp) {
-      if (!mobile) {
-        return {
-          success: false,
-          message: await withActionMessage('invalidValue'),
-        };
-      }
-      if (!otpCode || otpCode !== MOCK_OTP_CODE) {
-        return {
-          success: false,
-          message: await withActionMessage('invalidOtp'),
-        };
-      }
-    }
-
     await prisma.user.create({
       data: {
         name,
         email: email || null,
-        mobile: mobile || null,
+        mobile: mobile ? `+98${mobile}` : null,
         password: password ? hashSync(password, 10) : null,
       },
     });
 
-    if (password) {
-      const ok = await establishCredentialsSession(email!, password);
+    if (mode === 'email') {
+      const ok = await establishCredentialsSession(email, password);
       if (!ok) {
         // Account exists but auto sign-in failed — send to sign-in page.
         redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
       }
     } else {
-      // OTP sign-up: sign in via the SMS provider
-      const ok = await establishSmsSession(mobile!, otpCode!);
+      // OTP sign-up: sign in via the SMS provider (mobile normalized)
+      const ok = await establishSmsSession(`+98${mobile}`, otpCode);
       if (!ok) {
         redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
       }

@@ -2,13 +2,12 @@
 
 import { useState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { signIn } from 'next-auth/react';
 import { AuthError } from 'next-auth';
 import { Loader2, Smartphone, KeyRound } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +19,9 @@ import {
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { requestPhoneOtp } from '@/lib/actions/user.actions';
+import { normalizeIranMobile } from '@/lib/phone';
 import { signInDefaultValues } from '@/lib/constants';
+import PhoneField from '@/components/shared/auth/phone-field';
 
 type Mode = 'password' | 'phone';
 
@@ -44,11 +45,15 @@ const SendCodeButton = ({ phone }: { phone: string }) => {
   const [error, setError] = useState('');
 
   const send = () => {
-    if (!phone) return;
+    const normalized = normalizeIranMobile(`+98${phone}`);
+    if (!normalized) {
+      setError(t('invalidPhone'));
+      return;
+    }
     setError('');
     startTransition(async () => {
       const fd = new FormData();
-      fd.set('phone', phone);
+      fd.set('phone', normalized);
       const res = await requestPhoneOtp(null, fd);
       if (res.success) {
         setSent(true);
@@ -92,6 +97,7 @@ const CredentialsSignInForm = () => {
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const t = useTranslations('auth');
   const tCommon = useTranslations('common');
+  const router = useRouter();
 
   const [mode, setMode] = useState<Mode>('password');
   const [email, setEmail] = useState(signInDefaultValues.email);
@@ -100,7 +106,6 @@ const CredentialsSignInForm = () => {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [, startTransition] = useTransition();
-  const router = useRouter();
 
   const passwordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,9 +130,18 @@ const CredentialsSignInForm = () => {
   const phoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    const normalized = normalizeIranMobile(`+98${phone}`);
+    if (!normalized) {
+      setError(t('invalidPhone'));
+      return;
+    }
     startTransition(async () => {
       try {
-        await signIn('sms', { phone, code, redirect: false });
+        await signIn('sms', {
+          phone: normalized,
+          code,
+          redirect: false,
+        });
         router.push(callbackUrl);
         router.refresh();
       } catch (err) {
@@ -230,17 +244,7 @@ const CredentialsSignInForm = () => {
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor='phone'>{t('mobile')}</FieldLabel>
-              <Input
-                id='phone'
-                required
-                type='tel'
-                inputMode='tel'
-                autoComplete='tel'
-                dir='ltr'
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder='09121234567'
-              />
+              <PhoneField id='phone' value={phone} onChange={setPhone} />
             </Field>
             <SendCodeButton phone={phone} />
             <Field>

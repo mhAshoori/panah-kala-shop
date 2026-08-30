@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { signUpDefaultValues } from '@/lib/constants';
 import { signUpUser, requestPhoneOtp } from '@/lib/actions/user.actions';
 import { cn } from '@/lib/utils';
+import PhoneField from '@/components/shared/auth/phone-field';
 
 type Mode = 'email' | 'phone';
 
@@ -36,24 +37,23 @@ const SignUpButton = () => {
 };
 
 // Sends the OTP by calling the server action directly (no nested <form>)
-const SendCodeButton = ({ phone }: { phone: string }) => {
+const SendCodeButton = ({ mobile }: { mobile: string }) => {
   const t = useTranslations('auth');
-  const tCommon = useTranslations('common');
   const [isPending, startTransition] = useTransition();
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
 
   const send = () => {
-    if (!phone) return;
+    if (mobile.length !== 10) return;
     setError('');
     startTransition(async () => {
       const fd = new FormData();
-      fd.set('phone', phone);
+      fd.set('phone', mobile);
       const res = await requestPhoneOtp(null, fd);
       if (res.success) {
         setSent(true);
       } else {
-        setError(res.message || tCommon('error'));
+        setError(res.message);
       }
     });
   };
@@ -72,7 +72,7 @@ const SendCodeButton = ({ phone }: { phone: string }) => {
         type='button'
         variant='outline'
         className='w-full'
-        disabled={!phone || isPending}
+        disabled={mobile.length !== 10 || isPending}
         onClick={send}
       >
         {isPending && <Loader2 className='h-4 w-4 animate-spin' />}
@@ -101,7 +101,7 @@ const SignUpForm = () => {
   const t = useTranslations('auth');
 
   const [mode, setMode] = useState<Mode>('email');
-  const [mobile, setMobile] = useState(signUpDefaultValues.mobile ?? '');
+  const [mobile, setMobile] = useState('');
 
   // Transparent single retry after a stale auth cookie was cleared server-side
   useEffect(() => {
@@ -117,6 +117,7 @@ const SignUpForm = () => {
   return (
     <form action={action} ref={formRef}>
       <input type='hidden' name='callbackUrl' value={callbackUrl} />
+      <input type='hidden' name='mode' value={mode} />
 
       {/* Account-type toggle */}
       <div className='mb-4 grid grid-cols-2 gap-2 rounded-lg bg-muted p-1'>
@@ -168,7 +169,7 @@ const SignUpForm = () => {
                 type='email'
                 autoComplete='email'
                 dir='ltr'
-                defaultValue={signUpDefaultValues.email}
+                defaultValue={signUpDefaultValues.email ?? ''}
               />
             </Field>
             <Field>
@@ -181,7 +182,7 @@ const SignUpForm = () => {
                 minLength={6}
                 autoComplete='new-password'
                 dir='ltr'
-                defaultValue={signUpDefaultValues.password}
+                defaultValue={signUpDefaultValues.password ?? ''}
               />
               <FieldDescription>حداقل ۶ کاراکتر / min. 6 chars</FieldDescription>
             </Field>
@@ -197,7 +198,7 @@ const SignUpForm = () => {
                 minLength={6}
                 autoComplete='new-password'
                 dir='ltr'
-                defaultValue={signUpDefaultValues.confirmPassword}
+                defaultValue={signUpDefaultValues.confirmPassword ?? ''}
               />
             </Field>
           </>
@@ -205,20 +206,9 @@ const SignUpForm = () => {
           <>
             <Field>
               <FieldLabel htmlFor='mobile'>{t('mobile')}</FieldLabel>
-              <Input
-                id='mobile'
-                name='mobile'
-                required
-                type='tel'
-                inputMode='tel'
-                autoComplete='tel'
-                dir='ltr'
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                placeholder='09121234567'
-              />
+              <PhoneField id='mobile' value={mobile} onChange={setMobile} />
             </Field>
-            <SendCodeButton phone={mobile} />
+            <SendCodeButton mobile={mobile} />
             <Field>
               <FieldLabel htmlFor='otpCode'>{t('otpCodeLabel')}</FieldLabel>
               <Input
@@ -227,7 +217,7 @@ const SignUpForm = () => {
                 required
                 inputMode='numeric'
                 dir='ltr'
-                placeholder='123456'
+                defaultValue=''
               />
             </Field>
           </>

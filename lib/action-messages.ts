@@ -51,6 +51,7 @@ const messages = {
     accountExists: 'An account with this email or mobile already exists',
     invalidOtp: 'The code is invalid or expired',
     otpSent: 'Code sent. Use the mock code 123456 for testing.',
+    invalidPhone: 'Enter a valid mobile number (9XXXXXXXXX)',
     favoriteAdded: 'Added to your favorites',
     favoriteRemoved: 'Removed from your favorites',
     // Reviews
@@ -106,6 +107,7 @@ const messages = {
     accountExists: 'با این ایمیل یا شماره موبایل قبلاً حساب ساخته شده است',
     invalidOtp: 'کد وارد شده نامعتبر یا منقضی شده است',
     otpSent: 'کد ارسال شد. برای تست از کد ۱۲۳۴۵۶ استفاده کنید.',
+    invalidPhone: 'شماره موبایل معتبر نیست (۹XXXXXXXXX)',
     favoriteAdded: 'به علاقه‌مندی‌ها اضافه شد',
     favoriteRemoved: 'از علاقه‌مندی‌ها حذف شد',
     // Reviews

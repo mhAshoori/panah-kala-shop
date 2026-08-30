@@ -6,6 +6,7 @@ import { compareSync } from 'bcrypt-ts-edge';
 
 import { prisma } from '@/db/prisma';
 import { rateLimit } from '@/lib/rate-limit';
+import { normalizeIranMobile } from '@/lib/phone';
 import { signInFormSchema } from '@/lib/validator';
 
 // Mock SMS master code — always valid for testing (see README)
@@ -87,9 +88,10 @@ export const config: NextAuthConfig = {
       async authorize(credentials) {
         if (credentials == null) return null;
 
-        const phone = String(credentials.phone ?? '').trim();
+        // Normalize to +989XXXXXXXXX (accepts 09…, 9…, +989…, 00989…)
+        const phone = normalizeIranMobile(String(credentials.phone ?? ''));
         const code = String(credentials.code ?? '').trim();
-        if (!/^\+?\d{7,15}$/.test(phone) || !/^\d{4,6}$/.test(code)) {
+        if (!phone || !/^\d{4,6}$/.test(code)) {
           return null;
         }
 

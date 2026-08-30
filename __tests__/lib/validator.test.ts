@@ -55,44 +55,61 @@ describe('insertProductSchema', () => {
 });
 
 describe('signUpFormSchema', () => {
-  const base = {
+  const emailBase = {
     name: 'Ali Rezaei',
+    mode: 'email' as const,
     email: 'ali@example.com',
-    mobile: '09121234567',
+    mobile: '',
     password: 'secret123',
     confirmPassword: 'secret123',
+    otpCode: '',
   };
 
-  it('accepts password sign-up with a mobile number', () => {
-    expect(() => signUpFormSchema.parse(base)).not.toThrow();
+  const phoneBase = {
+    name: 'Ali Rezaei',
+    mode: 'phone' as const,
+    email: '',
+    mobile: '9123456789',
+    password: '',
+    confirmPassword: '',
+    otpCode: '123456',
+  };
+
+  it('accepts password sign-up with an email', () => {
+    expect(() => signUpFormSchema.parse(emailBase)).not.toThrow();
   });
 
-  it('accepts OTP sign-up without a password', () => {
-    expect(() =>
-      signUpFormSchema.parse({
-        ...base,
-        password: '',
-        confirmPassword: '',
-        otpCode: '123456',
-      })
-    ).not.toThrow();
+  it('accepts OTP sign-up with a phone (no password)', () => {
+    expect(() => signUpFormSchema.parse(phoneBase)).not.toThrow();
   });
 
-  it('rejects sign-up without password or OTP code', () => {
+  it('rejects email mode without a password', () => {
     expect(() =>
-      signUpFormSchema.parse({ ...base, password: '', confirmPassword: '' })
+      signUpFormSchema.parse({ ...emailBase, password: '', confirmPassword: '' })
     ).toThrow();
   });
 
-  it('rejects mismatched passwords', () => {
+  it('rejects email mode with mismatched passwords', () => {
     expect(() =>
-      signUpFormSchema.parse({ ...base, confirmPassword: 'different' })
+      signUpFormSchema.parse({ ...emailBase, confirmPassword: 'different' })
     ).toThrow();
   });
 
-  it('rejects invalid emails', () => {
+  it('rejects email mode with an invalid email', () => {
     expect(() =>
-      signUpFormSchema.parse({ ...base, email: 'not-an-email' })
+      signUpFormSchema.parse({ ...emailBase, email: 'not-an-email' })
+    ).toThrow();
+  });
+
+  it('rejects phone mode without the OTP code', () => {
+    expect(() =>
+      signUpFormSchema.parse({ ...phoneBase, otpCode: '' })
+    ).toThrow();
+  });
+
+  it('rejects phone mode with a short mobile', () => {
+    expect(() =>
+      signUpFormSchema.parse({ ...phoneBase, mobile: '91234' })
     ).toThrow();
   });
 });

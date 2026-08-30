@@ -42,43 +42,46 @@ export const signInFormSchema = z.object({
 // Schema for signing up a user. Two account types:
 //  - email account (password required, mobile optional)
 //  - phone account  (SMS OTP required, email optional)
-// At least one of email/mobile must be provided.
+// The 10-digit mobile (after +98) and mode come from the form; nulls from
+// empty FormData fields are normalized to '' by the caller.
 export const signUpFormSchema = z
   .object({
     name: z.string().min(3, 'Name must be at least 3 characters'),
+    mode: z.enum(['email', 'phone']),
     email: z
-      .string()
-      .email('Invalid email address')
-      .optional()
-      .or(z.literal('')),
+      .union([z.string().email('Invalid email address'), z.literal('')])
+      .transform((v) => v ?? ''),
     mobile: z
-      .string()
-      .regex(/^(\+?\d{7,15})$/, 'Enter a valid phone number')
-      .optional()
-      .or(z.literal('')),
+      .union([
+        z.string().regex(/^9\d{9}$/, 'Enter the 10 digits after +98'),
+        z.literal(''),
+      ])
+      .transform((v) => v ?? ''),
     password: z
-      .string()
-      .min(6, 'Password must be at least 6 characters')
-      .optional()
-      .or(z.literal('')),
-    confirmPassword: z.string().optional().or(z.literal('')),
-    otpCode: z.string().optional().or(z.literal('')),
+      .union([z.string().min(6, 'Password must be at least 6 characters'), z.literal('')])
+      .transform((v) => v ?? ''),
+    confirmPassword: z
+      .union([z.string(), z.literal('')])
+      .transform((v) => v ?? ''),
+    otpCode: z
+      .union([z.string().regex(/^\d{4,6}$/, 'Enter the SMS code'), z.literal('')])
+      .transform((v) => v ?? ''),
+  })
+  .refine((data) => data.mode !== 'email' || data.email.length > 3, {
+    message: 'Email is required', path: ['email'],
+  })
+  .refine((data) => data.mode !== 'phone' || /^9\d{9}$/.test(data.mobile), {
+    message: 'Enter the 10 digits after +98', path: ['mobile'],
+  })
+  .refine((data) => data.mode !== 'email' || data.password.length >= 6, {
+    message: 'Password must be at least 6 characters', path: ['password'],
   })
   .refine(
-    (data) =>
-      (data.email && data.email.length > 3) ||
-      (data.mobile && data.mobile.length >= 7),
-    { message: 'Enter an email or a mobile number', path: ['email'] }
+    (data) => data.mode !== 'email' || data.password === data.confirmPassword,
+    { message: "Passwords don't match", path: ['confirmPassword'] }
   )
-  .refine(
-    (data) =>
-      (data.password && data.password.length >= 6) ||
-      (data.otpCode ?? '').length >= 4,
-    { message: 'Enter a password or request an SMS code', path: ['password'] }
-  )
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
+  .refine((data) => data.mode !== 'phone' || /^\d{4,6}$/.test(data.otpCode), {
+    message: 'Enter the SMS code', path: ['otpCode'],
   });
 
 // Cart
