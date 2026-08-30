@@ -332,9 +332,14 @@ export async function checkPhoneRegistered(
   return { registered: !!user };
 }
 
-// Sign user out — back to the sign-in page
+// Sign user out — back to the homepage with a fresh guest cart cookie
 export async function SignOutUser() {
-  await signOut({ redirectTo: '/sign-in' });
+  try {
+    (await cookies()).delete('sessionCartId');
+  } catch {
+    /* cookie store unavailable */
+  }
+  await signOut({ redirectTo: '/' });
 }
 
 // Get all users for the admin table with optional name/email search + pagination

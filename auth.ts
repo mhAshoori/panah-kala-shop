@@ -8,6 +8,8 @@ import { prisma } from '@/db/prisma';
 import { rateLimit } from '@/lib/rate-limit';
 import { normalizeIranMobile } from '@/lib/phone';
 import { signInFormSchema } from '@/lib/validator';
+import { mergeGuestCartOnSignIn } from '@/lib/cart/merge';
+import { cookies } from 'next/headers';
 
 // Mock SMS master code — always valid for testing (see README)
 export const MOCK_OTP_CODE = '123456';
@@ -133,6 +135,23 @@ export const config: NextAuthConfig = {
             where: { id: user.id as string },
             data: { name: token.name },
           });
+        }
+
+        // Merge the guest cart (sessionCartId cookie) into the user's cart
+        // on every sign-in/sign-up. Failures must never block sign-in.
+        if (trigger === 'signIn' || trigger === 'signUp') {
+          try {
+            const cookiesObject = await cookies();
+            const sessionCartId = cookiesObject.get('sessionCartId')?.value;
+            if (user.id && sessionCartId) {
+              await mergeGuestCartOnSignIn(
+                user.id as string,
+                sessionCartId
+              );
+            }
+          } catch (error) {
+            console.error('[cart-merge] failed:', error);
+          }
         }
       }
       if (session?.user?.name && trigger === 'update') {
