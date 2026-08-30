@@ -103,7 +103,7 @@ export default async function LocaleLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${shabnamFont.variable} ${vazirmatnFont.variable}`}
     >
-      <body className='font-sans overflow-x-clip'>
+      <body className='font-sans'>
         <NextIntlClientProvider>
           <ThemeProvider
             attribute="class"

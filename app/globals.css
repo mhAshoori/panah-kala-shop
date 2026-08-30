@@ -175,27 +175,6 @@
   html[data-font='vazirmatn'] {
     --font-persian: var(--font-vazirmatn);
   }
-
-  /* Kill the legacy touch delay on all interactive elements */
-  button,
-  a,
-  input,
-  select,
-  textarea,
-  [role='button'] {
-    touch-action: manipulation;
-  }
-
-  /* Toast container must never block clicks on the page behind it
-     (fixes unclickable buttons on phones) */
-  [data-sonner-toaster] {
-    pointer-events: none !important;
-  }
-  [data-sonner-toaster] [data-sonner-toast],
-  [data-sonner-toaster] [data-sonner-action-button],
-  [data-sonner-toaster] [data-close-button] {
-    pointer-events: auto !important;
-  }
 }
 
 /* ---------- Homepage animations ---------- */

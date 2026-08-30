@@ -292,7 +292,12 @@ export async function requestPhoneOtp(
       };
     }
 
-    // Mock SMS gateway: fixed master code, valid 5 minutes
+    // Mock SMS gateway: fixed master code, valid 5 minutes.
+    // The composite PK (identifier, token) is identical for repeat requests
+    // of the same mock code — clear the old row first to avoid P2002.
+    await prisma.verificationToken.deleteMany({
+      where: { identifier: `otp:${phone}` },
+    });
     await prisma.verificationToken.create({
       data: {
         identifier: `otp:${phone}`,
