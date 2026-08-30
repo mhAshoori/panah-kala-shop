@@ -134,7 +134,7 @@ model User {
   email         String?   @unique(map: "user_email_idx")
   password      String?
   role          String    @default("user")
-  mobile        String?
+  mobile        String?   @unique(map: "user_mobile_idx")
   nationalId    String?
   cardNumber    String?
   sheba         String?
