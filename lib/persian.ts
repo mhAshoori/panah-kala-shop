@@ -11,6 +11,15 @@ export function formatNumberLocale(
   value: number | string | null | undefined,
   locale: string
 ): string {
+  // null/undefined/empty must show the placeholder, never "0"
+  // (Number(null) === 0 would otherwise display a fake zero price)
+  if (
+    value === null ||
+    value === undefined ||
+    (typeof value === 'string' && value.trim() === '')
+  ) {
+    return '—';
+  }
   const n = typeof value === 'number' ? value : Number(value);
   if (!Number.isFinite(n)) return '—';
   return (FORMATTERS[locale] ?? FORMATTERS.en).format(n);
