@@ -25,12 +25,16 @@ const SearchBar = ({
   className,
   defaultQuery = '',
   defaultCategory = 'all',
+  onSearched,
 }: {
   categories: CategoryOption[];
   compact?: boolean;
   className?: string;
   defaultQuery?: string;
   defaultCategory?: string;
+  /** Called after the client-side navigation to the results page (the
+      mobile menu sheet uses this to close itself) */
+  onSearched?: () => void;
 }) => {
   const t = useTranslations('header');
   const router = useRouter();
@@ -44,6 +48,7 @@ const SearchBar = ({
     if (category && category !== 'all') params.set('category', category);
     const qs = params.toString();
     router.push(`/search${qs ? `?${qs}` : ''}`);
+    onSearched?.();
   };
 
   if (compact) {

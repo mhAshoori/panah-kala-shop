@@ -106,18 +106,15 @@ export const insertCartSchema = z.object({
   userId: z.string().optional().nullable(),
 });
 
-// Update profile schema — extras are optional and editable later
+// Update profile schema — extras are optional and editable later.
+// Email/mobile changes flow exclusively through updateContact (verified).
 export const updateProfileSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters'),
-  email: z.string().email('Invalid email address'),
   nationalId: z
     .string()
     .regex(/^\d{10}$/, 'Enter a valid 10-digit national ID')
     .optional()
     .or(z.literal('')),
-  mobile: z
-    .string()
-    .regex(/^(\+?\d{7,15})$/, 'Enter a valid phone number'),
   cardNumber: z
     .string()
     .regex(/^\d{16}$/, 'Enter a valid 16-digit card number')

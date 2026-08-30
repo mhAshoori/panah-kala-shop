@@ -10,12 +10,14 @@ import { cn } from '@/lib/utils';
  */
 const PhoneField = ({
   id,
+  name,
   value,
   onChange,
   required = true,
   className,
 }: {
   id: string;
+  name?: string;
   value: string;
   onChange: (v: string) => void;
   required?: boolean;
@@ -36,7 +38,7 @@ const PhoneField = ({
       </span>
       <input
         id={id}
-        name={id}
+        name={name ?? id}
         type='tel'
         inputMode='numeric'
         autoComplete='tel-national'

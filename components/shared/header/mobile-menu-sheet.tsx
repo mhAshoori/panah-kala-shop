@@ -42,6 +42,7 @@ const MobileMenuSheet = ({
       </SheetTrigger>
       <SheetContent
         className='flex flex-col items-start gap-5 overflow-y-auto p-6'
+        onOpenAutoFocus={(e) => e.preventDefault()}
         onClick={(e) => {
           // Close the sheet when any link inside is followed
           if ((e.target as HTMLElement).closest('a')) {
@@ -51,6 +52,11 @@ const MobileMenuSheet = ({
       >
         <SheetTitle className='mb-1'>{t('menu')}</SheetTitle>
 
+        {/* Actions on top: sign-in/out, cart, theme */}
+        <div className='flex w-full items-center justify-between gap-2'>
+          {actions}
+        </div>
+
         {/* Compact search: right-aligned in RTL */}
         <div dir='rtl' className='w-full min-w-0'>
           <SearchBar
@@ -59,6 +65,7 @@ const MobileMenuSheet = ({
               label: c.nameFa,
             }))}
             compact
+            onSearched={() => setOpen(false)}
           />
         </div>
 
@@ -118,11 +125,6 @@ const MobileMenuSheet = ({
               </div>
             );
           })}
-        </div>
-
-        {/* Actions inline on one row */}
-        <div className='flex w-full items-center justify-between gap-2'>
-          {actions}
         </div>
 
         <SheetDescription className='sr-only'>{t('menu')}</SheetDescription>

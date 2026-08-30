@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import { auth, signIn, signOut } from '@/auth';
 import { CredentialsSignin } from '@auth/core/errors';
 import { getLocale } from 'next-intl/server';
@@ -24,9 +25,12 @@ import { getValidUserId } from '../auth-helpers';
 import { rateLimit } from '../rate-limit';
 import { normalizeIranMobile } from '../phone';
 import { MOCK_OTP_CODE, OTP_TTL_MS } from '@/auth';
+import { validateContactChange } from '../contact';
+import type { ContactType } from '../contact';
 import type { ActionState } from '@/types';
 
-// Update the signed-in user's profile (extras are optional)
+// Update the signed-in user's profile extras (name + optional fields).
+// Email/mobile are changed exclusively through updateContact (verified).
 export async function updateProfile(
   user: z.infer<typeof updateProfileSchema>
 ) {
@@ -41,7 +45,6 @@ export async function updateProfile(
       data: {
         name: profile.name,
         nationalId: profile.nationalId || null,
-        mobile: profile.mobile,
         cardNumber: profile.cardNumber || null,
         sheba: profile.sheba || null,
         birthDate: profile.birthDate ? new Date(profile.birthDate) : null,
@@ -51,6 +54,66 @@ export async function updateProfile(
     return {
       success: true,
       message: await withActionMessage('userUpdated'),
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+/**
+ * Change the signed-in user's email or mobile — requires BOTH verification
+ * codes (previous contact + new contact) and runs atomically.
+ * Mock stage: codes are compile-time constants, never stored in the DB.
+ */
+export async function updateContact(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const userId = await getValidUserId();
+    if (!userId) throw new Error(await withActionMessage('sessionExpired'));
+
+    const type = (formData.get('type') as ContactType) ?? 'email';
+    if (type !== 'email' && type !== 'mobile') {
+      throw new Error(await withActionMessage('invalidValue'));
+    }
+
+    const result = validateContactChange({
+      type,
+      oldCode: (formData.get('oldCode') as string) ?? '',
+      newValue: (formData.get('newValue') as string) ?? '',
+      newCode: (formData.get('newCode') as string) ?? '',
+    });
+    if (!result.ok) {
+      throw new Error(await withActionMessage(result.messageKey));
+    }
+
+    // Uniqueness excluding the current user
+    const conflict = await prisma.user.findFirst({
+      where:
+        type === 'email'
+          ? { email: result.value, NOT: { id: userId } }
+          : { mobile: `+98${result.value.replace('+98', '')}`, NOT: { id: userId } },
+    });
+    if (conflict) throw new Error(await withActionMessage('accountExists'));
+
+    const data =
+      type === 'email' ? { email: result.value } : { mobile: `+98${result.value}` };
+
+    // Atomic: the contact swap must fully succeed or fully fail
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: userId }, data }),
+    ]);
+
+    revalidatePath('/user/profile');
+    revalidatePath('/', 'layout');
+
+    return {
+      success: true,
+      message:
+        type === 'email'
+          ? await withActionMessage('emailUpdated')
+          : await withActionMessage('mobileUpdated'),
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
