@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/field';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
-import { requestPhoneOtp } from '@/lib/actions/user.actions';
+import { requestPhoneOtp, checkPhoneRegistered } from '@/lib/actions/user.actions';
 import { normalizeIranMobile } from '@/lib/phone';
 import { signInDefaultValues } from '@/lib/constants';
 import PhoneField from '@/components/shared/auth/phone-field';
@@ -36,7 +36,9 @@ const SubmitButton = ({ label }: { label: string }) => {
   );
 };
 
-// Sends the OTP by calling the server action directly (no nested <form>)
+// Sends the OTP by calling the server action directly (no nested <form>).
+// First verifies the phone belongs to a registered user — unregistered
+// numbers are pointed to sign-up instead of silently failing later.
 const SendCodeButton = ({ phone }: { phone: string }) => {
   const t = useTranslations('auth');
   const tCommon = useTranslations('common');
@@ -52,6 +54,11 @@ const SendCodeButton = ({ phone }: { phone: string }) => {
     }
     setError('');
     startTransition(async () => {
+      const reg = await checkPhoneRegistered(normalized);
+      if (!reg.registered) {
+        setError(t('phoneNotRegistered'));
+        return;
+      }
       const fd = new FormData();
       fd.set('phone', normalized);
       const res = await requestPhoneOtp(null, fd);

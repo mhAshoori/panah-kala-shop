@@ -119,6 +119,8 @@
     "sendCode": "Send Code",
     "otpSentHint": "Code sent. Use 123456 for testing.",
     "otpCodeLabel": "SMS Code",
+    "invalidOtp": "The code is invalid or expired",
+    "invalidPhone": "Enter a valid mobile number (9XXXXXXXXX)",
     "mobile": "Mobile Number",
     "phoneNotRegistered": "This mobile number is not registered — please sign up first",
     "tooManyAttempts": "Too many attempts — please try again later",

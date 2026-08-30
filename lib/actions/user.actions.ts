@@ -317,6 +317,21 @@ export async function requestPhoneOtp(
   }
 }
 
+// Check whether a mobile number belongs to a registered user (used by the
+// sign-in "send code" step so unregistered numbers get pointed to sign-up)
+export async function checkPhoneRegistered(
+  phone: string
+): Promise<{ registered: boolean }> {
+  const normalized = normalizeIranMobile(phone);
+  if (!normalized) return { registered: false };
+
+  const user = await prisma.user.findFirst({
+    where: { mobile: normalized },
+    select: { id: true },
+  });
+  return { registered: !!user };
+}
+
 // Sign user out — back to the sign-in page
 export async function SignOutUser() {
   await signOut({ redirectTo: '/sign-in' });
