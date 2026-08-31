@@ -42,6 +42,9 @@ describe('message catalogs', () => {
       ['category.title'],
       ['search.title'],
       ['review.title'],
+      // favorites toggle reads these from the review namespace (was a crash)
+      ['review.favoriteAdd'],
+      ['review.favoriteRemove'],
     ])('%s resolves in both locales', (key) => {
       const resolve = (obj: Record<string, unknown>) =>
         key.split('.').reduce<unknown>(
