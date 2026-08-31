@@ -17,6 +17,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { cn } from '@/lib/utils';
+import ConfirmDialog from '@/components/shared/user/confirm-dialog';
 import {
   addUserAddress,
   deleteUserAddress,
@@ -274,20 +275,26 @@ const AddressesManager = ({ addresses }: { addresses: SavedAddress[] }) => {
                     <Pencil className='h-4 w-4' />
                     {t('edit')}
                   </Button>
-                  <Button
-                    size='sm'
-                    variant='ghost'
-                    className='text-destructive hover:text-destructive'
+                  {/* Deleting an address is irreversible — confirm first */}
+                  <ConfirmDialog
+                    title={t('delete')}
+                    description={t('deleteAddressConfirm')}
+                    confirmLabel={t('delete')}
                     disabled={isPending}
-                    onClick={() => {
-                      if (window.confirm(t('deleteAddressConfirm'))) {
-                        remove(a.id);
-                      }
-                    }}
-                  >
-                    <Trash2 className='h-4 w-4' />
-                    {t('delete')}
-                  </Button>
+                    onConfirm={() => remove(a.id)}
+                    trigger={(open) => (
+                      <Button
+                        size='sm'
+                        variant='ghost'
+                        className='text-destructive hover:text-destructive'
+                        disabled={isPending}
+                        onClick={open}
+                      >
+                        <Trash2 className='h-4 w-4' />
+                        {t('delete')}
+                      </Button>
+                    )}
+                  />
                 </div>
               </div>
               <p

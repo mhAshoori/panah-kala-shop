@@ -7,6 +7,7 @@ import { Banknote, CheckCircle2, Loader2, Trash2, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import DeleteDialog from '@/components/shared/delete-dialog';
 import {
   deleteOrder,
   updateOrderToDelivered,
@@ -76,22 +77,22 @@ const OrderActions = ({
           <span className='hidden xl:inline'>{t('markDelivered')}</span>
         </Button>
       )}
-      <Button
-        size='sm'
-        variant='destructive'
-        disabled={isPending}
-        onClick={() => {
-          if (!window.confirm(t('deleteOrderConfirm'))) return;
-          run(() => deleteOrder(orderId), t('orderDeleted'));
-        }}
-      >
-        {isPending ? (
-          <Loader2 className='h-4 w-4 animate-spin' />
-        ) : (
-          <Trash2 className='h-4 w-4' />
-        )}
-        <span className='hidden xl:inline'>{t('delete')}</span>
-      </Button>
+      {/* Deleting an order is irreversible — explicit confirmation dialog */}
+      <DeleteDialog
+        id={orderId}
+        action={deleteOrder}
+        confirmKey='deleteOrderConfirm'
+        triggerIcon={
+          isPending ? (
+            <Loader2 className='h-4 w-4 animate-spin' />
+          ) : (
+            <Trash2 className='h-4 w-4' />
+          )
+        }
+        label={
+          <span className='hidden xl:inline'>{t('delete')}</span>
+        }
+      />
       {isDelivered && (
         <CheckCircle2 className='h-4 w-4 text-primary' aria-label={t('orderDelivered')} />
       )}

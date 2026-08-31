@@ -21,9 +21,18 @@ import {
 const DeleteDialog = ({
   id,
   action,
+  confirmKey = 'deleteProductConfirm',
+  label,
+  triggerIcon,
 }: {
   id: string;
-  action: (id: string) => Promise<{ success: boolean; message: string }>;
+  action: (id: string) => Promise<{ success: boolean; message?: string }>;
+  /** i18n key (admin namespace) for the confirmation question */
+  confirmKey?: string;
+  /** Optional label override (defaults to t('delete')) */
+  label?: React.ReactNode;
+  /** Optional icon to render inside the trigger button */
+  triggerIcon?: React.ReactNode;
 }) => {
   const t = useTranslations('admin');
   const tCommon = useTranslations('common');
@@ -35,7 +44,7 @@ const DeleteDialog = ({
     startTransition(async () => {
       const res = await action(id);
       if (res.success) {
-        toast.success(res.message);
+        toast.success(res.message ?? t('delete'));
         setOpen(false);
         router.refresh();
       } else {
@@ -48,15 +57,14 @@ const DeleteDialog = ({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button size='sm' variant='destructive'>
-          {t('delete')}
+          {triggerIcon}
+          {label ?? t('delete')}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{t('delete')}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {t('deleteProductConfirm')}
-          </AlertDialogDescription>
+          <AlertDialogDescription>{t(confirmKey)}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>
