@@ -1,5 +1,6 @@
 import Header from '@/components/shared/header';
 import Footer from '@/components/footer';
+import ChatWidget from '@/components/shared/assistant/chat-widget';
 import { getCategoriesWithCount } from '@/lib/actions/product.actions';
 
 export default async function RootLayout({
@@ -14,6 +15,7 @@ export default async function RootLayout({
       <Header />
       <main className='flex-1 wrapper'>{children}</main>
       <Footer />
+      <ChatWidget />
     </div>
   );
 }

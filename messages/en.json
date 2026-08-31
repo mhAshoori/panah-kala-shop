@@ -42,7 +42,7 @@
     "securePayment": "Secure Payment",
     "securePaymentDesc": "Trusted ZarinPal gateway",
     "support": "Customer Support",
-    "supportDesc": "Here to help every day",
+    "supportDesc": "Questions about your order, shipping or returns? Our support team answers around the clock — fast, in Persian, and to the point.",
     "moneyBack": "Money-Back Guarantee",
     "moneyBackDesc": "Within 7 days of delivery",
     "specialOffer": "Special Offer",
@@ -61,7 +61,6 @@
     "productsCount": "{count, plural, =0 {no products} one {# product} other {# products}}",
     "brandsTitle": "Featured Brands",
     "supportTitle": "We're here for you, every day",
-    "supportDesc": "Questions about your order, shipping or returns? Our support team answers around the clock — fast, in Persian, and to the point.",
     "supportCta": "Contact Support"
   },
   "product": {
@@ -401,6 +400,21 @@
     "topLevel": "Top-level (main category)",
     "viewStore": "View Store",
     "orderDetails": "Order Details"
+  },
+  "assistant": {
+    "title": "Panah Kala Assistant",
+    "subtitle": "Here to help",
+    "greeting": "Hi! How can I help you today?",
+    "open": "Chat with assistant",
+    "close": "Close",
+    "reset": "New chat",
+    "placeholder": "Type your question…",
+    "send": "Send",
+    "stop": "Stop",
+    "adminTitle": "Admin Assistant",
+    "adminSubtitle": "Sales & store analytics",
+    "adminOpen": "Admin assistant",
+    "adminGreeting": "Hi! What store insight do you need?"
   },
   "common": {
     "email": "Email",
