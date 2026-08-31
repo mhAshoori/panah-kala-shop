@@ -26,6 +26,9 @@ const SignInPage = async (props: {
   const searchParams = await props.searchParams;
 
   const cb = searchParams.callbackUrl || '/';
+  const googleEnabled = !!(
+    process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+  );
 
   const session = await auth();
   if (session) redirect(cb);
@@ -51,7 +54,7 @@ const SignInPage = async (props: {
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-4'>
-          <CredentialsSignInForm />
+          <CredentialsSignInForm googleEnabled={googleEnabled} />
         </CardContent>
       </Card>
     </div>

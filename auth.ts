@@ -1,5 +1,6 @@
 import NextAuth, { type NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 import { CredentialsSignin } from '@auth/core/errors';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { compareSync } from 'bcrypt-ts-edge';
@@ -44,6 +45,17 @@ export const config: NextAuthConfig = {
   },
   adapter: PrismaAdapter(prisma),
   providers: [
+    // Google OAuth — enabled only when credentials are configured so local
+    // dev and CI keep working without a Google Cloud project.
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
     CredentialsProvider({
       id: 'credentials',
       credentials: {
@@ -128,7 +140,19 @@ export const config: NextAuthConfig = {
     },
     async jwt({ token, user, trigger, session }) {
       if (user) {
-        token.role = (user as { role?: string }).role;
+        // OAuth users (Google) come from the adapter without a role — look
+        // it up in the DB so the JWT always carries the authoritative role.
+        const dbRole = (user as { role?: string }).role;
+        if (dbRole) {
+          token.role = dbRole;
+        } else if (user.id) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { role: true },
+          });
+          token.role = dbUser?.role ?? 'user';
+        }
+
         if (user.name === 'NO_NAME' && user.email) {
           token.name = user.email.split('@')[0];
           await prisma.user.update({

@@ -132,7 +132,9 @@
     "phoneAlreadyRegistered": "این شماره موبایل قبلاً ثبت شده است — وارد شوید",
     "tooManyAttempts": "تلاش‌های بیش از حد — لطفاً بعداً دوباره تلاش کنید",
     "emailOrPhone": "ایمیل یا شماره موبایل",
-    "chooseSignupMethod": "روش ثبت‌نام"
+    "chooseSignupMethod": "روش ثبت‌نام",
+    "or": "یا",
+    "googleSignIn": "ورود با گوگل"
   },
   "checkout": {
     "shippingAddress": "آدرس تحویل",

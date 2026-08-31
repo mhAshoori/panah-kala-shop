@@ -132,7 +132,9 @@
     "phoneAlreadyRegistered": "This mobile number is already registered — please sign in",
     "tooManyAttempts": "Too many attempts — please try again later",
     "emailOrPhone": "Email or Mobile",
-    "chooseSignupMethod": "Sign-up method"
+    "chooseSignupMethod": "Sign-up method",
+    "or": "or",
+    "googleSignIn": "Sign in with Google"
   },
   "checkout": {
     "shippingAddress": "Shipping Address",
