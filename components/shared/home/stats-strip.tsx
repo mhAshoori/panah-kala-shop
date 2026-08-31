@@ -7,10 +7,11 @@ import { Package, ShoppingCart, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatNumberLocale } from '@/lib/persian';
 
-// Animated count-up that starts when the strip scrolls into view
+// Animated count-up. SSR renders the real value (crawlers see true numbers);
+// after mount the counter animates up from zero for the visual effect.
 const CountUp = ({ target }: { target: number }) => {
   const locale = useLocale();
-  const [value, setValue] = useState(0);
+  const [value, setValue] = useState(target);
   const started = useRef(false);
 
   useEffect(() => {

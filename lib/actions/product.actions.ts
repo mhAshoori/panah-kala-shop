@@ -303,6 +303,10 @@ export async function getFilteredProducts({
         { brand: { contains: q, mode: 'insensitive' as const } },
         { description: { contains: q, mode: 'insensitive' as const } },
         { descriptionFa: { contains: q } },
+        // Persian users search by category type ("گوشی", "لپ‌تاپ") — include
+        // the category fields so such queries match the category's products.
+        { category: { contains: q, mode: 'insensitive' as const } },
+        { categoryFa: { contains: q } },
       ],
     });
   }

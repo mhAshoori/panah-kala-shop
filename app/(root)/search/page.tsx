@@ -18,7 +18,8 @@ export async function generateMetadata(props: {
   return { title: q ? `${t('resultsFor')} ${q}` : t('title') };
 }
 
-const PRICE_RANGES = ['all', '0-1000000', '1000000-3000000', '3000000-5000000', '5000000-'];
+// Toman ranges matched to the storefront's actual price scale
+const PRICE_RANGES = ['all', '0-10000000', '10000000-30000000', '30000000-60000000', '60000000-'];
 const RATINGS = ['all', '4', '3', '2', '1'];
 
 const SearchPage = async (props: {
@@ -83,9 +84,12 @@ const SearchPage = async (props: {
   );
   const priceLabel = (range: string) => {
     if (range === 'all') return t('priceAny');
-    const [min, max] = range.split('-').map(Number);
+    const [minRaw, maxRaw] = range.split('-');
     const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
-    if (!Number.isFinite(max)) return `${t('priceOver')} ${fmt(min)} ${tCommon('currency')}`;
+    // Number('') is 0, not NaN — test the raw string for the open-ended max
+    if (maxRaw === '') return `${t('priceOver')} ${fmt(Number(minRaw))} ${tCommon('currency')}`;
+    const min = Number(minRaw);
+    const max = Number(maxRaw);
     if (min === 0) return `${t('priceUnder')} ${fmt(max)} ${tCommon('currency')}`;
     return `${fmt(min)} - ${fmt(max)}`;
   };

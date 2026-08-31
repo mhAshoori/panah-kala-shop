@@ -185,7 +185,9 @@
     "rating": "Your Rating",
     "titleLabel": "Title",
     "descriptionLabel": "Your Review",
-    "empty": "No reviews yet. Be the first to share your thoughts!"
+    "empty": "No reviews yet. Be the first to share your thoughts!",
+    "favoriteAdd": "Add to favorites",
+    "favoriteRemove": "Remove from favorites"
   },
   "order": {
     "title": "Order",
