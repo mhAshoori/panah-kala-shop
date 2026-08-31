@@ -184,6 +184,10 @@ const AdminHomepagePage = async () => {
           { path: 'title', label: 'fMetaTitle', type: 'text', localized: true },
           { path: 'description', label: 'fMetaDescription', type: 'textarea', localized: true },
           { path: 'keywords', label: 'fKeywords', type: 'textarea', localized: true },
+          { path: 'ogImage', label: 'fOgImage', type: 'image' },
+          { path: 'googleVerification', label: 'fGoogleVerification', type: 'text' },
+          { path: 'robotsExtraDisallow', label: 'fRobotsExtra', type: 'textarea' },
+          { path: 'noindex', label: 'fNoindex', type: 'boolean' },
         ]}
       />
     </div>

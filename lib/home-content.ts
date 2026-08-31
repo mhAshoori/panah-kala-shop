@@ -94,7 +94,17 @@ export type SiteMeta = {
   title: LocalizedText;
   description: LocalizedText;
   keywords: LocalizedText;
+  /** OpenGraph/Twitter share image (huge for Telegram/WhatsApp in Iran) */
+  ogImage: string;
+  /** google-site-verification content value from Search Console */
+  googleVerification: string;
+  /** Extra robots.txt Disallow paths, newline-separated */
+  robotsExtraDisallow: string;
+  /** Emergency maintenance switch: whole site noindex + robots disallow-all */
+  noindex: boolean;
 };
+
+export const DEFAULT_SITE_META_NOINDEX = false;
 
 export const DEFAULT_CONTACT: ContactContent = {
   phone: '+98 21 0000 0000',
@@ -123,6 +133,10 @@ export const DEFAULT_SITE_META: SiteMeta = {
     fa: 'فروشگاه اینترنتی، خرید آنلاین، موبایل، لپ تاپ، لوازم جانبی، پناه کالا',
     en: 'online shop, iran, mobile, laptop, accessories, panah kala',
   },
+  ogImage: '/images/banner-2.webp',
+  googleVerification: '',
+  robotsExtraDisallow: '',
+  noindex: DEFAULT_SITE_META_NOINDEX,
 };
 
 /** Defaults mirror the current i18n strings so the homepage works with an

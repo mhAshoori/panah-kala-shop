@@ -25,7 +25,7 @@ export type BlockField = {
   path: string;
   /** i18n label key under the admin namespace */
   label: string;
-  type: 'text' | 'textarea' | 'number' | 'image';
+  type: 'text' | 'textarea' | 'number' | 'image' | 'boolean';
   /** Renders two inputs (fa + en) writing to "<path>.fa" / "<path>.en" */
   localized?: boolean;
   /** For select-style fields rendered by the parent (product pickers etc.) */
@@ -125,6 +125,17 @@ const HomeBlockEditor = ({
           onChange={(e) => onChange(Number(e.target.value))}
           className={shared}
         />
+      );
+    }
+    if (field.type === 'boolean') {
+      return (
+        <Label className='flex h-9 items-center gap-2 text-sm font-normal'>
+          <Checkbox
+            checked={value === true}
+            onCheckedChange={(checked) => onChange(checked === true)}
+          />
+          {t(field.label)}
+        </Label>
       );
     }
     if (field.options) {

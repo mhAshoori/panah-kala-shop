@@ -38,6 +38,15 @@ export async function generateMetadata(): Promise<Metadata> {
       ? meta.keywords.fa || meta.keywords.en
       : meta.keywords.en || meta.keywords.fa) || '';
 
+  // Admin-set OG share image (Telegram/WhatsApp preview) with a safe default
+  const ogImage = meta.ogImage?.trim() || '/images/banner-2.webp';
+  const ogImageMeta = ogImage.startsWith('http')
+    ? ogImage
+    : `${siteUrl}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
+
+  // Maintenance switch: flips the whole site to noindex (admin-controlled)
+  const noindex = meta.noindex === true;
+
   return {
     metadataBase: new URL(siteUrl),
     title: {
@@ -59,22 +68,27 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       locale: locale === 'fa' ? 'fa_IR' : 'en_US',
       url: siteUrl,
-      images: [{ url: '/images/banner-2.webp', width: 1920, height: 680, alt: title }],
+      images: [{ url: ogImageMeta, alt: title }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: ['/images/banner-2.webp'],
+      images: [ogImageMeta],
     },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
-    },
+    robots: noindex
+      ? { index: false, follow: false }
+      : {
+          index: true,
+          follow: true,
+          googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+        },
     other: {
       'geo.region': 'IR',
       'geo.placename': 'Iran',
+      ...(meta.googleVerification?.trim()
+        ? { 'google-site-verification': meta.googleVerification.trim() }
+        : {}),
     },
   };
 }
