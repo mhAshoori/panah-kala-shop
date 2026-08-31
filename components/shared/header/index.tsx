@@ -41,6 +41,25 @@ const Header = async () => {
     count: c.count,
   }));
 
+  // Sorted top-to-bottom so main → sub → sub-sub render in order in the sheet
+  const dockCategories: Omit<CategoryNode, 'children'>[] = [];
+  const walkDock = (nodes: CategoryNode[]) => {
+    for (const c of nodes) {
+      dockCategories.push({
+        id: c.id,
+        slug: c.slug,
+        name: c.name,
+        nameFa: c.nameFa,
+        icon: c.icon,
+        sortOrder: c.sortOrder,
+        parentId: c.parentId,
+        count: c.count,
+      });
+      walkDock(c.children);
+    }
+  };
+  walkDock(tree);
+
   return (
     <header className='sticky top-0 z-40 w-full border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/75'>
       <div className='wrapper flex-between gap-4'>
@@ -70,7 +89,7 @@ const Header = async () => {
             }))}
           />
         </div>
-        <Menu categories={mainsOnly} />
+        <Menu categories={dockCategories} />
       </div>
     </header>
   );

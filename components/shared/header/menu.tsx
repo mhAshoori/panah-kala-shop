@@ -17,9 +17,9 @@ const Menu = ({ categories }: { categories: DockCategory[] }) => {
           categories={categories}
           actions={
             <>
-              <ModeToggle />
-              <CartButton />
               <UserButton />
+              <CartButton />
+              <ModeToggle />
             </>
           }
         />
