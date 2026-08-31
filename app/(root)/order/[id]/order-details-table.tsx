@@ -42,7 +42,21 @@ const OrderDetailsTable = ({
     if (paid === 'failed') toast.error(t('paymentFailed'));
   }, [searchParams, t]);
 
-  const { shippingAddress, orderItems, itemsPrice, taxPrice, shippingPrice, totalPrice, paymentMethod, isPaid, paidAt, isDelivered, deliveredAt, paymentResult, id } = order;
+  const { shippingAddress, orderItems, itemsPrice, taxPrice, shippingPrice, totalPrice, paymentMethod, isPaid, paidAt, isDelivered, deliveredAt, paymentResult, id, couponCode, couponDiscount } = order;
+
+  // Coupon percent is derivable when both the discount and the discounted
+  // subtotal are present (itemsPrice is stored after the coupon).
+  const couponPercent =
+    couponDiscount &&
+    Number(couponDiscount) > 0 &&
+    itemsPrice &&
+    Number(itemsPrice) > 0
+      ? Math.round(
+          (Number(couponDiscount) /
+            (Number(itemsPrice) + Number(couponDiscount))) *
+            100
+        )
+      : null;
 
   return (
     <>
@@ -150,6 +164,23 @@ const OrderDetailsTable = ({
                 <div>{t('itemsPrice')}</div>
                 <div>{formatNumberLocale(itemsPrice, locale)}</div>
               </div>
+              {couponCode && couponDiscount && Number(couponDiscount) > 0 && (
+                <div className='flex justify-between text-sm'>
+                  <div className='flex items-center gap-1.5'>
+                    <span className='rounded bg-primary/10 px-1.5 py-0.5 font-mono text-xs font-bold text-primary'>
+                      {couponCode}
+                    </span>
+                    {couponPercent !== null && (
+                      <span className='text-xs text-muted-foreground'>
+                        ٪{formatNumberLocale(couponPercent, locale)}
+                      </span>
+                    )}
+                  </div>
+                  <div className='text-green-600 dark:text-green-400'>
+                    −{formatNumberLocale(couponDiscount, locale)}
+                  </div>
+                </div>
+              )}
               <div className='flex justify-between'>
                 <div>{t('taxPrice')}</div>
                 <div>{formatNumberLocale(taxPrice, locale)}</div>

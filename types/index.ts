@@ -48,6 +48,9 @@ export type Order = z.infer<typeof insertOrderSchema> & {
   isDelivered: boolean;
   deliveredAt: Date | null;
   paymentAuthority?: string | null;
+  /** Applied coupon (normalized code) and its computed Toman discount */
+  couponCode?: string | null;
+  couponDiscount?: string | null;
   paymentResult?: {
     authority?: string;
     refId?: string | number;
