@@ -304,6 +304,20 @@ const ProductForm = ({
             />
           </Field>
           <Field className='w-full'>
+            <FieldLabel htmlFor='compareAtPrice'>
+              {t('compareAtPrice')} ({tCommon('currency')})
+            </FieldLabel>
+            <Input
+              id='compareAtPrice'
+              name='compareAtPrice'
+              type='number'
+              step='0.01'
+              min='0'
+              defaultValue={product?.compareAtPrice ?? ''}
+              placeholder={t('compareAtPriceHint')}
+            />
+          </Field>
+          <Field className='w-full'>
             <FieldLabel htmlFor='stock'>{t('stock')}</FieldLabel>
             <Input
               id='stock'

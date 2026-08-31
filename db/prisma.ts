@@ -31,6 +31,13 @@ function createPrismaClient() {
             return product.price.toString();
           },
         },
+        compareAtPrice: {
+          compute(product) {
+            return product.compareAtPrice === null
+              ? null
+              : product.compareAtPrice.toString();
+          },
+        },
         rating: {
           compute(product) {
             return product.rating.toString();

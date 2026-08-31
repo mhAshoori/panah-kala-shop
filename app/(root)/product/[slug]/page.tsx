@@ -14,6 +14,7 @@ import { getMyCart } from '@/lib/actions/cart.actions';
 import { isProductFavorited } from '@/lib/actions/favorite.actions';
 import { Badge } from '@/components/ui/badge';
 import { formatNumberLocale } from '@/lib/persian';
+import { getDiscount } from '@/lib/discount';
 import {
   breadcrumbJsonLd,
   buildAlternates,
@@ -56,10 +57,13 @@ const ProductDetailsPage = async (props: {
   const { slug } = await props.params;
   const locale = await getLocale();
   const t = await getTranslations('product');
+  const tCommon = await getTranslations('common');
   const isFa = locale === 'fa';
 
   const product = await getProductBySlug(slug);
   if (!product) notFound();
+
+  const discount = getDiscount(product.price, product.compareAtPrice);
 
   // Load the visitor's cart so AddToCart can show +/- controls
   const cart = await getMyCart();
@@ -126,10 +130,29 @@ const ProductDetailsPage = async (props: {
               </span>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className='flex items-center gap-3'>
+                {discount && (
+                  <span className='rounded-full bg-destructive px-2 py-1 text-xs font-bold text-destructive-foreground'>
+                    ٪{formatNumberLocale(discount.percent, locale)}{' '}
+                    {t('discountOff')}
+                  </span>
+                )}
+                {discount && (
+                  <span className='text-sm text-muted-foreground line-through'>
+                    {formatNumberLocale(Number(product.compareAtPrice), locale)}
+                  </span>
+                )}
+              </div>
               <ProductPrice
                 value={Number(product.price)}
                 className="w-fit rounded-full bg-primary/10 text-primary px-5 py-2"
               />
+              {discount && (
+                <span className='text-xs text-green-600 dark:text-green-400'>
+                  {formatNumberLocale(discount.saveAmount, locale)}{' '}
+                  {tCommon('currency')} {t('discountSave')}
+                </span>
+              )}
             </div>
           </div>
           <div className='mt-10'>

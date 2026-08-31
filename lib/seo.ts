@@ -64,12 +64,16 @@ export function productJsonLd(product: {
   brand: string;
   slug: string;
   price: string | number;
+  compareAtPrice?: string | number | null;
   rating: string | number;
   numReviews: number;
   stock: number;
 }, locale: string) {
   const base = getSiteUrl();
   const priceInIRR = Math.round(Number(product.price) * 10);
+  const cmp = product.compareAtPrice ? Number(product.compareAtPrice) : null;
+  // Only advertise a priceSpecification when a genuine discount exists
+  const hasDiscount = cmp !== null && Number.isFinite(cmp) && cmp > Number(product.price);
 
   return {
     '@context': 'https://schema.org',
@@ -100,6 +104,17 @@ export function productJsonLd(product: {
           : 'https://schema.org/OutOfStock',
       url: `${base}/product/${product.slug}`,
       seller: { '@type': 'Organization', name: 'پناه کالا' },
+      ...(hasDiscount
+        ? {
+            priceSpecification: {
+              '@type': 'PriceSpecification',
+              priceCurrency: 'IRR',
+              price: priceInIRR,
+              // Original (undiscounted) price so Google can show the cut
+              referencePrice: Math.round(cmp * 10),
+            },
+          }
+        : {}),
     },
     inLanguage: locale === 'fa' ? 'fa-IR' : 'en-US',
   };

@@ -19,6 +19,8 @@ export type Product = z.infer<typeof insertProductSchema> & {
   createdAt: Date;
   rating: string;
   numReviews: number;
+  /** Original price when discounted; null/absent = no discount */
+  compareAtPrice?: string | null;
 };
 
 export type SignInForm = z.infer<typeof signInFormSchema>;

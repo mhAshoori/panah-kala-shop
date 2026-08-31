@@ -430,6 +430,7 @@ function productDataFromFormData(formData: FormData) {
     descriptionFa: formData.get('descriptionFa') as string,
     stock: Number(formData.get('stock')),
     price: formData.get('price') as string,
+    compareAtPrice: ((formData.get('compareAtPrice') as string | null)?.trim() || '') as string,
     images: imagesRaw ? (JSON.parse(imagesRaw) as string[]) : [],
     isFeatured: formData.get('isFeatured') === 'on',
     banner,

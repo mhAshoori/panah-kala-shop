@@ -66,6 +66,7 @@ model Product {
   descriptionFa     String
   stock             Int
   price             Decimal     @default(0) @db.Decimal(12, 2)
+  compareAtPrice    Decimal?    @db.Decimal(12, 2)
   rating            Decimal     @default(0) @db.Decimal(3, 2)
   numReviews        Int         @default(0)
   isFeatured        Boolean     @default(false)

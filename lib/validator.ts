@@ -26,7 +26,17 @@ export const insertProductSchema = z.object({
   banner: z.string().nullable(),
   codAvailable: z.boolean(),
   price: currency,
-});
+  // Original price for showing a discount; must be empty or > price
+  compareAtPrice: z
+    .union([currency, z.literal('')])
+    .optional()
+    .transform((v) => v || null),
+})
+  .refine(
+    (data) =>
+      !data.compareAtPrice || Number(data.compareAtPrice) > Number(data.price),
+    { message: 'compareAtPrice must be greater than price', path: ['compareAtPrice'] }
+  );
 
 // Schema for updating a product (adds the id field)
 export const updateProductSchema = insertProductSchema.extend({
