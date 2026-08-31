@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import AdminChat from '@/components/shared/assistant/admin-chat';
 import { Link, usePathname } from '@/i18n/navigation';
 import {
   ExternalLink,
@@ -49,6 +50,8 @@ const AdminSidebar = () => {
         <ExternalLink className='h-4 w-4 rtl:-scale-x-100' aria-hidden='true' />
         <span className='whitespace-nowrap'>{t('viewStore')}</span>
       </Link>
+
+      <AdminChat />
 
       {MENU_ITEMS.map(({ href, label, icon: Icon, exact }) => {
         const isActive = exact ? pathname === href : pathname.startsWith(href);
