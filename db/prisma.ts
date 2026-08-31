@@ -15,23 +15,34 @@ function resolveDatabaseUrl(): string {
   return url;
 }
 
-// Extends the PrismaClient with a custom result transformer to convert the
-// price and rating Decimal fields to strings.
-export const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: resolveDatabaseUrl() }),
-}).$extends({
-  result: {
-    product: {
-      price: {
-        compute(product) {
-          return product.price.toString();
+// Singleton guard: Next.js dev (HMR) re-evaluates modules on every change,
+// which would otherwise open a fresh connection pool per reload and exhaust
+// the Postgres connection limit (Neon free tier is especially tight).
+const globalForPrisma = globalThis as unknown as { prisma?: ReturnType<typeof createPrismaClient> };
+
+function createPrismaClient() {
+  return new PrismaClient({
+    adapter: new PrismaPg({ connectionString: resolveDatabaseUrl() }),
+  }).$extends({
+    result: {
+      product: {
+        price: {
+          compute(product) {
+            return product.price.toString();
+          },
         },
-      },
-      rating: {
-        compute(product) {
-          return product.rating.toString();
+        rating: {
+          compute(product) {
+            return product.rating.toString();
+          },
         },
       },
     },
-  },
-});
+  });
+}
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
