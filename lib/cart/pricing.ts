@@ -11,10 +11,14 @@ type PricedItem = {
   qty: number;
 };
 
-// Calculate cart prices based on items (Toman, two-decimal strings for Prisma)
-export const calcPrice = (items: PricedItem[]) => {
-  const itemsPrice = round2(
+// Calculate cart prices based on items (Toman, two-decimal strings for Prisma).
+// `couponDiscount` (Toman) reduces the taxable subtotal when a coupon applies.
+export const calcPrice = (items: PricedItem[], couponDiscount = 0) => {
+  const grossItemsPrice = round2(
     items.reduce((acc, item) => acc + Number(item.price) * item.qty, 0)
+  );
+  const itemsPrice = round2(
+    Math.max(0, grossItemsPrice - Math.min(couponDiscount, grossItemsPrice))
   );
   const shippingPrice = round2(
     itemsPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FLAT_RATE

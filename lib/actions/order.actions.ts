@@ -13,6 +13,8 @@ import { sendOrderReceipt } from '../email/order-receipt';
 import { getValidUserId } from '../auth-helpers';
 import { canPayCashOnDelivery } from './product.actions';
 import { withActionMessage } from '../action-messages';
+import { checkCouponUsable, couponDiscount, type CouponInput } from '../coupon';
+import { calcPrice } from '../cart/pricing';
 
 // Create an order from the current cart (transactional, decrements stock)
 export async function createOrder() {
@@ -65,6 +67,44 @@ export async function createOrder() {
       };
     }
 
+    // Re-validate the cart's applied coupon at purchase time (it may have
+    // expired or hit its usage limit since it was applied). A failing coupon
+    // is dropped and totals recalculated without it — never blocks checkout.
+    let couponCode: string | null = null;
+    let couponDiscountAmount = 0;
+    let itemsPrice = cart.itemsPrice;
+    let taxPrice = cart.taxPrice;
+    let totalPrice = cart.totalPrice;
+    let shippingPrice = cart.shippingPrice;
+
+    if (cart.couponCode) {
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: cart.couponCode },
+      });
+      const gross = (cart.items as CartItem[]).reduce(
+        (acc, i) => acc + Number(i.price) * i.qty,
+        0
+      );
+      if (
+        coupon &&
+        checkCouponUsable(coupon as unknown as CouponInput, gross).ok
+      ) {
+        couponCode = coupon.code;
+        couponDiscountAmount = couponDiscount(
+          coupon.type,
+          coupon.value.toString(),
+          gross
+        );
+      } else {
+        // Coupon no longer valid — recalc totals without it
+        const totals = calcPrice(cart.items as CartItem[], 0);
+        itemsPrice = totals.itemsPrice;
+        taxPrice = totals.taxPrice;
+        shippingPrice = totals.shippingPrice;
+        totalPrice = totals.totalPrice;
+      }
+    }
+
     const order = insertOrderSchema.parse({
       userId: user.id,
       shippingAddress: {
@@ -76,10 +116,10 @@ export async function createOrder() {
         phone: defaultAddress.phone,
       },
       paymentMethod: user.paymentMethod,
-      itemsPrice: cart.itemsPrice,
-      shippingPrice: cart.shippingPrice,
-      taxPrice: cart.taxPrice,
-      totalPrice: cart.totalPrice,
+      itemsPrice,
+      shippingPrice,
+      taxPrice,
+      totalPrice,
     });
 
     const insertedOrderId = await prisma.$transaction(async (tx) => {
@@ -104,8 +144,22 @@ export async function createOrder() {
         }
       }
 
-      // Create order
-      const insertedOrder = await tx.order.create({ data: order });
+      // Create order (with coupon bookkeeping when one applied)
+      const insertedOrder = await tx.order.create({
+        data: {
+          ...order,
+          couponCode,
+          couponDiscount: couponDiscountAmount.toFixed(2),
+        },
+      });
+
+      // Count the coupon usage atomically with the order
+      if (couponCode) {
+        await tx.coupon.update({
+          where: { code: couponCode },
+          data: { usedCount: { increment: 1 } },
+        });
+      }
 
       // Create order items + decrement stock
       for (const item of items) {
@@ -126,7 +180,7 @@ export async function createOrder() {
         });
       }
 
-      // Clear the cart
+      // Clear the cart (coupon removed with it)
       await tx.cart.update({
         where: { id: cart.id },
         data: {
@@ -135,6 +189,8 @@ export async function createOrder() {
           shippingPrice: 0,
           taxPrice: 0,
           itemsPrice: 0,
+          couponCode: null,
+          couponDiscount: 0,
         },
       });
 

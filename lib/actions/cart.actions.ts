@@ -10,7 +10,15 @@ import { cartItemSchema, insertCartSchema } from '../validator';
 import { convertToPlainObject, formatError } from '../utils';
 import { calcPrice } from '../cart/pricing';
 import { getValidUserId } from '../auth-helpers';
+import {
+  checkCouponUsable,
+  couponDiscount,
+  normalizeCouponCode,
+  type CouponInput,
+} from '../coupon';
+import { withActionMessage } from '../action-messages';
 import type { CartItem } from '@/types';
+import type { ActionState } from '@/types';
 
 // Localized cart messages (fa default)
 const cartMessages = {
@@ -70,10 +78,17 @@ export async function getMyCart() {
     totalPrice: cart.totalPrice.toString(),
     shippingPrice: cart.shippingPrice.toString(),
     taxPrice: cart.taxPrice.toString(),
+    couponCode: cart.couponCode ?? null,
+    // Defensive: rows in environments where the coupon migration has not
+    // run yet will not carry the field at all.
+    couponDiscount: cart.couponDiscount?.toString() ?? '0',
   });
 }
 
-// Insert or update the cart with the given items
+// Insert or update the cart with the given items.
+// When updating a cart that has an applied coupon, the coupon discount is
+// recomputed against the new subtotal (min-total no longer re-checked here —
+// checkout re-validates the coupon before creating the order).
 async function saveCart(params: {
   sessionCartId: string;
   userId?: string;
@@ -81,12 +96,42 @@ async function saveCart(params: {
   items: CartItem[];
 }) {
   const { sessionCartId, userId, existingCartId, items } = params;
+
+  // Preserve + recompute an applied coupon on the updated subtotal
+  let couponCode: string | null = null;
+  let couponDiscountValue = 0;
+  if (existingCartId) {
+    const existing = await prisma.cart.findUnique({
+      where: { id: existingCartId },
+      select: { couponCode: true },
+    });
+    if (existing?.couponCode) {
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: existing.couponCode },
+      });
+      if (coupon && coupon.isActive) {
+        const gross = items.reduce(
+          (acc, i) => acc + Number(i.price) * i.qty,
+          0
+        );
+        couponCode = coupon.code;
+        couponDiscountValue = couponDiscount(
+          coupon.type,
+          coupon.value.toString(),
+          gross
+        );
+      }
+    }
+  }
+
   if (existingCartId) {
     await prisma.cart.update({
       where: { id: existingCartId },
       data: {
         items: items as unknown as Prisma.InputJsonValue[],
-        ...calcPrice(items),
+        ...calcPrice(items, couponDiscountValue),
+        couponCode,
+        couponDiscount: couponDiscountValue.toFixed(2),
       },
     });
   } else {
@@ -234,6 +279,89 @@ export async function removeItemFromCart(productId: string) {
           ? await msg('updated', displayName)
           : await msg('removed', displayName),
     };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+// ---------------------------------------------------------------------------
+// Coupons
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply a coupon code to the current cart. Validates the coupon (active,
+ * not expired, usage limit, min cart total), computes the discount, and
+ * re-saves the cart totals with the discount subtracted from the subtotal.
+ */
+export async function applyCouponToCart(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const code = normalizeCouponCode((formData.get('code') as string) ?? '');
+    if (!code) throw new Error(await withActionMessage('couponNotFound'));
+
+    const coupon = await prisma.coupon.findUnique({ where: { code } });
+    if (!coupon) throw new Error(await withActionMessage('couponNotFound'));
+
+    const cart = await getMyCart();
+    if (!cart || (cart.items as CartItem[]).length === 0) {
+      throw new Error(await withActionMessage('cartEmpty'));
+    }
+
+    const itemsPrice = Number(cart.itemsPrice);
+    const usable = checkCouponUsable(coupon as unknown as CouponInput, itemsPrice);
+    if (!usable.ok) {
+      throw new Error(await withActionMessage(usable.error));
+    }
+
+    const discount = couponDiscount(coupon.type, coupon.value.toString(), itemsPrice);
+    const totals = calcPrice(cart.items as CartItem[], discount);
+
+    await prisma.cart.update({
+      where: { id: cart.id },
+      data: {
+        couponCode: code,
+        couponDiscount: discount.toFixed(2),
+        ...totals,
+      },
+    });
+
+    revalidatePath('/cart');
+    revalidatePath('/', 'layout');
+
+    return {
+      success: true,
+      message: await withActionMessage('couponApplied', {
+        name: code,
+        amount: discount,
+      }),
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+/** Remove the applied coupon from the cart and recalculate totals. */
+export async function removeCouponFromCart(): Promise<ActionState> {
+  try {
+    const cart = await getMyCart();
+    if (!cart) throw new Error(await msg('cartNotFound'));
+
+    const totals = calcPrice(cart.items as CartItem[], 0);
+
+    await prisma.cart.update({
+      where: { id: cart.id },
+      data: {
+        couponCode: null,
+        couponDiscount: 0,
+        ...totals,
+      },
+    });
+
+    revalidatePath('/cart');
+    revalidatePath('/', 'layout');
+
+    return { success: true, message: await withActionMessage('couponRemoved') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

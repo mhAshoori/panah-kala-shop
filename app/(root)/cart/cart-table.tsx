@@ -12,6 +12,7 @@ import {
   addItemToCart,
   removeItemFromCart,
 } from '@/lib/actions/cart.actions';
+import CouponBox from './coupon-box';
 import { formatNumberLocale } from '@/lib/persian';
 import { Link, useRouter } from '@/i18n/navigation';
 import { Cart } from '@/types';
@@ -130,6 +131,23 @@ const CartTable = ({
                 <span className='text-muted-foreground'>{t('items')}</span>
                 <span>{totalQty}</span>
               </div>
+
+              {/* Coupon: apply / applied state */}
+              <CouponBox
+                couponCode={cart.couponCode}
+                couponDiscount={cart.couponDiscount}
+                locale={locale}
+              />
+              {cart.couponDiscount && Number(cart.couponDiscount) > 0 && (
+                <div className='flex justify-between text-sm text-primary'>
+                  <span>{t('couponDiscount')}</span>
+                  <span>
+                    −{formatNumberLocale(cart.couponDiscount, locale)}
+                    <span className='ms-1 text-xs'>{tc('currency')}</span>
+                  </span>
+                </div>
+              )}
+
               <div className='flex justify-between border-t pt-3 text-base font-semibold'>
                 <span>{t('totalPrice')}</span>
                 <span>

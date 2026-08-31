@@ -28,6 +28,9 @@ export type SignUpForm = z.infer<typeof signUpFormSchema>;
 export type Cart = z.infer<typeof insertCartSchema> & {
   id: string;
   createdAt: Date;
+  /** Applied coupon (normalized code) and its computed Toman discount */
+  couponCode?: string | null;
+  couponDiscount?: string | null;
 };
 export type CartItem = z.infer<typeof cartItemSchema>;
 export type ShippingAddress = z.infer<typeof shippingAddressSchema>;
