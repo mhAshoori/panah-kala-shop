@@ -71,3 +71,36 @@ Homepage blocks, SEO metadata, contact page, and AI settings are all stored as r
 
 ## Testing
 Jest 30 via `next/jest`, `testEnvironment: 'node'`, tests only under `__tests__/**/*.test.ts`. Focus is on pure logic (lib/) — coupons, discounts, sanitizers, phone normalization, SEO, rate limiting, AI wire format. After any feature change, run the full validation gate; keep test count growing for new logic.
+
+---
+
+## Project status (snapshot 2026-09-01, commit c307287 — 90 commits, tree clean)
+
+### What's done
+- **Core store** (roadmap steps 1–11 of premium-docs): scaffold → i18n/themes → catalog+seed → header/footer → auth (NextAuth v5) → cart → checkout → ZarinPal payment + COD → order history → reviews/ratings → admin dashboard (orders, products, users, categories) → search page → SEO foundation → security hardening.
+- **Custom decisions layered on top:**
+  - Single-URL DB-driven locale/font/theme (admin-switchable), Persian-first RTL throughout.
+  - Hierarchical categories (main > sub > sub-sub) with mega menu + mobile sheet; category-name search.
+  - Admin-editable homepage blocks + contact page + SEO metadata (all DB-backed via Setting/HomeBlocks).
+  - Favorites (star toggle), multi-address book, profile extras (nationalId/sheba/card/birthDate), SMS OTP sign-in/up, dual-mode (email/phone) accounts, unique-mobile constraint, guest/user cart merge.
+  - Discounts (`compareAtPrice`), coupon system (percent/fixed, min-cart, expiry, usage limit, purchase-time re-validation), coupon line in order summaries.
+  - Confirmation AlertDialogs on every destructive/critical action (orders, products, users, addresses, coupons, admin-role grant).
+  - AI assistants (storefront widget + admin sidebar chat): 9Router OpenAI-compatible gateway, DB-grounded read-only tools, admin-managed model/base-URL/enable at `/admin/settings`, sanitized Persian output, eager HTTP error statuses, rate limiting, PII scrub.
+  - Google OAuth (env-gated) beneath sign-in/up buttons; SMS OTP mock master code `123456`; contact-change mock codes `123456`/`456789`.
+  - ~184 Jest tests (pure lib logic + fa/en message parity).
+- **Verified E2E** via preview browser: full checkout (COD + ZarinPal paths), coupon flow, sign-in variants, AI chats (grounded answers), rate-limit 429, ChatWidget positioning at mobile/desktop breakpoints.
+
+### Key decisions
+- ZarinPal replaces PayPal/Stripe (user request). Toman in UI, IRR ×10 in JSON-LD.
+- Money values are Prisma Decimals exposed as **strings** via `$extends`; never do arithmetic on them client-side without conversion.
+- AI: key stays in env only; model/base-URL/enabled are DB settings the admin can change without redeploy.
+- Migrations are hand-authored SQL folders (Prisma 7 `--create-only` is unreliable here).
+- Validation gate before every commit: `tsc --noEmit` → `lint` → `test` → `build`.
+
+### Pending (for production launch)
+- Real SMS provider (Kavenegar/Ghasedak) to replace mock OTP in `requestPhoneOtp`.
+- Real ZarinPal merchant id + `ZARINPAL_SANDBOX=false`; set `NEXT_PUBLIC_SITE_URL` to the domain.
+- Email receipts: dev provider logs to console — swap to SMTP/nodemailer (Resend avoided, may be blocked from Iran).
+- Image uploads are URL-based; Cloudflare R2 + `sharp` planned (see `docs/PRODUCTION_UPGRADE_PLAN.md`).
+- 9Router at `http://localhost:20128/v1` only works same-machine — on Vercel, colocate on a VPS or expose the gateway with auth (retargetable in the admin panel without redeploy).
+- Run `npx prisma migrate deploy` on each deploy (never `db push`); deployed on Vercel + Neon free tier.
