@@ -21,6 +21,7 @@ import { signUpDefaultValues } from '@/lib/constants';
 import { signUpUser, requestPhoneOtp, checkPhoneRegistered } from '@/lib/actions/user.actions';
 import { cn } from '@/lib/utils';
 import PhoneField from '@/components/shared/auth/phone-field';
+import GoogleButton from '@/components/shared/auth/google-button';
 
 type Mode = 'email' | 'phone';
 
@@ -94,7 +95,12 @@ const SendCodeButton = ({ mobile }: { mobile: string }) => {
   );
 };
 
-const SignUpForm = () => {
+const SignUpForm = ({
+  googleEnabled = false,
+}: {
+  /** Rendered only when the server has GOOGLE_CLIENT_ID/SECRET configured */
+  googleEnabled?: boolean;
+}) => {
   const [data, action] = useActionState(signUpUser, {
     success: false,
     message: '',
@@ -237,6 +243,16 @@ const SignUpForm = () => {
 
       <div className='mt-6 space-y-4'>
         <SignUpButton />
+        {googleEnabled && (
+          <>
+            <div className='flex items-center gap-3' aria-hidden='true'>
+              <span className='h-px flex-1 bg-border' />
+              <span className='text-xs text-muted-foreground'>{t('or')}</span>
+              <span className='h-px flex-1 bg-border' />
+            </div>
+            <GoogleButton callbackUrl={callbackUrl} />
+          </>
+        )}
         <p className='text-sm text-center text-muted-foreground'>
           {t('haveAccount')}{' '}
           <Link

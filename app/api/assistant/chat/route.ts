@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { rateLimit } from '@/lib/rate-limit';
-import { AI_NOT_CONFIGURED, resolveAiConfig, type AiMessage } from '@/lib/ai/provider';
-import { MAX_TOOL_ROUNDS, assist, runTool } from '@/lib/ai/run';
+import { AI_NOT_CONFIGURED, resolveAiConfig, AiError, type AiMessage } from '@/lib/ai/provider';
+import { MAX_TOOL_ROUNDS, openModelTurn, driveTurn, runTool } from '@/lib/ai/run';
+import { friendlyAssistantError, sanitizeAssistantChunk } from '@/lib/ai/sanitize';
 import type { Persona } from '@/lib/ai/personas';
 
 // Persian/English phone numbers and emails never leave the server
@@ -36,10 +37,14 @@ export async function POST(req: NextRequest) {
 
   // Admin assistant requires the admin role
   if (persona === 'admin' && session?.user?.role !== 'admin') {
+    console.warn(
+      `[ai] forbidden admin-assistant attempt persona=admin ip=${req.headers.get('x-forwarded-for') ?? 'local'}`
+    );
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
 
   if (!resolveAiConfig()) {
+    console.error('[ai] not configured — set AI_API_KEY / AI_BASE_URL / AI_MODEL');
     return NextResponse.json(
       { error: 'not_configured', message: AI_NOT_CONFIGURED },
       { status: 503 }
@@ -59,8 +64,9 @@ export async function POST(req: NextRequest) {
     session?.user?.id ? USER_WINDOW : GUEST_WINDOW
   );
   if (!rl.allowed) {
+    console.warn(`[ai] rate limited ${identity} persona=${persona}`);
     return NextResponse.json(
-      { error: 'rate_limited', retryAfter: rl.retryAfterSeconds },
+      { error: 'rate_limited', message: friendlyAssistantError(429) },
       { status: 429 }
     );
   }
@@ -82,6 +88,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'bad_request' }, { status: 400 });
   }
 
+  // Eager first turn: the provider request happens NOW. A bad key, quota
+  // exhaustion, or provider outage returns its real status (502/429/503)
+  // to the browser's network tab instead of a useless 200.
+  let firstTurn;
+  try {
+    firstTurn = await openModelTurn(persona, history);
+  } catch (error) {
+    const status =
+      error instanceof AiError ? error.status : 502;
+    console.error(
+      `[ai] provider error status=${status} persona=${persona}:`,
+      error instanceof Error ? error.message : error
+    );
+    return NextResponse.json(
+      { error: 'provider_error', message: friendlyAssistantError(status) },
+      { status }
+    );
+  }
+
   // SSE stream of assistant events
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -90,14 +115,23 @@ export async function POST(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
 
       try {
-        for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
+        let turn = firstTurn;
+        let roundsWithTools = 0;
+        for (let round = 0; ; round++) {
           let pendingTool: { tool: string; args: Record<string, unknown> } | null =
             null;
+          let emitted = '';
+          const sanitizeState = { inBraces: false, inParens: false };
 
-          for await (const ev of assist(persona, history)) {
+          for await (const ev of driveTurn(turn)) {
             if (ev.type === 'delta') {
-              // Hide raw TOOL_CALL lines from the user's chat
-              send({ type: 'delta', text: ev.text });
+              emitted += ev.text;
+              // Buffer while the output looks like a tool request — only
+              // clean prose is forwarded to the user's transcript.
+              if (!emitted.startsWith('TOOL_CALL:')) {
+                const clean = sanitizeAssistantChunk(ev.text, sanitizeState);
+                if (clean) send({ type: 'delta', text: clean });
+              }
             } else if (ev.type === 'tool') {
               pendingTool = { tool: ev.tool, args: ev.args };
               send({ type: 'tool', tool: ev.tool });
@@ -106,13 +140,40 @@ export async function POST(req: NextRequest) {
             }
           }
 
+          // Model asked for another tool after the cap — force a final
+          // answer with the gathered history (tool results already in it)
+          // so the user is never left with an empty reply.
+          if (pendingTool && round >= MAX_TOOL_ROUNDS) {
+            const finalTurn = await openModelTurn(persona, [
+              ...history,
+              {
+                role: 'user',
+                content:
+                  'دیگر ابزار در دسترس نیست. با اطلاعاتی که تاکنون به دست آورده‌ای همین حالا پاسخ نهایی را به کاربر بده.',
+              },
+            ]);
+            const sanitizeState2 = { inBraces: false, inParens: false };
+            for await (const ev of driveTurn(finalTurn)) {
+              if (ev.type === 'delta') {
+                const clean = sanitizeAssistantChunk(ev.text, sanitizeState2);
+                if (clean) send({ type: 'delta', text: clean });
+              }
+            }
+            send({ type: 'done' });
+            break;
+          }
+
           if (!pendingTool) break;
 
           // Run the requested tool server-side and feed the result back
           let result: unknown;
           try {
             result = await runTool(persona, pendingTool.tool, pendingTool.args);
-          } catch {
+          } catch (error) {
+            console.error(
+              `[ai] tool ${pendingTool.tool} failed:`,
+              error instanceof Error ? error.message : error
+            );
             result = { error: 'tool_failed' };
           }
           send({ type: 'tool_result', tool: pendingTool.tool });
@@ -131,11 +192,30 @@ export async function POST(req: NextRequest) {
               content: `TOOL_RESULT: ${JSON.stringify(result).slice(0, 4000)}`,
             },
           ];
+
+          // Subsequent turns open inside the stream — a failure here can't
+          // change headers anymore, so it degrades to an in-stream error.
+          try {
+            turn = await openModelTurn(persona, history);
+          } catch (error) {
+            const status = error instanceof AiError ? error.status : 502;
+            console.error(
+              `[ai] provider error (round ${round + 1}) status=${status}:`,
+              error instanceof Error ? error.message : error
+            );
+            send({ type: 'error', status, message: friendlyAssistantError(status) });
+            break;
+          }
         }
-      } catch {
+      } catch (error) {
+        console.error(
+          '[ai] unexpected stream error:',
+          error instanceof Error ? error.message : error
+        );
         send({
           type: 'error',
-          message: 'خطا در دستیار هوشمند — لطفاً دوباره تلاش کنید',
+          status: 502,
+          message: friendlyAssistantError(502),
         });
       } finally {
         controller.close();
@@ -144,6 +224,7 @@ export async function POST(req: NextRequest) {
   });
 
   return new Response(stream, {
+    status: 200,
     headers: {
       'Content-Type': 'text/event-stream; charset=utf-8',
       'Cache-Control': 'no-cache, no-transform',

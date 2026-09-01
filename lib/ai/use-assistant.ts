@@ -2,9 +2,16 @@
 
 // Client driver for /api/assistant/chat — consumes the SSE event stream and
 // maintains the visible transcript. Shared by the storefront widget and the
-// admin panel assistant.
+// admin panel assistant. Output is sanitized: users see friendly prose only.
 
 import { useCallback, useRef, useState } from 'react';
+
+import {
+  sanitizeAssistantChunk,
+  sanitizeAssistantText,
+  friendlyAssistantError,
+  TOOL_CALL_RE,
+} from './sanitize';
 
 export type ChatMessage = {
   role: 'user' | 'assistant';
@@ -33,6 +40,9 @@ export function useAssistant(persona: 'storefront' | 'admin') {
       const controller = new AbortController();
       abortRef.current = controller;
 
+      // Streaming sanitizer state (brace/paren awareness across chunks)
+      const sanitizeState = { inBraces: false, inParens: false };
+
       try {
         const res = await fetch('/api/assistant/chat', {
           method: 'POST',
@@ -41,17 +51,15 @@ export function useAssistant(persona: 'storefront' | 'admin') {
           signal: controller.signal,
         });
 
-        if (!res.ok || !res.body) {
+        // Non-200: the server already returned a friendly Persian message
+        // with its true status (visible in the network tab).
+        if (!res.ok) {
           const json = (await res.json().catch(() => ({}))) as {
             message?: string;
           };
-          throw new Error(
-            json.message ??
-              (res.status === 429
-                ? 'تعداد پیام‌ها زیاد است — کمی بعد تلاش کنید'
-                : 'خطا در ارتباط با دستیار')
-          );
+          throw new Error(json.message ?? friendlyAssistantError(res.status));
         }
+        if (!res.body) throw new Error(friendlyAssistantError(502));
 
         // Parse the SSE stream
         const reader = res.body.getReader();
@@ -69,68 +77,73 @@ export function useAssistant(persona: 'storefront' | 'admin') {
           for (const part of parts) {
             const line = part.trim();
             if (!line.startsWith('data:')) continue;
+            let ev;
             try {
-              const ev = JSON.parse(line.slice(5).trim()) as {
+              ev = JSON.parse(line.slice(5).trim()) as {
                 type: string;
                 text?: string;
+                status?: number;
                 message?: string;
               };
-              if (ev.type === 'delta' && ev.text) {
-                // Suppress raw TOOL_CALL protocol lines from the transcript
-                const visible = ev.text.replace(/^\s*TOOL_CALL:[\s\S]*/, '');
-                assistantText += visible;
-                setMessages((prev) => {
-                  const next = [...prev];
-                  next[next.length - 1] = {
-                    role: 'assistant',
-                    content: assistantText,
-                  };
-                  return next;
-                });
-              } else if (ev.type === 'tool') {
-                // Light indicator while grounding
-                assistantText += '';
-              } else if (ev.type === 'error') {
-                throw new Error(ev.message ?? 'خطا در دستیار');
-              } else if (ev.type === 'done') {
-                streaming = false;
-              }
-            } catch (e) {
-              if (e instanceof SyntaxError) continue;
-              throw e;
+            } catch {
+              continue; // partial event
+            }
+            if (ev.type === 'delta' && ev.text) {
+              // Protocol lines (TOOL_CALL …) never reach the transcript
+              if (TOOL_CALL_RE.test(ev.text.trim())) continue;
+              if (/^\s*TOOL_CALL:/.test(ev.text)) continue;
+              if (assistantText.includes('TOOL_CALL:')) continue;
+              const clean = sanitizeAssistantChunk(ev.text, sanitizeState);
+              if (!clean) continue;
+              assistantText += clean;
+              setMessages((prev) => {
+                const next = [...prev];
+                next[next.length - 1] = {
+                  role: 'assistant',
+                  content: assistantText,
+                };
+                return next;
+              });
+            } else if (ev.type === 'error') {
+              throw new Error(ev.message ?? friendlyAssistantError(ev.status ?? 502));
+            } else if (ev.type === 'done') {
+              streaming = false;
             }
           }
         }
 
-        // If nothing visible survived (pure tool-call), nudge the model view
+        // Final tidy-up of the complete message
+        const final = sanitizeAssistantText(assistantText);
         setMessages((prev) => {
           const next = [...prev];
-          const last = next[next.length - 1];
-          if (last?.role === 'assistant' && !last.content.trim()) {
-            next[next.length - 1] = {
-              role: 'assistant',
-              content: 'یک لحظه…',
-            };
-          }
+          next[next.length - 1] = {
+            role: 'assistant',
+            content: final || 'متأسفانه پاسخی تولید نشد — لطفاً دوباره بپرسید',
+          };
           return next;
         });
         setStatus('idle');
       } catch (e) {
         const message =
-          e instanceof Error ? e.message : 'خطا در ارتباط با دستیار';
-        if (message !== 'AbortError') {
-          setError(message);
+          e instanceof Error && e.message !== 'AbortError'
+            ? e.message
+            : e instanceof Error
+              ? null
+              : friendlyAssistantError(502);
+        if (e instanceof Error && e.message === 'AbortError') {
+          setStatus('idle');
+        } else {
+          const msg = message ?? friendlyAssistantError(502);
+          setError(msg);
           setStatus('error');
           setMessages((prev) => {
             const next = [...prev];
             const last = next[next.length - 1];
             if (last?.role === 'assistant' && !last.content.trim()) {
-              next[next.length - 1] = { role: 'assistant', content: message };
+              next[next.length - 1] = { role: 'assistant', content: msg };
             }
             return next;
           });
-        } else {
-          setStatus('idle');
         }
       } finally {
         abortRef.current = null;
