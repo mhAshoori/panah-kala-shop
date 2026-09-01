@@ -43,8 +43,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
 
-  if (!resolveAiConfig()) {
-    console.error('[ai] not configured — set AI_API_KEY / AI_BASE_URL / AI_MODEL');
+  if (!(await resolveAiConfig())) {
+    console.error('[ai] disabled or not configured — AI_API_KEY empty, or admin switched the assistant off in the panel');
     return NextResponse.json(
       { error: 'not_configured', message: AI_NOT_CONFIGURED },
       { status: 503 }
@@ -116,22 +116,44 @@ export async function POST(req: NextRequest) {
 
       try {
         let turn = firstTurn;
-        let roundsWithTools = 0;
         for (let round = 0; ; round++) {
           let pendingTool: { tool: string; args: Record<string, unknown> } | null =
             null;
           let emitted = '';
           const sanitizeState = { inBraces: false, inParens: false };
+          // Hold back the start of the stream until we can tell whether the
+          // model is emitting a TOOL_CALL protocol line or normal prose —
+          // chunks arrive split ("TOOL_" + "CALL: …") and must never leak.
+          const PROBE = 'TOOL_CALL:';
+          let holdback: string | null = '';
 
           for await (const ev of driveTurn(turn)) {
             if (ev.type === 'delta') {
               emitted += ev.text;
-              // Buffer while the output looks like a tool request — only
-              // clean prose is forwarded to the user's transcript.
-              if (!emitted.startsWith('TOOL_CALL:')) {
-                const clean = sanitizeAssistantChunk(ev.text, sanitizeState);
-                if (clean) send({ type: 'delta', text: clean });
+              if (holdback !== null) {
+                holdback += ev.text;
+                if (holdback.length >= PROBE.length) {
+                  if (holdback.startsWith(PROBE)) {
+                    // Entire response is a tool request — send nothing
+                    holdback = null;
+                  } else {
+                    // Prose — flush the held-back prefix and stream normally
+                    const clean = sanitizeAssistantChunk(holdback, sanitizeState);
+                    if (clean) send({ type: 'delta', text: clean });
+                    holdback = null;
+                    continue;
+                  }
+                } else if (!PROBE.startsWith(holdback)) {
+                  // Cannot become TOOL_CALL — flush and stream normally
+                  const clean = sanitizeAssistantChunk(holdback, sanitizeState);
+                  if (clean) send({ type: 'delta', text: clean });
+                  holdback = null;
+                  continue;
+                }
+                continue;
               }
+              const clean = sanitizeAssistantChunk(ev.text, sanitizeState);
+              if (clean) send({ type: 'delta', text: clean });
             } else if (ev.type === 'tool') {
               pendingTool = { tool: ev.tool, args: ev.args };
               send({ type: 'tool', tool: ev.tool });
@@ -153,8 +175,32 @@ export async function POST(req: NextRequest) {
               },
             ]);
             const sanitizeState2 = { inBraces: false, inParens: false };
+            // Same TOOL_CALL hold-back as the main loop (models may still
+            // attempt a tool call in the forced-final turn)
+            let emitted2 = '';
+            let holdback2: string | null = '';
             for await (const ev of driveTurn(finalTurn)) {
               if (ev.type === 'delta') {
+                emitted2 += ev.text;
+                if (holdback2 !== null) {
+                  holdback2 += ev.text;
+                  if (holdback2.length >= 10) {
+                    if (holdback2.startsWith('TOOL_CALL:')) {
+                      holdback2 = null; // suppress entirely
+                    } else {
+                      const clean = sanitizeAssistantChunk(holdback2, sanitizeState2);
+                      if (clean) send({ type: 'delta', text: clean });
+                      holdback2 = null;
+                      continue;
+                    }
+                  } else if (!'TOOL_CALL:'.startsWith(holdback2)) {
+                    const clean = sanitizeAssistantChunk(holdback2, sanitizeState2);
+                    if (clean) send({ type: 'delta', text: clean });
+                    holdback2 = null;
+                    continue;
+                  }
+                  continue;
+                }
                 const clean = sanitizeAssistantChunk(ev.text, sanitizeState2);
                 if (clean) send({ type: 'delta', text: clean });
               }

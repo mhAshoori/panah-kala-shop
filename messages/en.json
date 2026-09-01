@@ -401,7 +401,17 @@
     "parentCategory": "Parent Category",
     "topLevel": "Top-level (main category)",
     "viewStore": "View Store",
-    "orderDetails": "Order Details"
+    "orderDetails": "Order Details",
+    "aiSettingsTitle": "AI Assistant Settings",
+    "aiEnabled": "Enable AI assistant",
+    "aiEnabledHint": "Turning this off disables both assistants (storefront & admin) without touching environment variables.",
+    "aiModelLabel": "Model ID",
+    "aiModelHint": "The model id at the gateway (e.g. a free-tier model on 9Router). Applied immediately after saving.",
+    "aiBaseUrlLabel": "Gateway Base URL",
+    "aiBaseUrlHint": "OpenAI-compatible service URL — e.g. 9Router on this server or a VPS.",
+    "aiKeyStatus": "API Key Status",
+    "aiKeySet": "API key is configured in the environment (AI_API_KEY).",
+    "aiKeyMissing": "No API key set — the assistant stays off until AI_API_KEY is provided."
   },
   "assistant": {
     "title": "Panah Kala Assistant",

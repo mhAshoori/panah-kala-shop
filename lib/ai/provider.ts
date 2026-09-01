@@ -23,33 +23,35 @@ export type AiConfig = {
 export const AI_NOT_CONFIGURED =
   'AI assistant is not configured (missing AI_* environment variables).';
 
-export function resolveAiConfig(): AiConfig | null {
+/** Whether an API credential exists anywhere (key check only, no DB). */
+export function hasAnyAiCredential(): boolean {
+  return !!process.env.AI_API_KEY;
+}
+
+/**
+ * Build the active config. Async because the model/base URL are
+ * admin-manageable via the Setting table (lib/ai/settings.ts) with env
+ * fallbacks; the API key always stays in env.
+ */
+export async function resolveAiConfig(): Promise<AiConfig | null> {
+  const { getAiModel, getAiBaseUrl, getAiEnabled } = await import(
+    './settings'
+  );
+
+  if (!(await getAiEnabled())) return null;
+
   const apiKey = process.env.AI_API_KEY ?? '';
   if (!apiKey) return null;
 
-  // Explicit provider beats inference
-  const explicit = process.env.AI_PROVIDER as AiConfig['provider'] | undefined;
+  const baseUrl = (await getAiBaseUrl()).replace(/\/$/, '');
+  const model = await getAiModel();
 
-  // Known defaults: Groq, OpenRouter, Gemini, self-hosted proxy
-  const baseUrl =
-    process.env.AI_BASE_URL ??
-    (explicit === 'gemini'
-      ? 'https://generativelanguage.googleapis.com/v1beta/openai'
-      : 'https://api.groq.com/openai/v1');
-  const model =
-    process.env.AI_MODEL ??
-    (baseUrl.includes('groq')
-      ? 'llama-3.3-70b-versatile'
-      : baseUrl.includes('openrouter')
-        ? 'google/gemini-2.0-flash-exp:free'
-        : baseUrl.includes('generativelanguage')
-          ? 'gemini-2.0-flash'
-          : 'default');
+  // Provider flavor only affects nothing today (both paths speak the
+  // OpenAI-compatible protocol through the same code); 9Router/Groq/
+  // OpenRouter/self-hosted proxies all use it.
+  const provider: AiConfig['provider'] = 'openai-compatible';
 
-  const provider: AiConfig['provider'] =
-    explicit ?? (baseUrl.includes('generativelanguage') ? 'gemini' : 'openai-compatible');
-
-  return { provider, baseUrl: baseUrl.replace(/\/$/, ''), apiKey, model };
+  return { provider, baseUrl, apiKey, model };
 }
 
 export class AiError extends Error {

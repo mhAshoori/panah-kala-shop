@@ -10,6 +10,7 @@ import {
   LogOut,
   Package,
   ShoppingCart,
+  Settings,
   Shapes,
   Ticket,
   Users,
@@ -30,6 +31,7 @@ const MENU_ITEMS: {
   { href: '/admin/categories', label: 'categories', icon: Shapes },
   { href: '/admin/coupons', label: 'couponsTitle', icon: Ticket },
   { href: '/admin/users', label: 'users', icon: Users },
+  { href: '/admin/settings', label: 'aiSettingsTitle', icon: Settings },
 ];
 
 const AdminSidebar = () => {

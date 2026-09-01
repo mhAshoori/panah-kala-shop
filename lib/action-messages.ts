@@ -75,6 +75,9 @@ const messages = {
     // Settings
     languageUpdated: 'Language updated',
     fontUpdated: 'Font updated',
+    aiSaved: 'AI assistant settings saved',
+    aiInvalidModel: 'Model id must be 1-80 chars: letters, digits, dots, colons, slashes or dashes',
+    aiInvalidUrl: 'Base URL must be a valid http(s) URL',
     themeUpdated: 'Default theme updated',
     homeSaved: 'Homepage content saved',
     invalidValue: 'Invalid value',
@@ -147,6 +150,9 @@ const messages = {
     // Settings
     languageUpdated: 'زبان سایت به‌روزرسانی شد',
     fontUpdated: 'فونت سایت به‌روزرسانی شد',
+    aiSaved: 'تنظیمات دستیار هوشمند ذخیره شد',
+    aiInvalidModel: 'نام مدل باید ۱ تا ۸۰ کاراکتر شامل حرف، رقم، نقطه، دونقطه، اسلش یا خط تیره باشد',
+    aiInvalidUrl: 'آدرس پایه باید یک آدرس http(s) معتبر باشد',
     themeUpdated: 'پوسته پیش‌فرض به‌روزرسانی شد',
     homeSaved: 'محتوای صفحه اصلی ذخیره شد',
     invalidValue: 'مقدار نامعتبر است',

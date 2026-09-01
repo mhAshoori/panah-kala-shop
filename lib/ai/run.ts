@@ -86,7 +86,7 @@ export async function openModelTurn(
   history: AiMessage[],
   grounding?: unknown
 ): Promise<ModelTurn> {
-  const config = resolveAiConfig();
+  const config = await resolveAiConfig();
   if (!config) throw new AiError('AI_NOT_CONFIGURED', 503);
 
   const messages = buildMessages(persona, history, grounding);
