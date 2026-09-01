@@ -54,18 +54,18 @@ const ChatWidget = () => {
         onClick={() => setOpen((o) => !o)}
         aria-label={t('open')}
         className={cn(
-          'fixed bottom-5 end-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105',
+          'fixed bottom-5 start-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105',
           open && 'hidden'
         )}
       >
         <Bot className='h-7 w-7' />
       </button>
 
-      {/* Panel */}
+      {/* Panel — centered bottom sheet on small screens, side panel from sm up */}
       {open && (
         <div
           dir='rtl'
-          className='fixed bottom-5 end-5 z-50 flex h-[min(560px,80vh)] w-[min(380px,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl'
+          className='fixed inset-x-4 bottom-4 z-50 flex h-[min(560px,80vh)] w-auto flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl sm:left-auto sm:right-auto sm:bottom-5 sm:start-5 sm:w-[380px]'
         >
           {/* Header */}
           <div className='flex items-center justify-between border-b p-3'>
