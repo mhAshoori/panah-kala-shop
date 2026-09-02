@@ -3,6 +3,16 @@
 
 import { hashSync } from 'bcrypt-ts-edge';
 
+// Public asset base: ArvanCloud CDN/bucket when configured, local fallback.
+const ASSET_BASE =
+  process.env.ARVAN_PUBLIC_BASE_URL?.replace(/\/$/, '') ||
+  (process.env.ARVAN_BUCKET
+    ? `https://${process.env.ARVAN_BUCKET}.s3.${
+        process.env.ARVAN_REGION ?? 'ir-thr-at1'
+      }.arvanstorage.ir`
+    : '');
+const asset = (path: string) => (ASSET_BASE ? `${ASSET_BASE}/${path}` : path);
+
 export type SampleUser = {
   name: string;
   email: string;
@@ -57,14 +67,14 @@ const products: SampleProduct[] = [
       'Titanium design with A17 Pro chip, 48MP main camera and ProMotion display.',
     descriptionFa:
       'بدنه تیتانیومی با تراشه A17 Pro، دوربین اصلی ۴۸ مگاپیکسلی و نمایشگر ProMotion.',
-    images: ['/images/sample-products/p1.webp', '/images/sample-products/p2.webp'],
+    images: [asset('products/mackbook-air-m3.webp'), asset('products/asus-rog-strix-g16.webp')],
     price: '68500000.00',
     brand: 'Apple',
     rating: '4.8',
     numReviews: 132,
     stock: 12,
     isFeatured: true,
-    banner: '/images/banner-1.webp',
+    banner: asset('content/banner-1.webp'),
   },
   {
     name: 'Samsung Galaxy S24 Ultra',
@@ -76,7 +86,7 @@ const products: SampleProduct[] = [
       'Galaxy AI, built-in S Pen, 200MP camera and a bright 6.8-inch QHD+ display.',
     descriptionFa:
       'هوش مصنوعی Galaxy AI، قلم S Pen داخلی، دوربین ۲۰۰ مگاپیکسلی و نمایشگر ۶.۸ اینچی QHD+.',
-    images: ['/images/sample-products/p2.webp'],
+    images: [asset('products/galaxy-s24-ultra.webp')],
     price: '61900000.00',
     brand: 'Samsung',
     rating: '4.7',
@@ -95,7 +105,7 @@ const products: SampleProduct[] = [
       'Ultra-thin laptop with M3 chip, 18-hour battery life and Liquid Retina display.',
     descriptionFa:
       'لپ‌تاپ فوق نازک با تراشه M3، تا ۱۸ ساعت شارژدهی و نمایشگر Liquid Retina.',
-    images: ['/images/sample-products/p3.webp'],
+    images: [asset('products/sony-wh1000xm5.webp')],
     price: '54200000.00',
     brand: 'Apple',
     rating: '4.9',
@@ -114,7 +124,7 @@ const products: SampleProduct[] = [
       'Gaming laptop with RTX 4070, Intel Core i9 and a 165Hz QHD display.',
     descriptionFa:
       'لپ‌تاپ گیمینگ با کارت گرافیک RTX 4070، پردازنده Core i9 اینتل و نمایشگر 165Hz QHD.',
-    images: ['/images/sample-products/p4.webp'],
+    images: [asset('products/asus-rog-strix-g16.webp')],
     price: '78000000.00',
     brand: 'ASUS',
     rating: '4.6',

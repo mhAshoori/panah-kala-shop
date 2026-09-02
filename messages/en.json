@@ -262,7 +262,12 @@
     "noFavorites": "You haven't starred any products yet",
     "signInToFavorite": "Sign in to save favorites",
     "favoriteAdd": "Add to favorites",
-    "favoriteRemove": "Remove from favorites"
+    "favoriteRemove": "Remove from favorites",
+    "uploadAvatar": "Change profile picture",
+    "changeAvatar": "Change photo",
+    "deleteAvatar": "Delete photo",
+    "deleteAvatarConfirmTitle": "Delete profile picture",
+    "deleteAvatarConfirmDesc": "Your profile picture will be removed. This action cannot be undone."
   },
   "admin": {
     "overview": "Overview",
@@ -411,7 +416,20 @@
     "aiBaseUrlHint": "OpenAI-compatible service URL — e.g. 9Router on this server or a VPS.",
     "aiKeyStatus": "API Key Status",
     "aiKeySet": "API key is configured in the environment (AI_API_KEY).",
-    "aiKeyMissing": "No API key set — the assistant stays off until AI_API_KEY is provided."
+    "aiKeyMissing": "No API key set — the assistant stays off until AI_API_KEY is provided.",
+    "aiAssistant": "AI Assistant",
+    "blockBestSellers": "Best Sellers",
+    "blockPromoBanners": "Promo Banners",
+    "fImage1": "Banner 1 image",
+    "fImage2": "Banner 2 image",
+    "fTitle1": "Banner 1 title",
+    "fTitle2": "Banner 2 title",
+    "fSubtitle1": "Banner 1 subtitle",
+    "fSubtitle2": "Banner 2 subtitle",
+    "fCta1": "Banner 1 button",
+    "fCta2": "Banner 2 button",
+    "fLink1": "Banner 1 link",
+    "fLink2": "Banner 2 link"
   },
   "assistant": {
     "title": "Panah Kala Assistant",
@@ -445,6 +463,12 @@
     "currency": "Toman",
     "rials": "Rials",
     "price": "Price",
-    "rating": "Rating"
+    "rating": "Rating",
+    "upload": "Upload image",
+    "uploadFailed": "Upload failed — please try again",
+    "storageNotConfigured": "Storage service is not configured",
+    "storageInvalidFile": "Invalid file",
+    "storageTooLarge": "File is larger than 5 MB",
+    "storageInvalidType": "Image format is not supported"
   }
 }

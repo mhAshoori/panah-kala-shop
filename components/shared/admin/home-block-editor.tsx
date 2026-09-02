@@ -18,6 +18,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { updateHomeBlock } from '@/lib/actions/home.actions';
+import ImageUploadButton from '@/components/shared/image-upload';
 import { cn } from '@/lib/utils';
 
 export type BlockField = {
@@ -153,11 +154,24 @@ const HomeBlockEditor = ({
         </select>
       );
     }
+    if (field.type === 'image') {
+      return (
+        <div className='flex flex-wrap gap-2'>
+          <Input
+            value={typeof value === 'string' ? value : ''}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder='/images/banner-2.webp'
+            className={cn(shared, 'min-w-0 flex-1', suffix === 'fa' && 'text-right')}
+            dir={suffix === 'fa' ? 'rtl' : suffix === 'en' ? 'ltr' : undefined}
+          />
+          <ImageUploadButton folder='content' onUploaded={(url) => onChange(url)} />
+        </div>
+      );
+    }
     return (
       <Input
         value={typeof value === 'string' ? value : ''}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={field.type === 'image' ? '/images/banner-2.webp' : undefined}
         className={cn(shared, suffix === 'fa' && 'text-right')}
         dir={suffix === 'fa' ? 'rtl' : suffix === 'en' ? 'ltr' : undefined}
       />

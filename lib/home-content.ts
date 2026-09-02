@@ -10,6 +10,14 @@ export type HomeIconBoxItem = {
   desc: LocalizedText;
 };
 
+export type HomePromoBanner = {
+  image: string;
+  title: LocalizedText;
+  subtitle: LocalizedText;
+  cta: LocalizedText;
+  link: string;
+};
+
 export type HomeBlocks = {
   hero: {
     enabled: boolean;
@@ -51,6 +59,15 @@ export type HomeBlocks = {
     title: LocalizedText;
     limit: number;
   };
+  bestSellers: {
+    enabled: boolean;
+    title: LocalizedText;
+    limit: number;
+  };
+  promoBanners: {
+    enabled: boolean;
+    banners: [HomePromoBanner, HomePromoBanner];
+  };
   brands: {
     enabled: boolean;
     title: LocalizedText;
@@ -72,6 +89,8 @@ export const HOME_BLOCK_KEYS = [
   'categoryGrid',
   'latest',
   'featured',
+  'bestSellers',
+  'promoBanners',
   'brands',
   'support',
 ] as const;
@@ -220,6 +239,36 @@ export const DEFAULT_HOME_BLOCKS: HomeBlocks = {
     enabled: true,
     title: { fa: 'محصولات ویژه', en: 'Featured Products' },
     limit: 4,
+  },
+  bestSellers: {
+    enabled: true,
+    title: { fa: 'پرفروش‌ترین‌ها', en: 'Best Sellers' },
+    limit: 4,
+  },
+  promoBanners: {
+    enabled: true,
+    banners: [
+      {
+        image: '/images/banner-1.webp',
+        title: { fa: 'گوشی‌های پرچمدار', en: 'Flagship Phones' },
+        subtitle: {
+          fa: 'با تخفیف ویژه این هفته',
+          en: 'Special discounts this week',
+        },
+        cta: { fa: 'مشاهده', en: 'Browse' },
+        link: '/category/mobile-phones',
+      },
+      {
+        image: '/images/banner-2.webp',
+        title: { fa: 'دنیای صدا', en: 'World of Audio' },
+        subtitle: {
+          fa: 'هدفون و ایربادهای برتر',
+          en: 'Top headphones and earbuds',
+        },
+        cta: { fa: 'مشاهده', en: 'Browse' },
+        link: '/search?q=هدفون',
+      },
+    ],
   },
   brands: {
     enabled: true,

@@ -262,7 +262,12 @@
     "noFavorites": "هنوز محصولی را نشان نکرده‌اید",
     "signInToFavorite": "برای ذخیره علاقه‌مندی‌ها وارد شوید",
     "favoriteAdd": "افزودن به علاقه‌مندی‌ها",
-    "favoriteRemove": "حذف از علاقه‌مندی‌ها"
+    "favoriteRemove": "حذف از علاقه‌مندی‌ها",
+    "uploadAvatar": "تغییر تصویر پروفایل",
+    "changeAvatar": "تغییر عکس",
+    "deleteAvatar": "حذف عکس",
+    "deleteAvatarConfirmTitle": "حذف تصویر پروفایل",
+    "deleteAvatarConfirmDesc": "تصویر پروفایل شما حذف می‌شود. این عمل قابل بازگشت نیست."
   },
   "admin": {
     "overview": "نمای کلی",
@@ -411,7 +416,20 @@
     "aiBaseUrlHint": "آدرس سرویس سازگار با OpenAI — مثلاً ۹روتر روی همین سرور یا یک سرور مجازی.",
     "aiKeyStatus": "وضعیت کلید API",
     "aiKeySet": "کلید API در متغیرهای محیطی تنظیم شده است (AI_API_KEY).",
-    "aiKeyMissing": "کلید API تنظیم نشده — دستیار کار نمی‌کند تا زمانی که AI_API_KEY را تنظیم کنید."
+    "aiKeyMissing": "کلید API تنظیم نشده — دستیار کار نمی‌کند تا زمانی که AI_API_KEY را تنظیم کنید.",
+    "aiAssistant": "دستیار هوشمند",
+    "blockBestSellers": "پرفروش‌ترین‌ها",
+    "blockPromoBanners": "بنرهای تبلیغاتی",
+    "fImage1": "تصویر بنر ۱",
+    "fImage2": "تصویر بنر ۲",
+    "fTitle1": "عنوان بنر ۱",
+    "fTitle2": "عنوان بنر ۲",
+    "fSubtitle1": "زیرعنوان بنر ۱",
+    "fSubtitle2": "زیرعنوان بنر ۲",
+    "fCta1": "دکمه بنر ۱",
+    "fCta2": "دکمه بنر ۲",
+    "fLink1": "لینک بنر ۱",
+    "fLink2": "لینک بنر ۲"
   },
   "assistant": {
     "title": "دستیار پناه کالا",
@@ -445,6 +463,12 @@
     "currency": "تومان",
     "rials": "ریال",
     "price": "قیمت",
-    "rating": "امتیاز"
+    "rating": "امتیاز",
+    "upload": "آپلود تصویر",
+    "uploadFailed": "آپلود انجام نشد — دوباره تلاش کنید",
+    "storageNotConfigured": "سرویس ذخیره‌سازی تنظیم نشده است",
+    "storageInvalidFile": "فایل نامعتبر است",
+    "storageTooLarge": "حجم فایل بیش از ۵ مگابایت است",
+    "storageInvalidType": "فرمت تصویر پشتیبانی نمی‌شود"
   }
 }

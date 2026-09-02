@@ -25,6 +25,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { createProduct, updateProduct } from '@/lib/actions/product.actions';
+import ImageUploadButton from '@/components/shared/image-upload';
 import { productDefaultValues } from '@/lib/constants';
 import { Product } from '@/types';
 
@@ -331,12 +332,12 @@ const ProductForm = ({
           </Field>
         </div>
 
-        {/* Images (URL based; file uploads arrive with R2 integration) */}
+        {/* Images: URL paste or direct upload to ArvanCloud storage */}
         <Field>
           <FieldLabel>{t('images')}</FieldLabel>
           <Card size='sm'>
             <CardContent className='space-y-3'>
-              <div className='flex gap-2'>
+              <div className='flex flex-wrap gap-2'>
                 <Input
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
@@ -347,11 +348,18 @@ const ProductForm = ({
                       addImage();
                     }
                   }}
+                  className='min-w-0 flex-1'
                 />
                 <Button type='button' variant='outline' onClick={addImage}>
                   <Plus className='h-4 w-4' />
                   {t('addImage')}
                 </Button>
+                <ImageUploadButton
+                  folder='products'
+                  onUploaded={(url) =>
+                    setImages((prev) => (prev.includes(url) ? prev : [...prev, url]))
+                  }
+                />
               </div>
               {images.length > 0 && (
                 <div className='flex flex-wrap gap-2'>
@@ -404,12 +412,16 @@ const ProductForm = ({
               <CardContent className='space-y-3'>
                 <Field>
                   <FieldLabel htmlFor='bannerInput'>{t('banner')}</FieldLabel>
-                  <Input
-                    id='bannerInput'
-                    value={banner}
-                    onChange={(e) => setBanner(e.target.value)}
-                    placeholder={t('imageUrl')}
-                  />
+                  <div className='flex gap-2'>
+                    <Input
+                      id='bannerInput'
+                      value={banner}
+                      onChange={(e) => setBanner(e.target.value)}
+                      placeholder={t('imageUrl')}
+                      className='min-w-0 flex-1'
+                    />
+                    <ImageUploadButton folder='content' onUploaded={setBanner} />
+                  </div>
                 </Field>
                 {banner && (
                   <Image

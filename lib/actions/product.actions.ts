@@ -32,6 +32,18 @@ export async function getFeaturedProducts() {
   return convertToPlainObject(data);
 }
 
+// Best sellers proxy until real sales tracking lands: highest-rated first,
+// most-reviewed as tiebreak (products with no reviews fall to the end).
+export async function getBestSellers(limit: number) {
+  const data = await prisma.product.findMany({
+    where: { numReviews: { gt: 0 } },
+    take: Math.min(Math.max(limit, 1), 12),
+    orderBy: [{ rating: 'desc' }, { numReviews: 'desc' }],
+  });
+
+  return convertToPlainObject(data);
+}
+
 // Get distinct brands for the homepage marquee
 export async function getBrands() {
   const products = await prisma.product.findMany({

@@ -134,6 +134,33 @@ const AdminHomepagePage = async () => {
         ]}
       />
 
+      {/* Best sellers */}
+      <HomeBlockEditor
+        blockKey='bestSellers'
+        title={t('blockBestSellers')}
+        initialEnabled={config.bestSellers.enabled}
+        initialData={config.bestSellers as unknown as Record<string, unknown>}
+        fields={[
+          { path: 'title', label: 'fTitle', type: 'text', localized: true },
+          { path: 'limit', label: 'fLimit', type: 'number' },
+        ]}
+      />
+
+      {/* Promo banners (two side-by-side image banners) */}
+      <HomeBlockEditor
+        blockKey='promoBanners'
+        title={t('blockPromoBanners')}
+        initialEnabled={config.promoBanners.enabled}
+        initialData={config.promoBanners as unknown as Record<string, unknown>}
+        fields={[0, 1].flatMap((i): BlockField[] => [
+          { path: `banners.${i}.image`, label: `fImage${i + 1}`, type: 'image' },
+          { path: `banners.${i}.title`, label: `fTitle${i + 1}`, type: 'text', localized: true },
+          { path: `banners.${i}.subtitle`, label: `fSubtitle${i + 1}`, type: 'text', localized: true },
+          { path: `banners.${i}.cta`, label: `fCta${i + 1}`, type: 'text', localized: true },
+          { path: `banners.${i}.link`, label: `fLink${i + 1}`, type: 'text' },
+        ])}
+      />
+
       {/* Brands marquee */}
       <HomeBlockEditor
         blockKey='brands'

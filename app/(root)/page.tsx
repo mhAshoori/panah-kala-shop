@@ -14,6 +14,7 @@ import DealCountdown from '@/components/shared/home/deal-countdown';
 import {
   getLatestProducts,
   getFeaturedProducts,
+  getBestSellers,
   getSiteStats,
   getProductById,
 } from '@/lib/actions/product.actions';
@@ -36,9 +37,10 @@ const HomePage = async () => {
   const t = await getTranslations('home');
   const config = await getHomeConfig();
 
-  const [latestProducts, featuredProducts, stats] = await Promise.all([
+  const [latestProducts, featuredProducts, bestSellers, stats] = await Promise.all([
     getLatestProducts(),
     getFeaturedProducts(),
+    getBestSellers(config.bestSellers.limit),
     getSiteStats(),
   ]);
 
@@ -115,6 +117,43 @@ const HomePage = async () => {
         <CategoryGrid title={pickText(config.categoryGrid.title, locale, t('shopByCategory'))} />
       )}
 
+      {/* Promo banners */}
+      {config.promoBanners.enabled && (
+        <section className='grid gap-4 md:grid-cols-2'>
+          {config.promoBanners.banners.map((banner, i) => {
+            const title = pickText(banner.title, locale, '');
+            if (!banner.image || !title) return null;
+            return (
+              <Link
+                key={i}
+                href={banner.link || '/search'}
+                className='group relative block overflow-hidden rounded-2xl border'
+              >
+                <Image
+                  src={banner.image}
+                  alt={title}
+                  width={960}
+                  height={340}
+                  className='h-[220px] w-full object-cover transition-transform duration-500 group-hover:scale-105'
+                />
+                <div className='absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent rtl:bg-gradient-to-tl' />
+                <div className='absolute inset-x-0 bottom-0 p-5'>
+                  <h3 className='text-lg font-bold'>{title}</h3>
+                  <p className='mt-1 text-xs text-muted-foreground'>
+                    {pickText(banner.subtitle, locale, '')}
+                  </p>
+                  <span className='mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary'>
+                    {pickText(banner.cta, locale, t('shopNow'))}
+                    <ArrowLeft className='h-4 w-4 rtl:hidden' />
+                    <ArrowRight className='h-4 w-4 ltr:hidden rtl:-scale-x-100' />
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
+        </section>
+      )}
+
       {/* Latest products (carousel with pagination dots) */}
       {config.latest.enabled && (
         <ProductCarousel
@@ -150,6 +189,26 @@ const HomePage = async () => {
           }
         >
           {featuredProducts.slice(0, config.featured.limit).map((p) => (
+            <ProductCard key={p.slug} product={p} />
+          ))}
+        </ProductCarousel>
+      )}
+
+      {/* Best sellers */}
+      {config.bestSellers.enabled && bestSellers.length > 0 && (
+        <ProductCarousel
+          title={pickText(
+            config.bestSellers.title,
+            locale,
+            t('featuredProducts')
+          )}
+          action={
+            <Button asChild variant='ghost' size='sm'>
+              <Link href='/search'>{t('viewAll')}</Link>
+            </Button>
+          }
+        >
+          {bestSellers.slice(0, config.bestSellers.limit).map((p) => (
             <ProductCard key={p.slug} product={p} />
           ))}
         </ProductCarousel>
