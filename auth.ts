@@ -133,8 +133,12 @@ export const config: NextAuthConfig = {
       session.user.id = token.sub as string;
       if (token.name) session.user.name = token.name as string;
       if (token.role) session.user.role = token.role as string;
+      if (token.image) session.user.image = token.image as string;
       if (trigger === 'update' && token.name) {
         session.user.name = token.name as string;
+      }
+      if (trigger === 'update' && token.image !== undefined) {
+        session.user.image = token.image as string;
       }
       return session;
     },
@@ -180,6 +184,25 @@ export const config: NextAuthConfig = {
       }
       if (session?.user?.name && trigger === 'update') {
         token.name = session.user.name;
+      }
+      if (trigger === 'update') {
+        // Pick up avatar changes (set or cleared) from the client's update()
+        const clientImage = (session as { user?: { image?: string | null } })
+          ?.user?.image;
+        if (clientImage !== undefined) token.image = clientImage;
+      }
+      if (!token.image && token.sub && trigger !== 'update') {
+        // Initial sign-in: the adapter's user object may not carry image for
+        // credentials logins — read it once from the DB.
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.sub },
+            select: { image: true },
+          });
+          if (dbUser?.image) token.image = dbUser.image;
+        } catch {
+          // DB hiccup must not break sign-in
+        }
       }
       return token;
     },

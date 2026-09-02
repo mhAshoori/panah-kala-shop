@@ -60,6 +60,53 @@ export async function updateProfile(
   }
 }
 
+// Set the signed-in user's avatar. The URL comes from /api/upload, which
+// only returns URLs in our own bucket — validate that before storing.
+export async function updateProfileImage(imageUrl: string) {
+  try {
+    const userId = await getValidUserId();
+    if (!userId) throw new Error(await withActionMessage('sessionExpired'));
+
+    const bucketBase = process.env.ARVAN_PUBLIC_BASE_URL?.replace(/\/$/, '');
+    const fallbackBase = `https://${process.env.ARVAN_BUCKET}.s3.${
+      process.env.ARVAN_REGION ?? 'ir-thr-at1'
+    }.arvanstorage.ir`;
+    const ok = [bucketBase, fallbackBase]
+      .filter(Boolean)
+      .some((base) => imageUrl.startsWith(`${base}/`));
+    if (!ok) throw new Error(await withActionMessage('invalidValue'));
+
+    await prisma.user.update({ where: { id: userId }, data: { image: imageUrl } });
+    revalidatePath('/user/profile');
+
+    return {
+      success: true,
+      message: await withActionMessage('userUpdated'),
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Remove the signed-in user's avatar (the stored object stays in the bucket
+// under a random key; no other row references it).
+export async function clearProfileImage() {
+  try {
+    const userId = await getValidUserId();
+    if (!userId) throw new Error(await withActionMessage('sessionExpired'));
+
+    await prisma.user.update({ where: { id: userId }, data: { image: null } });
+    revalidatePath('/user/profile');
+
+    return {
+      success: true,
+      message: await withActionMessage('userUpdated'),
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
 /**
  * Change the signed-in user's email or mobile — requires BOTH verification
  * codes (previous contact + new contact) and runs atomically.

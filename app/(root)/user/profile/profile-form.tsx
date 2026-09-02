@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { useFormStatus } from 'react-dom';
+import Image from 'next/image';
 
 import {
   Field,
@@ -25,6 +26,17 @@ import {
   FieldGroup,
   FieldLabel,
 } from '@/components/ui/field';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,7 +44,11 @@ import { updateProfileSchema } from '@/lib/validator';
 import {
   updateProfile,
   updateContact,
+  updateProfileImage,
+  clearProfileImage,
 } from '@/lib/actions/user.actions';
+import ImageUploadButton from '@/components/shared/image-upload';
+import { useRouter } from 'next/navigation';
 import PhoneField from '@/components/shared/auth/phone-field';
 import { cn } from '@/lib/utils';
 
@@ -40,6 +56,7 @@ type ProfileData = {
   name: string;
   email?: string | null;
   mobile?: string | null;
+  image?: string | null;
   nationalId?: string | null;
   cardNumber?: string | null;
   sheba?: string | null;
@@ -222,15 +239,20 @@ const ProfileFormInner = ({
   name,
   email,
   mobile,
+  image,
   nationalId,
   cardNumber,
   sheba,
   birthDate,
   defaultAddress,
-}: ProfileData) => {
+}: ProfileData & { image?: string | null }) => {
   const { update } = useSession();
   const t = useTranslations('account');
+  const tCommon = useTranslations('common');
   const locale = useLocale();
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const startTransition = (fn: () => void) => fn();
 
   const form = useForm<z.infer<typeof updateProfileSchema>>({
@@ -265,6 +287,107 @@ const ProfileFormInner = ({
 
   return (
     <form onSubmit={onSubmit} className='space-y-6'>
+      {/* Avatar: upload, replace or delete (delete needs confirmation) */}
+      <Card>
+        <CardContent className='flex flex-wrap items-center gap-4 p-4'>
+          {image ? (
+            <>
+              <Image
+                src={image}
+                alt={name}
+                width={64}
+                height={64}
+                className='h-16 w-16 rounded-full object-cover'
+                unoptimized
+              />
+              <div className='flex flex-wrap gap-2'>
+                <ImageUploadButton
+                  folder='avatars'
+                  label={t('changeAvatar')}
+                  onUploaded={(url) => {
+                    startTransition(async () => {
+                      const res = await updateProfileImage(url);
+                      if (res.success) {
+                        await update({ image: url });
+                        toast.success(res.message);
+                        router.refresh();
+                      } else {
+                        toast.error(res.message);
+                      }
+                    });
+                  }}
+                />
+                <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+                  <AlertDialogTrigger asChild>
+                    <Button type='button' variant='outline' size='sm'>
+                      {t('deleteAvatar')}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent dir='rtl'>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className='text-right'>
+                        {t('deleteAvatarConfirmTitle')}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className='text-right'>
+                        {t('deleteAvatarConfirmDesc')}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className='flex-row-reverse gap-2'>
+                      <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+                      <AlertDialogAction
+                        className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                        disabled={deleting}
+                        onClick={(e) => {
+                          e.preventDefault(); // keep dialog open while working
+                          setDeleting(true);
+                          startTransition(async () => {
+                            const res = await clearProfileImage();
+                            setDeleting(false);
+                            setConfirmDelete(false);
+                            if (res.success) {
+                              await update({ image: null });
+                              toast.success(res.message);
+                              router.refresh();
+                            } else {
+                              toast.error(res.message);
+                            }
+                          });
+                        }}
+                      >
+                        {deleting && <Loader className='h-4 w-4 animate-spin' />}
+                        {t('delete')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </>
+          ) : (
+            <>
+              <span className='flex h-16 w-16 items-center justify-center rounded-full bg-muted text-xl font-medium'>
+                {name.charAt(0).toUpperCase()}
+              </span>
+              <ImageUploadButton
+                folder='avatars'
+                label={t('uploadAvatar')}
+                onUploaded={(url) => {
+                  startTransition(async () => {
+                    const res = await updateProfileImage(url);
+                    if (res.success) {
+                      await update({ image: url });
+                      toast.success(res.message);
+                      router.refresh();
+                    } else {
+                      toast.error(res.message);
+                    }
+                  });
+                }}
+              />
+            </>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Contact rows — verified change flows */}
       <Card>
         <CardContent className='grid gap-4 p-4'>

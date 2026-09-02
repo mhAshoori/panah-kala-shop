@@ -35,9 +35,18 @@ const UserButton = async () => {
           <div className='flex items-center'>
             <Button
               variant='ghost'
-              className='relative w-8 h-8 rounded-full ms-2 flex items-center justify-center bg-muted text-sm font-medium'
+              className='relative w-8 h-8 rounded-full ms-2 flex items-center justify-center bg-muted text-sm font-medium overflow-hidden p-0'
             >
-              {firstInitial}
+              {session.user?.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={session.user.image}
+                  alt={session.user?.name ?? 'profile'}
+                  className='h-8 w-8 rounded-full object-cover'
+                />
+              ) : (
+                firstInitial
+              )}
             </Button>
           </div>
         </DropdownMenuTrigger>
