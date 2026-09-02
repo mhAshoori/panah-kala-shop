@@ -68,7 +68,48 @@ describe('parseAssistantContent', () => {
   });
 
   it('parses multiple links', () => {
-    const segments = parseAssistantContent('[الف](/a) و [ب](/b)');
+    const segments = parseAssistantContent('[الف](/cart) و [ب](/user/orders)');
     expect(segments.filter((s) => s.type === 'link')).toHaveLength(2);
+  });
+});
+
+// Route-validity layer: hallucinated paths must never render as links
+describe('route validity (no dead links)', () => {
+  it('accepts real static routes', () => {
+    expect(isSafeInternalHref('/cart')).toBe(true);
+    expect(isSafeInternalHref('/user/orders')).toBe(true);
+    expect(isSafeInternalHref('/admin/products')).toBe(true);
+    expect(isSafeInternalHref('/contact-us')).toBe(true);
+    expect(isSafeInternalHref('/admin/marketing')).toBe(true);
+  });
+
+  it('accepts real dynamic routes with plausible shapes', () => {
+    expect(isSafeInternalHref('/product/iphone-15-pro')).toBe(true);
+    expect(isSafeInternalHref('/category/mobile-phones')).toBe(true);
+    expect(
+      isSafeInternalHref('/admin/orders/24c2d978-f9f3-4afc-add8-e1aab5ab00a2')
+    ).toBe(true);
+  });
+
+  it('downgrades hallucinated/unknown paths to plain text', () => {
+    expect(isSafeInternalHref('/prodct/iphone')).toBe(false);
+    expect(isSafeInternalHref('/product/')).toBe(false);
+    expect(isSafeInternalHref('/does-not-exist')).toBe(false);
+    expect(isSafeInternalHref('/admin/unknown-panel')).toBe(false);
+    expect(isSafeInternalHref('/user/unknown')).toBe(false);
+  });
+
+  it('allows query strings only on /search', () => {
+    expect(isSafeInternalHref('/search?q=گوشی&sort=cheapest')).toBe(true);
+    expect(isSafeInternalHref('/cart?utm=x')).toBe(false);
+    expect(isSafeInternalHref('/product/x?evil=1')).toBe(false);
+  });
+
+  it('query-string routes degrade to text in parseAssistantContent', () => {
+    const segments = parseAssistantContent('ببین [این](/does-not-exist)');
+    expect(segments).toEqual([
+      { type: 'text', value: 'ببین ' },
+      { type: 'text', value: 'این' },
+    ]);
   });
 });

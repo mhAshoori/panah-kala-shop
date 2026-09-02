@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useActionState } from 'react';
+import { useState, useTransition } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SessionProvider, useSession } from 'next-auth/react';
@@ -14,14 +13,12 @@ import {
   MapPin,
   Pencil,
   Smartphone,
-  X,
 } from 'lucide-react';
 import { useFormStatus } from 'react-dom';
 import Image from 'next/image';
 
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -46,10 +43,22 @@ import {
   updateContact,
   updateProfileImage,
   clearProfileImage,
+  requestContactChangeCode,
 } from '@/lib/actions/user.actions';
 import ImageUploadButton from '@/components/shared/image-upload';
 import { useRouter } from 'next/navigation';
 import PhoneField from '@/components/shared/auth/phone-field';
+import OtpInput from '@/components/shared/otp-input';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type ProfileData = {
@@ -70,91 +79,171 @@ type ProfileData = {
 
 type ContactType = 'email' | 'mobile';
 
-const ChangeContactForm = ({
+// New-value input lives inside the dialog — mirrored to a hidden input for
+// the server action (the form posts via useActionState).
+const ChangeContactDialog = ({
   type,
-  onDone,
+  currentValue,
+  open,
+  onOpenChange,
 }: {
   type: ContactType;
-  onDone: () => void;
+  currentValue: string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) => {
   const tAccount = useTranslations('account');
   const tCommon = useTranslations('common');
-  const [state, formAction] = useActionState(updateContact, {
-    success: false,
-    message: '',
-  });
-  const [newValue, setNewValue] = useState('');
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.message);
-      onDone();
-    } else if (state.message) {
-      toast.error(state.message);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
+  const [newValue, setNewValue] = useState('');
+  const [oldCode, setOldCode] = useState('');
+  const [newCode, setNewCode] = useState('');
+  const [codesSent, setCodesSent] = useState(false);
+  const [valueLocked, setValueLocked] = useState(false);
+
+  const reset = () => {
+    setNewValue('');
+    setOldCode('');
+    setNewCode('');
+    setCodesSent(false);
+    setValueLocked(false);
+  };
+
+  // Direct action calls (no useActionState) so results are consumed in the
+  // transition callback — no setState-in-effect, no refs during render.
+  const handleRequestCodes = () => {
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set('type', type);
+      fd.set(
+        'newValue',
+        type === 'mobile' ? `+98${newValue}` : newValue
+      );
+      const res = await requestContactChangeCode(null, fd);
+      if (res.success) {
+        toast.success(res.message);
+        setCodesSent(true);
+        setValueLocked(true); // freeze the new-value field once codes are out
+      } else {
+        toast.error(res.message);
+      }
+    });
+  };
+
+  const handleUpdateContact = (e: React.FormEvent) => {
+    e.preventDefault();
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set('type', type);
+      fd.set('newValue', type === 'mobile' ? `+98${newValue}` : newValue);
+      fd.set('oldCode', oldCode);
+      fd.set('newCode', newCode);
+      const res = await updateContact(null, fd);
+      if (res.success) {
+        toast.success(res.message);
+        reset();
+        onOpenChange(false);
+      } else {
+        toast.error(res.message);
+      }
+    });
+  };
+
+  const sendCodesDisabled =
+    type === 'email'
+      ? !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newValue)
+      : newValue.length !== 10;
 
   return (
-    <form action={formAction} className='space-y-3 rounded-xl border p-3'>
-      <input type='hidden' name='type' value={type} />
-      <FieldGroup>
-        <Field>
-          <FieldLabel htmlFor={`${type}-old-code`}>
-            {tAccount('codePrevContact')}
-          </FieldLabel>
-          <Input
-            id={`${type}-old-code`}
-            name='oldCode'
-            inputMode='numeric'
-            dir='ltr'
-            defaultValue=''
-            placeholder='123456'
-            required
-          />
-          <FieldDescription dir='ltr'>mock: 123456</FieldDescription>
-        </Field>
-        {type === 'email' ? (
+    <Dialog open={open} onOpenChange={(next) => {
+      if (!next) reset();
+      onOpenChange(next);
+    }}>
+      <DialogContent dir='rtl' className='max-w-md'>
+        <DialogHeader>
+          <DialogTitle className='text-right'>
+            {type === 'email' ? tAccount('newEmail') : tAccount('newMobile')}
+          </DialogTitle>
+          <DialogDescription className='text-right'>
+            {tAccount('contactChangeWarning')}
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleUpdateContact} className='space-y-4'>
+          {/* Step 1: enter the NEW contact, then request both codes */}
           <Field>
-            <FieldLabel htmlFor='new-email'>{tAccount('newEmail')}</FieldLabel>
-            <Input id='new-email' name='newValue' type='email' dir='ltr' required />
+            <FieldLabel htmlFor={`dialog-new-${type}`}>
+              {type === 'email' ? tAccount('newEmail') : tAccount('newMobile')}
+            </FieldLabel>
+            {type === 'email' ? (
+              <Input
+                id={`dialog-new-${type}`}
+                type='email'
+                dir='ltr'
+                value={newValue}
+                disabled={valueLocked}
+                onChange={(e) => setNewValue(e.target.value)}
+                placeholder='name@example.com'
+              />
+            ) : (
+              <PhoneField
+                id={`dialog-new-${type}`}
+                value={newValue}
+                onChange={setNewValue}
+                disabled={valueLocked}
+              />
+            )}
           </Field>
-        ) : (
+
+          {/* Request both codes (current + new contact) */}
+          {!codesSent ? (
+            <Button
+              type='button'
+              variant='outline'
+              className='w-full'
+              disabled={sendCodesDisabled || isPending}
+              onClick={handleRequestCodes}
+            >
+              {isPending && <Loader className='h-4 w-4 animate-spin' />}
+              <Send className='h-4 w-4' />
+              {tAccount('sendCodes')}
+            </Button>
+          ) : (
+            <p className='text-center text-xs text-emerald-600'>
+              {tAccount('codesSentHint', {
+                current: currentValue ?? '—',
+                new: newValue,
+              })}
+            </p>
+          )}
+
+          {/* Step 2: both digit inputs — enabled only after codes sent */}
           <Field>
-            <FieldLabel htmlFor='new-mobile'>{tAccount('newMobile')}</FieldLabel>
-            <PhoneField
-              id='new-mobile'
-              name='newValue'
-              value={newValue}
-              onChange={setNewValue}
-            />
+            <FieldLabel>{tAccount('codePrevContact')}</FieldLabel>
+            <OtpInput value={oldCode} onChange={setOldCode} disabled={!codesSent} />
           </Field>
-        )}
-        <Field>
-          <FieldLabel htmlFor={`${type}-new-code`}>
-            {tAccount('codeNewContact')}
-          </FieldLabel>
-          <Input
-            id={`${type}-new-code`}
-            name='newCode'
-            inputMode='numeric'
-            dir='ltr'
-            defaultValue=''
-            placeholder='456789'
-            required
-          />
-          <FieldDescription dir='ltr'>mock: 456789</FieldDescription>
-        </Field>
-      </FieldGroup>
-      <div className='flex gap-2'>
-        <Button type='submit'>
-          {tCommon('save')}
-        </Button>
-        <Button type='button' variant='ghost' onClick={onDone}>
-          {tCommon('cancel')}
-        </Button>
-      </div>
-    </form>
+          <Field>
+            <FieldLabel>{tAccount('codeNewContact')}</FieldLabel>
+            <OtpInput value={newCode} onChange={setNewCode} disabled={!codesSent} />
+          </Field>
+
+          <DialogFooter className='flex-row-reverse gap-2'>
+            <Button
+              type='submit'
+              disabled={!codesSent || oldCode.length !== 6 || newCode.length !== 6}
+            >
+              {tCommon('save')}
+            </Button>
+            <DialogClose asChild>
+              <Button type='button' variant='ghost' onClick={reset}>
+                {tCommon('cancel')}
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -165,9 +254,8 @@ const ContactRow = ({
   type: ContactType;
   value?: string | null;
 }) => {
-  const tCommon = useTranslations('common');
   const tAccount = useTranslations('account');
-  const [changing, setChanging] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const display = value ?? '—';
   const Icon = type === 'email' ? Mail : Smartphone;
@@ -183,32 +271,21 @@ const ContactRow = ({
             id={`contact-${type}`}
             value={display}
             disabled
-            dir={type === 'email' ? 'ltr' : 'ltr'}
+            dir='ltr'
             className='max-w-56'
           />
         </div>
-        <Button
-          size='sm'
-          variant='ghost'
-          onClick={() => setChanging((c) => !c)}
-          aria-expanded={changing}
-        >
-          {changing ? (
-            <>
-              <X className='h-4 w-4' />
-              {tCommon('cancel')}
-            </>
-          ) : (
-            <>
-              <Pencil className='h-4 w-4' />
-              {tAccount('change')}
-            </>
-          )}
+        <Button size='sm' variant='ghost' onClick={() => setDialogOpen(true)}>
+          <Pencil className='h-4 w-4' />
+          {tAccount('change')}
         </Button>
       </div>
-      {changing && (
-        <ChangeContactForm type={type} onDone={() => setChanging(false)} />
-      )}
+      <ChangeContactDialog
+        type={type}
+        currentValue={value ?? null}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 };
@@ -388,9 +465,9 @@ const ProfileFormInner = ({
         </CardContent>
       </Card>
 
-      {/* Contact rows — verified change flows */}
+      {/* Contact rows — verified change flows; side-by-side on md+ */}
       <Card>
-        <CardContent className='grid gap-4 p-4'>
+        <CardContent className='grid gap-4 p-4 md:grid-cols-2'>
           <ContactRow type='email' value={email} />
           <ContactRow type='mobile' value={mobile} />
         </CardContent>
@@ -419,7 +496,7 @@ const ProfileFormInner = ({
               />
             </Field>
 
-            <div className='grid gap-4 sm:grid-cols-2'>
+            <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
               <Field>
                 <FieldLabel htmlFor='nationalId'>
                   {t('nationalId')}

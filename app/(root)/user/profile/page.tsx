@@ -32,7 +32,7 @@ const ProfilePage = async () => {
     : null;
 
   return (
-    <div className='max-w-md mx-auto space-y-4'>
+    <div className='mx-auto max-w-md space-y-4 md:max-w-3xl lg:max-w-5xl'>
       <h2 className='h2-bold'>{t('profile')}</h2>
       <ProfileForm
         name={user.name}
