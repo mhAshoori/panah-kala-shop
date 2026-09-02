@@ -85,7 +85,7 @@ Jest 30 via `next/jest`, `testEnvironment: 'node'`, tests only under `__tests__/
   - Favorites (star toggle), multi-address book, profile extras (nationalId/sheba/card/birthDate), SMS OTP sign-in/up, dual-mode (email/phone) accounts, unique-mobile constraint, guest/user cart merge.
   - Discounts (`compareAtPrice`), coupon system (percent/fixed, min-cart, expiry, usage limit, purchase-time re-validation), coupon line in order summaries.
   - Confirmation AlertDialogs on every destructive/critical action (orders, products, users, addresses, coupons, admin-role grant).
-  - AI assistants (storefront widget + admin sidebar chat): 9Router OpenAI-compatible gateway, DB-grounded read-only tools, admin-managed model/base-URL/enable at `/admin/settings`, sanitized Persian output, eager HTTP error statuses, rate limiting, PII scrub.
+  - AI assistants (storefront widget + admin floating chat): 9Router OpenAI-compatible gateway, DB-grounded read-only tools, admin-managed model/base-URL/enable at `/admin/settings`, sanitized Persian output, eager HTTP error statuses, rate limiting, PII scrub.
   - Google OAuth (env-gated) beneath sign-in/up buttons; SMS OTP mock master code `123456`; contact-change mock codes `123456`/`456789`.
   - ~184 Jest tests (pure lib logic + fa/en message parity).
 - **Verified E2E** via preview browser: full checkout (COD + ZarinPal paths), coupon flow, sign-in variants, AI chats (grounded answers), rate-limit 429, ChatWidget positioning at mobile/desktop breakpoints.
@@ -104,3 +104,31 @@ Jest 30 via `next/jest`, `testEnvironment: 'node'`, tests only under `__tests__/
 - Image uploads are URL-based; Cloudflare R2 + `sharp` planned (see `docs/PRODUCTION_UPGRADE_PLAN.md`).
 - 9Router at `http://localhost:20128/v1` only works same-machine — on Vercel, colocate on a VPS or expose the gateway with auth (retargetable in the admin panel without redeploy).
 - Run `npx prisma migrate deploy` on each deploy (never `db push`); deployed on Vercel + Neon free tier.
+
+---
+
+## Session updates (2026-09-02) — AI links, admin UX, ArvanCloud storage
+
+### What's done (this session)
+- **AI assistant links** (`lib/ai/links.ts`, `lib/ai/sanitize.ts`, `lib/ai/personas.ts`, `components/shared/assistant/message-content.tsx`):
+  - Model emits markdown links `[label](/path)`; sanitizer preserves `](url)` across streaming chunks (`inLinkUrl` state + `(?<!\])` lookbehinds); persona prompts whitelist internal routes only.
+  - Renderer turns internal links into `next/link` anchors; `isSafeInternalHref` downgrades external/`javascript:`/protocol-relative URLs to plain text — **no outer link can ever render**. Relative paths are deploy-correct (localhost/Vercel/VPS) with zero config.
+  - Tools return prebuilt `link:` fields (product/category/low-stock/recent-orders; full order id for `/admin/orders/[id]`).
+- **Admin mobile UX**: shadcn mobile-menu-sheet pattern (`components/shared/admin/mobile-menu-sheet.tsx`) — sticky top bar + Sheet with all menu items, view-store, AI-chat trigger, language/font/theme toggles, sign-out; desktop sidebar unchanged. `ADMIN_MENU_ITEMS` exported from `sidebar.tsx` for reuse.
+- **Admin AI assistant** (`admin-chat.tsx`): same floating launcher + panel UX as storefront; mounted in `app/admin/layout.tsx`; mobile sheet opens it via `OPEN_ADMIN_CHAT_EVENT` window event.
+- **ArvanCloud object storage (S3-compatible)**: `lib/storage.ts` + `POST /api/upload` + `lib/upload.ts`/`image-upload.tsx`. Env: `ARVAN_ACCESS_KEY/SECRET_KEY/BUCKET/REGION/PUBLIC_BASE_URL` (see `.env.example`). **PutObject requires `ACL: 'public-read'` or bucket returns 403.** Server-generated UUID keys (client filename never used), 5 MB cap, MIME allowlist (no SVG), rate-limited (20/10 min). Folder authz: `products`/`content` = admin only, `avatars` = any signed-in user.
+- **Profile avatar** on `/user/profile`: upload/replace/delete card; `updateProfileImage` (validates URL prefix against bucket/CDN base) + `clearProfileImage` (nulls `User.image`); delete behind a shadcn **AlertDialog** confirmation. Header user button shows the avatar when set (JWT carries `token.image`; client syncs via `update({ image })`).
+- **Homepage blocks** (all admin-editable at `/admin/homepage`, stored in `HomeBlock`): new `bestSellers` (top-rated carousel; proxy until real sales tracking) and `promoBanners` (2 image banners with fa/en title/subtitle/CTA/link) rendered in `app/(root)/page.tsx`.
+- **Sample data now uses bucket URLs** when ArvanCloud env is set (`db/sample-data.ts` `asset()` helper; local path fallback). Live DB rows for 4 products + banner already point at the bucket; verified rendering in the browser.
+- Validation gate re-run after each chunk: tsc ✓, lint ✓ (3 pre-existing warnings), **201 Jest tests** ✓, build ✓.
+
+### Key decisions (new)
+- Link safety is enforced **at render time** (client parser), not just by prompt — the model can hallucinate URLs but they can never become clickable anchors.
+- Upload API returns the public URL; callers store it in DB (no `Asset` table — URLs live directly in `Product.images`, `User.image`, `HomeBlock.data`).
+- `tsx` binary broken in this repo — use `node --experimental-strip-types --env-file=.env` for one-off scripts (generated Prisma client has extensionless imports; use `pg` directly in scripts touching DB).
+
+### Pending (carried + new)
+- Product images beyond 4 seeded samples still point at `/images/sample-products/*` locally — upload remaining samples when convenient (`scripts/upload-sample-assets.ts` pattern).
+- Bucket-side lifecycle/backup policy for orphaned uploads (deleted avatar/product rows leave objects in the bucket).
+- `sharp`-based server-side image resize/optimization before upload (currently raw upload; `next/image` optimizes on delivery).
+- Everything in "Pending (for production launch)" above, plus set the real `ARVAN_*` values in the Vercel/VPS env and configure an ArvanCloud CDN custom domain for `ARVAN_PUBLIC_BASE_URL`.

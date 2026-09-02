@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
 import AdminSidebar from '@/components/shared/admin/sidebar';
+import AdminMobileMenuSheet from '@/components/shared/admin/mobile-menu-sheet';
+import AdminChat from '@/components/shared/assistant/admin-chat';
 import SiteLanguageToggle from '@/components/shared/admin/site-language-toggle';
 import SiteFontToggle from '@/components/shared/admin/site-font-toggle';
 import SiteThemeToggle from '@/components/shared/admin/site-theme-toggle';
@@ -26,11 +28,12 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className='flex min-h-screen flex-col md:flex-row'>
-      {/* Sidebar scrolls independently; the page content scrolls the outer layout */}
-      <aside className='border-b bg-card p-4 md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0 md:overflow-y-auto md:border-e md:border-b-0'>
-        <p className='mb-4 hidden px-3 text-sm font-bold md:block'>
-          {t('dashboard')}
-        </p>
+      {/* Mobile top bar + menu sheet; the floating AI assistant works on all sizes */}
+      <AdminMobileMenuSheet currentFont={font} currentTheme={theme} />
+
+      {/* Desktop sidebar: menu + appearance toggles (mobile sheet has its own copies) */}
+      <aside className='hidden border-e bg-card p-4 md:sticky md:top-0 md:block md:h-screen md:w-64 md:shrink-0 md:overflow-y-auto'>
+        <p className='mb-4 px-3 text-sm font-bold'>{t('dashboard')}</p>
         <AdminSidebar />
         <div className='mt-4 space-y-2 border-t pt-4'>
           <SiteLanguageToggle />
@@ -38,9 +41,12 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
           <SiteThemeToggle current={theme} />
         </div>
       </aside>
-      <main className='min-w-0 flex-1 p-4 md:p-6'>
+      <main className='min-w-0 flex-1 p-4 pt-0 md:p-6'>
         <div className='mx-auto w-full max-w-7xl'>{children}</div>
       </main>
+
+      {/* Floating AI assistant (launcher + panel), same UX as the storefront */}
+      <AdminChat />
     </div>
   );
 };

@@ -1,13 +1,11 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import AdminChat from '@/components/shared/assistant/admin-chat';
 import { Link, usePathname } from '@/i18n/navigation';
 import {
   ExternalLink,
   Home,
   LayoutDashboard,
-  LogOut,
   Package,
   ShoppingCart,
   Settings,
@@ -15,10 +13,9 @@ import {
   Ticket,
   Users,
 } from 'lucide-react';
-import { SignOutUser } from '@/lib/actions/user.actions';
 import { cn } from '@/lib/utils';
 
-const MENU_ITEMS: {
+export const ADMIN_MENU_ITEMS: {
   href: string;
   label: string;
   icon: typeof LayoutDashboard;
@@ -36,14 +33,11 @@ const MENU_ITEMS: {
 
 const AdminSidebar = () => {
   const t = useTranslations('admin');
-  const tHeader = useTranslations('header');
   const pathname = usePathname();
 
   return (
-    <nav
-      className='flex gap-2 overflow-x-auto md:flex-col md:overflow-visible'
-      aria-label={t('dashboard')}
-    >
+    // Hidden on small screens — the mobile menu sheet takes over
+    <nav className='hidden md:flex md:flex-col md:gap-2' aria-label={t('dashboard')}>
       {/* Back to the storefront */}
       <Link
         href='/'
@@ -53,9 +47,7 @@ const AdminSidebar = () => {
         <span className='whitespace-nowrap'>{t('viewStore')}</span>
       </Link>
 
-      <AdminChat />
-
-      {MENU_ITEMS.map(({ href, label, icon: Icon, exact }) => {
+      {ADMIN_MENU_ITEMS.map(({ href, label, icon: Icon, exact }) => {
         const isActive = exact ? pathname === href : pathname.startsWith(href);
         return (
           <Link
@@ -73,17 +65,6 @@ const AdminSidebar = () => {
           </Link>
         );
       })}
-
-      {/* Sign out */}
-      <form action={SignOutUser}>
-        <button
-          type='submit'
-          className='flex w-full shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-destructive'
-        >
-          <LogOut className='h-4 w-4 rtl:-scale-x-100' aria-hidden='true' />
-          <span className='whitespace-nowrap'>{tHeader('signOut')}</span>
-        </button>
-      </form>
     </nav>
   );
 };
