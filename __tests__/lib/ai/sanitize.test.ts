@@ -24,6 +24,31 @@ describe('sanitizeAssistantChunk (streaming, stateful)', () => {
       'سلام! چطور کمکتون کنم؟'
     );
   });
+
+  it('preserves markdown link URLs split across chunk boundaries', () => {
+    const state = { inBraces: false, inParens: false };
+    const a = sanitizeAssistantChunk('این گوشی را ببینید: [گوشی سامسونگ](/product', state);
+    const b = sanitizeAssistantChunk('/galaxy-a55) برای خرید', state);
+    expect(a + b).toBe(
+      'این گوشی را ببینید: [گوشی سامسونگ](/product/galaxy-a55) برای خرید'
+    );
+  });
+
+  it('preserves a full markdown link in one chunk', () => {
+    const state = { inBraces: false, inParens: false };
+    expect(
+      sanitizeAssistantChunk('لینک: [سبد خرید](/cart) آماده است', state)
+    ).toBe('لینک: [سبد خرید](/cart) آماده است');
+  });
+
+  it('still strips non-link parentheticals after a link', () => {
+    const state = { inBraces: false, inParens: false };
+    const out = sanitizeAssistantChunk(
+      '[محصول](/product/x) موجود است (stock: 5)',
+      state
+    );
+    expect(out).toBe('[محصول](/product/x) موجود است');
+  });
 });
 
 describe('sanitizeAssistantText (final pass)', () => {
@@ -44,6 +69,15 @@ describe('sanitizeAssistantText (final pass)', () => {
     expect(sanitizeAssistantText('خطا رخ داد (HTTP 502)')).toBe('خطا رخ داد');
     expect(sanitizeAssistantText('خطا رخ داد (کد 503)')).toBe('خطا رخ داد');
     expect(sanitizeAssistantText('خطا (error: quota)')).toBe('خطا');
+  });
+
+  it('keeps markdown link URLs intact', () => {
+    expect(
+      sanitizeAssistantText('پیشنهاد: [گوشی سامسونگ](/product/galaxy-a55) خوبه')
+    ).toBe('پیشنهاد: [گوشی سامسونگ](/product/galaxy-a55) خوبه');
+    expect(
+      sanitizeAssistantText('[سفارش abc12345](/admin/orders/abc123) را ببینید (HTTP 500)')
+    ).toBe('[سفارش abc12345](/admin/orders/abc123) را ببینید');
   });
 
   it('empties a pure tool-call message', () => {

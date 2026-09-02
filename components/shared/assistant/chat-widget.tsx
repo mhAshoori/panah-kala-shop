@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useAssistant } from '@/lib/ai/use-assistant';
+import MessageContent from '@/components/shared/assistant/message-content';
 
 const SUGGESTIONS = [
   'گوشی زیر ۳۰ میلیون معرفی کن',
@@ -127,14 +128,18 @@ const ChatWidget = () => {
               <div
                 key={i}
                 className={cn(
-                  'max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 leading-relaxed',
+                  'max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 leading-relaxed text-right',
                   m.role === 'user'
-                    ? 'ms-auto bg-primary text-primary-foreground'
-                    : 'me-auto bg-muted'
+                    ? 'me-auto bg-primary text-primary-foreground'
+                    : 'ms-auto bg-muted'
                 )}
               >
-                {m.content || (
-                  <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
+                {m.role === 'assistant' && m.content ? (
+                  <MessageContent content={m.content} />
+                ) : (
+                  m.content || (
+                    <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
+                  )
                 )}
               </div>
             ))}

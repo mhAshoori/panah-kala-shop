@@ -54,8 +54,9 @@ export async function toolSearchProducts(args: {
   return {
     products: rows.map((p) => {
       const discount = getDiscount(p.price, p.compareAtPrice);
+      const name = p.nameFa || p.name;
       return {
-        name: p.nameFa || p.name,
+        name,
         brand: p.brand,
         category: p.categoryFa,
         priceToman: Number(p.price),
@@ -66,6 +67,7 @@ export async function toolSearchProducts(args: {
         rating: Number(p.rating),
         reviews: p.numReviews,
         url: `/product/${p.slug}`,
+        link: `[${name}](/product/${p.slug})`,
       };
     }),
     count: rows.length,
@@ -90,9 +92,10 @@ export async function toolGetProductDetails(args: { nameOrSlug: string }) {
   });
   if (!p) return { found: false };
   const discount = getDiscount(p.price, p.compareAtPrice);
+  const name = p.nameFa || p.name;
   return {
     found: true,
-    name: p.nameFa || p.name,
+    name,
     brand: p.brand,
     category: p.categoryFa,
     description: p.descriptionFa || p.description,
@@ -104,6 +107,7 @@ export async function toolGetProductDetails(args: { nameOrSlug: string }) {
     rating: Number(p.rating),
     reviews: p.numReviews,
     url: `/product/${p.slug}`,
+    link: `[${name}](/product/${p.slug})`,
   };
 }
 
@@ -114,7 +118,16 @@ export async function toolListCategories(): Promise<ToolResult> {
     select: { nameFa: true, name: true, slug: true },
     take: 20,
   });
-  return { categories: cats.map((c) => c.nameFa || c.name) };
+  return {
+    categories: cats.map((c) => {
+      const name = c.nameFa || c.name;
+      return {
+        name,
+        url: `/category/${c.slug}`,
+        link: `[${name}](/category/${c.slug})`,
+      };
+    }),
+  };
 }
 
 export async function toolShippingAndPaymentInfo(): Promise<ToolResult> {
@@ -169,11 +182,15 @@ export async function toolLowStock(args: { threshold?: number }) {
     select: { nameFa: true, name: true, slug: true, stock: true },
   });
   return {
-    products: rows.map((p) => ({
-      name: p.nameFa || p.name,
-      stock: p.stock,
-      url: `/admin/products`,
-    })),
+    products: rows.map((p) => {
+      const name = p.nameFa || p.name;
+      return {
+        name,
+        stock: p.stock,
+        url: `/admin/products`,
+        link: `[${name}](/admin/products)`,
+      };
+    }),
   };
 }
 
@@ -197,6 +214,8 @@ export async function toolRecentOrders(args: { limit?: number }) {
       delivered: o.isDelivered,
       method: o.paymentMethod,
       date: o.createdAt.toISOString().slice(0, 10),
+      url: `/admin/orders/${o.id}`,
+      link: `[${o.id.slice(0, 8)}](/admin/orders/${o.id})`,
     })),
   };
 }

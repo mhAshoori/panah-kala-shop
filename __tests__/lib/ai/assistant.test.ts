@@ -79,6 +79,20 @@ describe('personas', () => {
     expect(config.systemPrompt).toContain('پناه کالا');
   });
 
+  it('storefront prompt mandates internal-only markdown links', () => {
+    const prompt = getPersonaConfig('storefront').systemPrompt;
+    expect(prompt).toContain('[عنوان لینک](/مسیر)');
+    expect(prompt).toContain('/product/<slug>');
+    expect(prompt).toContain('/user/profile');
+    expect(prompt).toMatch(/هرگز لینک به سایت یا دامنه دیگری نده/);
+  });
+
+  it('admin prompt mandates internal-only admin links', () => {
+    const prompt = getPersonaConfig('admin').systemPrompt;
+    expect(prompt).toContain('/admin/orders');
+    expect(prompt).toMatch(/هرگز لینک به سایت یا دامنه دیگری نده/);
+  });
+
   it('admin config is read-only analytics', () => {
     const config = getPersonaConfig('admin');
     expect(config.toolNames).toEqual(

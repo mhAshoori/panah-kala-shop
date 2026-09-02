@@ -10,37 +10,49 @@ export const TOOL_CALL_RE = /^\s*TOOL_CALL:\s*(\{[\s\S]*\})\s*$/;
 /**
  * Remove protocol noise from a streaming-visible assistant text chunk.
  * Applied to every delta before it reaches the transcript.
+ *
+ * Markdown links `[label](/path)` survive: a `(` directly preceded by `]`
+ * opens a link URL instead of a diagnostic paren, so the URL is kept (and
+ * stripped later if it points outside the store).
  */
 export function sanitizeAssistantChunk(
   chunk: string,
   /** Set when the previous chunk ended inside an unsanitized region */
-  state: { inBraces: boolean; inParens: boolean }
+  state: {
+    inBraces: boolean;
+    inParens: boolean;
+    inLinkUrl?: boolean;
+    lastChar?: string;
+  }
 ): string {
   let out = '';
+  let last = state.lastChar;
   for (const ch of chunk) {
     if (ch === '{') {
       state.inBraces = true;
-      continue;
-    }
-    if (ch === '}') {
+    } else if (ch === '}') {
       state.inBraces = false;
-      continue;
+    } else if (state.inBraces) {
+      // brace content is dropped
+    } else if (state.inLinkUrl) {
+      if (ch === ')') state.inLinkUrl = false;
+      out += ch;
+    } else if (state.inParens) {
+      if (ch === ')') state.inParens = false;
+    } else if (ch === '(') {
+      if (last === ']') {
+        state.inLinkUrl = true;
+        out += ch;
+      } else {
+        state.inParens = true;
+        out = out.replace(/\s+$/, '');
+      }
+    } else {
+      out += ch;
     }
-    if (state.inBraces) continue;
-
-    if (ch === '(') {
-      state.inParens = true;
-      out = out.replace(/\s+$/, '');
-      continue;
-    }
-    if (ch === ')') {
-      state.inParens = false;
-      continue;
-    }
-    if (state.inParens) continue;
-
-    out += ch;
+    last = ch;
   }
+  state.lastChar = last;
   return out;
 }
 
@@ -54,8 +66,10 @@ export function sanitizeAssistantText(text: string): string {
   out = out.replace(/TOOL_CALL:\s*\{[^{}]*(\{[^{}]*\}[^{}]*)*\}/g, '');
   out = out.replace(/TOOL_RESULT:\s*\{[^{}]*(\{[^{}]*\}[^{}]*)*\}/g, '');
   out = out.replace(/\{[^{}]*\}/g, ''); // any leftover JSON object
-  out = out.replace(/\([^()]*\d{3}\)[^()]*$/g, ''); // trailing "(code 503)" etc.
-  out = out.replace(/\((?:خطا|error|کد|code|HTTP|status)[^()]*\)/gi, '');
+  // Diagnostic parentheticals — the (?<!\]) lookbehind keeps markdown link
+  // URLs intact, e.g. "[خرید](/product/x)" must survive "(code 503)" removal.
+  out = out.replace(/(?<!\])\([^()]*\d{3}\)[^()]*$/g, ''); // trailing "(code 503)" etc.
+  out = out.replace(/(?<!\])\((?:خطا|error|کد|code|HTTP|status)[^()]*\)/gi, '');
 
   // Tidy whitespace around removals
   out = out

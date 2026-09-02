@@ -1,17 +1,20 @@
 'use client';
 
-// Admin panel AI assistant: same streaming backend with the read-only
-// analytics persona. Mounted inside the admin sidebar (desktop) and opens
-// as a side panel; on mobile it opens full-width.
+// Admin panel AI assistant — same floating launcher + panel UX as the
+// storefront chat widget, with the read-only analytics persona. The mobile
+// menu sheet opens it by dispatching the 'panah:open-admin-chat' event.
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Bot, Loader2, RotateCcw, SendHorizonal, Sparkles, X } from 'lucide-react';
+import { Bot, Loader2, RotateCcw, SendHorizonal, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useAssistant } from '@/lib/ai/use-assistant';
+import MessageContent from '@/components/shared/assistant/message-content';
+
+export const OPEN_ADMIN_CHAT_EVENT = 'panah:open-admin-chat';
 
 const SUGGESTIONS = [
   'فروش ۳۰ روز گذشته چطور بوده؟',
@@ -26,6 +29,13 @@ const AdminChat = () => {
   const { messages, status, error, send, stop, reset } = useAssistant('admin');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // The mobile menu sheet opens the chat without prop plumbing
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener(OPEN_ADMIN_CHAT_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_ADMIN_CHAT_EVENT, onOpen);
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -47,20 +57,24 @@ const AdminChat = () => {
 
   return (
     <>
-      <Button
-        variant='ghost'
-        size='sm'
-        className='w-full justify-start gap-2'
-        onClick={() => setOpen(true)}
+      {/* Launcher */}
+      <button
+        type='button'
+        onClick={() => setOpen((o) => !o)}
+        aria-label={t('adminOpen')}
+        className={cn(
+          'fixed bottom-5 start-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105',
+          open && 'hidden'
+        )}
       >
-        <Sparkles className='h-4 w-4 text-primary' />
-        {t('adminOpen')}
-      </Button>
+        <Bot className='h-7 w-7' />
+      </button>
 
+      {/* Panel — centered bottom sheet on small screens, side panel from sm up */}
       {open && (
         <div
           dir='rtl'
-          className='fixed inset-y-0 end-0 z-50 flex h-full w-[min(420px,100vw)] flex-col border-s bg-card shadow-2xl'
+          className='fixed inset-x-4 bottom-4 z-50 flex h-[min(560px,80vh)] w-auto flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl sm:left-auto sm:right-auto sm:bottom-5 sm:start-5 sm:w-[380px]'
         >
           {/* Header */}
           <div className='flex items-center justify-between border-b p-3'>
@@ -124,14 +138,18 @@ const AdminChat = () => {
               <div
                 key={i}
                 className={cn(
-                  'max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 leading-relaxed',
+                  'max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 leading-relaxed text-right',
                   m.role === 'user'
-                    ? 'ms-auto bg-primary text-primary-foreground'
-                    : 'me-auto bg-muted'
+                    ? 'me-auto bg-primary text-primary-foreground'
+                    : 'ms-auto bg-muted'
                 )}
               >
-                {m.content || (
-                  <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
+                {m.role === 'assistant' && m.content ? (
+                  <MessageContent content={m.content} />
+                ) : (
+                  m.content || (
+                    <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
+                  )
                 )}
               </div>
             ))}
