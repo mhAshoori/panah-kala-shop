@@ -6,6 +6,7 @@ import {
   ExternalLink,
   Home,
   LayoutDashboard,
+  Mail,
   Package,
   ShoppingCart,
   Settings,
@@ -28,6 +29,7 @@ export const ADMIN_MENU_ITEMS: {
   { href: '/admin/categories', label: 'categories', icon: Shapes },
   { href: '/admin/coupons', label: 'couponsTitle', icon: Ticket },
   { href: '/admin/users', label: 'users', icon: Users },
+  { href: '/admin/marketing', label: 'marketing', icon: Mail },
   { href: '/admin/settings', label: 'aiSettingsTitle', icon: Settings },
 ];
 

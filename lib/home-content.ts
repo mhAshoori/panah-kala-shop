@@ -314,18 +314,29 @@ export const getHomeConfig = cache(async (): Promise<HomeBlocks> => {
   return config;
 });
 
-/** Contact-page content — admin-editable, defaults provided. */
+/** Contact-page content — admin-editable, env/default fallbacks. */
 export const getContactContent = cache(async (): Promise<ContactContent> => {
   try {
     const row = await prisma.homeBlock.findUnique({ where: { key: 'contact' } });
     if (row) {
-      return mergeBlock(DEFAULT_CONTACT, row.data) as ContactContent;
+      return mergeBlock(contactDefaults(), row.data) as ContactContent;
     }
   } catch {
     // DB unavailable — defaults
   }
-  return DEFAULT_CONTACT;
+  return contactDefaults();
 });
+
+/**
+ * Contact defaults: the customer-service email comes from CONTACT_EMAIL env
+ * when set (a real, monitored inbox in production); DB/admin rows still win.
+ */
+function contactDefaults(): ContactContent {
+  return {
+    ...DEFAULT_CONTACT,
+    email: process.env.CONTACT_EMAIL || DEFAULT_CONTACT.email,
+  };
+}
 
 /** Site-wide SEO metadata — admin-editable, defaults provided. */
 export const getSiteMeta = cache(async (): Promise<SiteMeta> => {

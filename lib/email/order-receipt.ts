@@ -1,5 +1,6 @@
 import { APP_NAME } from '../constants';
 import { formatCurrency } from '../utils';
+import { sendEmail } from './mailer';
 import type { Order } from '@/types';
 
 /**
@@ -82,21 +83,20 @@ function renderReceiptHtml({ order, locale }: Omit<OrderReceiptInput, 'to'>): st
 }
 
 /**
- * Email provider interface. Swap the implementation in production with an
- * SMTP/nodemailer provider — Resend is avoided because it may be blocked
- * from Iran (see docs/PRODUCTION_UPGRADE_PLAN.md §4.J).
+ * Email provider interface — implemented by lib/email/mailer.ts (SMTP via
+ * nodemailer, console fallback when SMTP env is unset). Resend is avoided
+ * because it may be blocked from Iran (docs/PRODUCTION_UPGRADE_PLAN.md §4.J).
  */
 export type EmailProvider = {
   send(input: OrderReceiptInput & { subject: string; html: string }): Promise<void>;
 };
 
-// Development provider: logs the rendered email to the server console
-const consoleProvider: EmailProvider = {
+const smtpProvider: EmailProvider = {
   async send({ to, subject, html }) {
-    console.info('='.repeat(60));
-    console.info(`[email:console] to=${to} subject="${subject}"`);
-    console.info(`[email:console] html length=${html.length}`);
-    console.info('='.repeat(60));
+    const result = await sendEmail({ to, subject, html });
+    if (!result.ok) {
+      console.error('[email] receipt not delivered:', result.reason);
+    }
   },
 };
 
@@ -109,7 +109,7 @@ export async function sendOrderReceipt(order: Order) {
     const locale: 'fa' | 'en' = 'fa';
     const d = dictionary[locale];
 
-    await consoleProvider.send({
+    await smtpProvider.send({
       to: order.user.email,
       order,
       locale,
