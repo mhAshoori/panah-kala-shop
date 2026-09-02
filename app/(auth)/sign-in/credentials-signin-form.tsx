@@ -22,6 +22,7 @@ import { requestPhoneOtp, checkPhoneRegistered } from '@/lib/actions/user.action
 import { normalizeIranMobile } from '@/lib/phone';
 import { signInDefaultValues } from '@/lib/constants';
 import PhoneField from '@/components/shared/auth/phone-field';
+import OtpInput from '@/components/shared/otp-input';
 import GoogleButton from '@/components/shared/auth/google-button';
 
 type Mode = 'password' | 'phone';
@@ -170,6 +171,10 @@ const CredentialsSignInForm = ({
       setError(t('invalidPhone'));
       return;
     }
+    if (code.length !== 6) {
+      setError(t('invalidOtp'));
+      return;
+    }
     startTransition(async () => {
       try {
         await signIn('sms', {
@@ -300,14 +305,10 @@ const CredentialsSignInForm = ({
             <SendCodeButton phone={phone} />
             <Field>
               <FieldLabel htmlFor='code'>{t('otpCodeLabel')}</FieldLabel>
-              <Input
-                id='code'
-                required
-                inputMode='numeric'
-                dir='ltr'
+              <OtpInput
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder='123456'
+                onChange={setCode}
+                disabled={!phone}
               />
             </Field>
           </FieldGroup>

@@ -21,6 +21,7 @@ import { signUpDefaultValues } from '@/lib/constants';
 import { signUpUser, requestPhoneOtp, checkPhoneRegistered } from '@/lib/actions/user.actions';
 import { cn } from '@/lib/utils';
 import PhoneField from '@/components/shared/auth/phone-field';
+import OtpInput from '@/components/shared/otp-input';
 import GoogleButton from '@/components/shared/auth/google-button';
 
 type Mode = 'email' | 'phone';
@@ -92,6 +93,18 @@ const SendCodeButton = ({ mobile }: { mobile: string }) => {
         </p>
       )}
     </div>
+  );
+};
+
+// The signup form posts via useActionState — the OtpInput is a controlled
+// component, so its value is mirrored into a hidden input for the action.
+const SignUpOtpInput = ({ mobile }: { mobile: string }) => {
+  const [code, setCode] = useState('');
+  return (
+    <>
+      <input type='hidden' name='otpCode' value={code} />
+      <OtpInput value={code} onChange={setCode} disabled={mobile.length !== 10} />
+    </>
   );
 };
 
@@ -224,14 +237,7 @@ const SignUpForm = ({
             <SendCodeButton mobile={mobile} />
             <Field>
               <FieldLabel htmlFor='otpCode'>{t('otpCodeLabel')}</FieldLabel>
-              <Input
-                id='otpCode'
-                name='otpCode'
-                required
-                inputMode='numeric'
-                dir='ltr'
-                defaultValue=''
-              />
+              <SignUpOtpInput mobile={mobile} />
             </Field>
           </>
         )}

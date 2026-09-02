@@ -14,6 +14,7 @@ const PhoneField = ({
   value,
   onChange,
   required = true,
+  disabled,
   className,
 }: {
   id: string;
@@ -21,6 +22,7 @@ const PhoneField = ({
   value: string;
   onChange: (v: string) => void;
   required?: boolean;
+  disabled?: boolean;
   className?: string;
 }) => {
   const t = useTranslations('auth');
@@ -30,6 +32,7 @@ const PhoneField = ({
       dir='ltr'
       className={cn(
         'flex h-9 w-full items-center overflow-hidden rounded-md border border-input bg-transparent shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50',
+        disabled && 'opacity-50 cursor-not-allowed',
         className
       )}
     >
@@ -45,7 +48,8 @@ const PhoneField = ({
         placeholder='9123456789'
         maxLength={10}
         pattern='\d{10}'
-        required={required}
+        required={required && !disabled}
+        disabled={disabled}
         aria-label={t('mobile')}
         value={value ?? ''}
         onChange={(e) =>
