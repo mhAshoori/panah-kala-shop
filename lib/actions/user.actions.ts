@@ -24,8 +24,10 @@ import { withActionMessage } from '../action-messages';
 import { getValidUserId } from '../auth-helpers';
 import { rateLimit } from '../rate-limit';
 import { normalizeIranMobile } from '../phone';
-import { MOCK_OTP_CODE, OTP_TTL_MS } from '@/auth';
-import { validateContactChange } from '../contact';
+import { OTP_TTL_MS } from '@/auth';
+import { generateOtpCode } from '@/lib/otp';
+import { isSmsConfigured, sendVerificationSms } from '@/lib/sms/smsir';
+import { issueContactCode, validateContactChange } from '../contact';
 import type { ContactType } from '../contact';
 import type { ActionState } from '@/types';
 
@@ -109,11 +111,12 @@ export async function clearProfileImage() {
 
 /**
  * Change the signed-in user's email or mobile — requires BOTH verification
- * codes (previous contact + new contact) and runs atomically.
- * Mock stage: codes are compile-time constants, never stored in the DB.
+ * codes (previous contact + new contact) and runs atomically. Codes are
+ * issued by requestContactChangeCode and verified against the server-side
+ * pending map (never stored in the DB).
  */
 export async function updateContact(
-  _prevState: ActionState,
+  _prevState: ActionState | null,
   formData: FormData
 ): Promise<ActionState> {
   try {
@@ -125,11 +128,18 @@ export async function updateContact(
       throw new Error(await withActionMessage('invalidValue'));
     }
 
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, mobile: true },
+    });
+
     const result = validateContactChange({
       type,
       oldCode: (formData.get('oldCode') as string) ?? '',
       newValue: (formData.get('newValue') as string) ?? '',
       newCode: (formData.get('newCode') as string) ?? '',
+      currentValue:
+        type === 'email' ? currentUser?.email ?? null : currentUser?.mobile ?? null,
     });
     if (!result.ok) {
       throw new Error(await withActionMessage(result.messageKey));
@@ -165,6 +175,82 @@ export async function updateContact(
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
+}
+
+/**
+ * Send the verification codes for a contact change: one to the CURRENT
+ * contact (proves the account owner) and one to the NEW contact (proves the
+ * new address is owned). Rate limited per user per contact type.
+ */
+export async function requestContactChangeCode(
+  _prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const userId = await getValidUserId();
+    if (!userId) throw new Error(await withActionMessage('sessionExpired'));
+
+    const type = (formData.get('type') as ContactType) ?? 'email';
+    const newValueRaw = ((formData.get('newValue') as string) ?? '').trim();
+
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, mobile: true },
+    });
+
+    // Validate the NEW value up front so bad input fails before any send
+    const normalizedNew =
+      type === 'mobile' ? normalizeIranMobile(newValueRaw) : isValidEmailShape(newValueRaw) ? newValueRaw.trim().toLowerCase() : null;
+    if (!normalizedNew) {
+      return {
+        success: false,
+        message: await withActionMessage(
+          type === 'email' ? 'invalidEmail' : 'invalidPhone'
+        ),
+      };
+    }
+
+    const rl = rateLimit(`contact-change:${userId}:${type}`, 3, 10 * 60 * 1000);
+    if (!rl.allowed) {
+      return {
+        success: false,
+        message: await withActionMessage('tooManyAttempts', {
+          seconds: rl.retryAfterSeconds ?? 60,
+        }),
+      };
+    }
+
+    const currentContact =
+      type === 'email' ? currentUser?.email ?? null : currentUser?.mobile ?? null;
+    if (!currentContact) {
+      throw new Error(await withActionMessage('sessionExpired'));
+    }
+
+    // Uniqueness excluding the current user — before sending codes
+    const conflict = await prisma.user.findFirst({
+      where:
+        type === 'email'
+          ? { email: normalizedNew, NOT: { id: userId } }
+          : { mobile: normalizedNew, NOT: { id: userId } },
+    });
+    if (conflict) throw new Error(await withActionMessage('accountExists'));
+
+    const [oldOk, newOk] = await Promise.all([
+      issueContactCode(type, 'old', currentContact),
+      issueContactCode(type, 'new', normalizedNew),
+    ]);
+    if (!oldOk || !newOk) {
+      throw new Error(await withActionMessage('otpSendFailed'));
+    }
+
+    return { success: true, message: await withActionMessage('otpSentReal') };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+function isValidEmailShape(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
 // Update the signed-in user's preferred payment method
@@ -374,8 +460,9 @@ async function establishSmsSession(
 }
 
 /**
- * Request a one-time code for a phone number. In development the code is
- * always the mock master code (123456) and is logged to the server console.
+ * Request a one-time code for a phone number. Sends via SMS.ir when
+ * SMSIR_API_KEY + SMSIR_OTP_TEMPLATE_ID are configured; otherwise (dev/CI)
+ * stores the fixed master code 123456 and logs it to the server console.
  * Rate limited: 3 requests / 10 minutes per phone.
  */
 export async function requestPhoneOtp(
@@ -404,25 +491,38 @@ export async function requestPhoneOtp(
       };
     }
 
-    // Mock SMS gateway: fixed master code, valid 5 minutes.
+    // Real gateway when configured, fixed master code otherwise. Valid 5 min.
+    const code = isSmsConfigured() ? generateOtpCode() : '123456';
+    const sent = await sendVerificationSms(phone, code);
+    if (!sent.ok) {
+      return {
+        success: false,
+        message: await withActionMessage('otpSendFailed'),
+      };
+    }
+
     // The composite PK (identifier, token) is identical for repeat requests
-    // of the same mock code — clear the old row first to avoid P2002.
+    // of the same code — clear the old row first to avoid P2002.
     await prisma.verificationToken.deleteMany({
       where: { identifier: `otp:${phone}` },
     });
     await prisma.verificationToken.create({
       data: {
         identifier: `otp:${phone}`,
-        token: MOCK_OTP_CODE,
+        token: code,
         expires: new Date(Date.now() + OTP_TTL_MS),
       },
     });
 
-    console.info(`[SMS:mock] OTP for ${phone}: ${MOCK_OTP_CODE}`);
+    if (!isSmsConfigured()) {
+      console.info(`[SMS:dev-fallback] OTP for ${phone}: ${code}`);
+    }
 
     return {
       success: true,
-      message: await withActionMessage('otpSent'),
+      message: await withActionMessage(
+        isSmsConfigured() ? 'otpSentReal' : 'otpSent'
+      ),
     };
   } catch (error) {
     return { success: false, message: formatError(error) };

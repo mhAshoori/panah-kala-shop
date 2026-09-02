@@ -8,12 +8,12 @@ import { compareSync } from 'bcrypt-ts-edge';
 import { prisma } from '@/db/prisma';
 import { rateLimit } from '@/lib/rate-limit';
 import { normalizeIranMobile } from '@/lib/phone';
+import { isSmsConfigured } from '@/lib/sms/smsir';
 import { signInFormSchema } from '@/lib/validator';
 import { mergeGuestCartOnSignIn } from '@/lib/cart/merge';
 import { cookies } from 'next/headers';
 
-// Mock SMS master code — always valid for testing (see README)
-export const MOCK_OTP_CODE = '123456';
+// OTP TTL shared with the request path (lib/otp.ts re-exports for actions)
 export const OTP_TTL_MS = 5 * 60 * 1000;
 
 // Typed sign-in errors — the client reads `.code` to show the right message
@@ -24,9 +24,10 @@ class SmsRateLimited extends CredentialsSignin {
   code = 'rate_limited';
 }
 
-// Validate an SMS one-time code against VerificationToken or the mock master
+// Validate an SMS one-time code against VerificationToken. Without SMS.ir
+// configured (dev/CI) the fixed master code 123456 keeps the flow testable.
 async function verifySmsOtp(phone: string, code: string): Promise<boolean> {
-  if (code === MOCK_OTP_CODE) return true;
+  if (!isSmsConfigured() && code === '123456') return true;
 
   const token = await prisma.verificationToken.findFirst({
     where: { identifier: `otp:${phone}`, token: code, expires: { gt: new Date() } },
@@ -92,7 +93,7 @@ export const config: NextAuthConfig = {
         };
       },
     }),
-    // SMS one-time-code sign-in (mock: code 123456 always works in dev)
+    // SMS one-time-code sign-in (SMS.ir when configured; fixed 123456 in dev)
     CredentialsProvider({
       id: 'sms',
       credentials: {
