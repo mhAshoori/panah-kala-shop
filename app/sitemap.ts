@@ -1,11 +1,17 @@
 import type { MetadataRoute } from 'next';
 
 import { getSiteUrl } from '@/lib/seo';
+import { getSiteMeta } from '@/lib/home-content';
 import { prisma } from '@/db/prisma';
 
 // Full sitemap: static pages + all product pages (single-URL site).
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
+
+  // Maintenance/noindex switch — an empty sitemap mirrors robots Disallow
+  if ((await getSiteMeta()).noindex === true) {
+    return [];
+  }
 
   const staticEntries: MetadataRoute.Sitemap = [
     { url: `${base}/`, changeFrequency: 'daily', priority: 1 },

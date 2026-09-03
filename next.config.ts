@@ -22,6 +22,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   trailingSlash: false,
+  // VPS deploy: `.next/standalone` bundles a minimal server + pruned deps
+  output: 'standalone',
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**" },
