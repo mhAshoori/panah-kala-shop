@@ -17,23 +17,22 @@
  *   SMSIR_LINE_NUMBER     — sender line (e.g. +983000505) for the bulk path
  */
 
-export type SmsSendResult =
-  | { ok: true }
-  | { ok: false; reason: string };
+export type SmsSendResult = { ok: true } | { ok: false; reason: string };
 
-const SMSIR_BASE = 'https://api.sms.ir/v1';
+// Base URL only — /send/verify and /send/bulk are appended per call.
+const SMSIR_BASE = process.env.SMSIR_BASE_URL || "https://api.sms.ir/v1";
 
 // Persian error messages for the common SMS.ir status codes we may surface
 const SMSIR_STATUS_MESSAGES: Record<number, string> = {
-  1: 'موفق',
-  2: 'شماره موبایل نامعتبر است',
-  4: 'کد یا پارامترها با قالب ورودی هم‌خوانی ندارد',
-  5: 'متن قالب با پارامترهای ارسالی هم‌خوانی ندارد',
-  6: 'اعتبار کافی نیست',
-  7: 'ارسال از این IP مجاز نیست',
-  10: 'کلید وب سرویس نامعتبر است',
-  11: 'کلید وب سرویس منقضی شده است',
-  113: 'قالب یافت نشد',
+  1: "موفق",
+  2: "شماره موبایل نامعتبر است",
+  4: "کد یا پارامترها با قالب ورودی هم‌خوانی ندارد",
+  5: "متن قالب با پارامترهای ارسالی هم‌خوانی ندارد",
+  6: "اعتبار کافی نیست",
+  7: "ارسال از این IP مجاز نیست",
+  10: "کلید وب سرویس نامعتبر است",
+  11: "کلید وب سرویس منقضی شده است",
+  113: "قالب یافت نشد",
 };
 
 function describeStatus(status: number, fallback?: string): string {
@@ -46,18 +45,18 @@ export function isSmsConfigured(): boolean {
 
 async function smsirPost(
   path: string,
-  body: unknown
+  body: unknown,
 ): Promise<{ status: number; message?: string } | null> {
   try {
     const res = await fetch(`${SMSIR_BASE}${path}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'x-api-key': process.env.SMSIR_API_KEY as string,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "x-api-key": process.env.SMSIR_API_KEY as string,
       },
       body: JSON.stringify(body),
-      cache: 'no-store',
+      cache: "no-store",
       // OTP messages are time-critical — fail fast so the user can retry
       signal: AbortSignal.timeout(10_000),
     });
@@ -67,13 +66,13 @@ async function smsirPost(
       message?: string;
     } | null;
     if (!res.ok) {
-      console.error(`[SMS] HTTP ${res.status}: ${json?.message ?? ''}`);
+      console.error(`[SMS] HTTP ${res.status}: ${json?.message ?? ""}`);
       return null;
     }
     return { status: json?.status ?? -1, message: json?.message };
   } catch (error) {
-    const reason = error instanceof Error ? error.message : 'network error';
-    console.error('[SMS] send error:', reason);
+    const reason = error instanceof Error ? error.message : "network error";
+    console.error("[SMS] send error:", reason);
     return null;
   }
 }
@@ -81,26 +80,29 @@ async function smsirPost(
 /** Templated OTP send (/v1/send/verify) — requires an approved template. */
 async function sendVerifyTemplate(
   mobileE164: string,
-  code: string
+  code: string,
 ): Promise<boolean> {
-  const result = await smsirPost('/send/verify', {
+  const result = await smsirPost("/send/verify", {
     mobile: mobileE164, // SMS.ir accepts +98… / 09… / 9…
     templateId: Number(process.env.SMSIR_OTP_TEMPLATE_ID),
-    parameters: [{ name: 'CODE', value: code }],
+    parameters: [{ name: "CODE", value: code }],
   });
   if (!result) return false;
   if (result.status !== 1) {
     console.error(
-      `[SMS] verify-template failed status=${result.status}: ${describeStatus(result.status, result.message)}`
+      `[SMS] verify-template failed status=${result.status}: ${describeStatus(result.status, result.message)}`,
     );
   }
   return result.status === 1;
 }
 
 /** Raw-text send (/v1/send/bulk) — no template approval needed. */
-async function sendBulkText(mobileE164: string, code: string): Promise<boolean> {
+async function sendBulkText(
+  mobileE164: string,
+  code: string,
+): Promise<boolean> {
   const lineNumber = process.env.SMSIR_LINE_NUMBER as string;
-  const result = await smsirPost('/send/bulk', {
+  const result = await smsirPost("/send/bulk", {
     lineNumber,
     messageText: `کد تایید پناه کالا: ${code}`,
     mobiles: [mobileE164],
@@ -108,7 +110,7 @@ async function sendBulkText(mobileE164: string, code: string): Promise<boolean> 
   if (!result) return false;
   if (result.status !== 1) {
     console.error(
-      `[SMS] bulk send failed status=${result.status}: ${describeStatus(result.status, result.message)}`
+      `[SMS] bulk send failed status=${result.status}: ${describeStatus(result.status, result.message)}`,
     );
   }
   return result.status === 1;
@@ -120,14 +122,14 @@ async function sendBulkText(mobileE164: string, code: string): Promise<boolean> 
  */
 export async function sendVerificationSms(
   mobileE164: string,
-  code: string
+  code: string,
 ): Promise<SmsSendResult> {
   const apiKey = process.env.SMSIR_API_KEY;
 
   if (!apiKey) {
     // Dev/CI fallback: log instead of failing the sign-in flow
     console.info(
-      `[SMS:dev-fallback] SMS.ir not configured — OTP for ${mobileE164}: ${code}`
+      `[SMS:dev-fallback] SMS.ir not configured — OTP for ${mobileE164}: ${code}`,
     );
     return { ok: true };
   }
@@ -138,21 +140,21 @@ export async function sendVerificationSms(
     // Template send failed (unapproved/missing template, etc.) — fall through
     // to the raw path so OTP delivery keeps working while the template is
     // pending approval.
-    console.warn('[SMS] template path failed — trying raw bulk fallback');
+    console.warn("[SMS] template path failed — trying raw bulk fallback");
   }
 
   if (process.env.SMSIR_LINE_NUMBER) {
     const ok = await sendBulkText(mobileE164, code);
-    return ok ? { ok: true } : { ok: false, reason: 'ارسال پیامک ناموفق بود' };
+    return ok ? { ok: true } : { ok: false, reason: "ارسال پیامک ناموفق بود" };
   }
 
   if (process.env.SMSIR_OTP_TEMPLATE_ID) {
     // A template was configured but the send failed and no fallback line —
     // surface the failure honestly rather than silently logging codes.
-    return { ok: false, reason: 'ارسال پیامک ناموفق بود' };
+    return { ok: false, reason: "ارسال پیامک ناموفق بود" };
   }
 
-  console.warn('[SMS] key set but neither template nor line number — logging');
+  console.warn("[SMS] key set but neither template nor line number — logging");
   console.info(`[SMS:no-path] OTP for ${mobileE164}: ${code}`);
   return { ok: true };
 }
