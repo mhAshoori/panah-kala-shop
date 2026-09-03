@@ -60,6 +60,29 @@ describe('validateContactChange (dev master codes)', () => {
     if (!result.ok) expect(result.messageKey).toBe('invalidEmail');
   });
 
+  it('adding a first contact (no current) skips the previous-contact code', () => {
+    const result = validateContactChange({
+      type: 'mobile',
+      oldCode: '',
+      newValue: '09121234567',
+      newCode: '456789',
+      currentValue: null,
+    });
+    expect(result).toEqual({ ok: true, value: '9121234567' });
+  });
+
+  it('adding a first contact still requires the NEW contact code', () => {
+    const result = validateContactChange({
+      type: 'email',
+      oldCode: '',
+      newValue: 'first@example.com',
+      newCode: '000000',
+      currentValue: null,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.messageKey).toBe('contactNewCodeInvalid');
+  });
+
   it('rejects an invalid mobile value', () => {
     const result = validateContactChange({
       type: 'mobile',
