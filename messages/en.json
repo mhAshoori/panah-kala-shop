@@ -122,7 +122,7 @@
     "signUpSubtitle": "Enter your information below to create your account",
     "phoneSignIn": "SMS Code",
     "sendCode": "Send Code",
-    "otpSentHint": "Code sent. Use 123456 for testing.",
+    "otpSentHint": "A verification code was sent to your phone. Enter it below.",
     "otpCodeLabel": "SMS Code",
     "invalidOtp": "The code is invalid or expired",
     "invalidPhone": "Enter a valid mobile number (9XXXXXXXXX)",

@@ -690,6 +690,28 @@ export async function signUpUser(
       }
     }
 
+    if (mode === 'phone') {
+      // Verify the SMS code BEFORE creating the account — a wrong code must
+      // never leave an unverified user row behind (which would then block
+      // re-signup with "account exists").
+      const phoneE164 = `+98${mobile}`;
+      const otpValid =
+        (!isSmsConfigured() && otpCode === '123456') ||
+        Boolean(
+          await prisma.verificationToken.findFirst({
+            where: {
+              identifier: `otp:${phoneE164}`,
+              token: otpCode,
+              expires: { gt: new Date() },
+            },
+            select: { identifier: true },
+          })
+        );
+      if (!otpValid) {
+        return { success: false, message: await withActionMessage('invalidOtp') };
+      }
+    }
+
     await prisma.user.create({
       data: {
         name,
@@ -706,7 +728,8 @@ export async function signUpUser(
         redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
       }
     } else {
-      // OTP sign-up: sign in via the SMS provider (mobile normalized)
+      // OTP sign-up: sign in via the SMS provider (mobile normalized). The
+      // code was already verified above — this just establishes the session.
       const ok = await establishSmsSession(`+98${mobile}`, otpCode);
       if (!ok) {
         redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);

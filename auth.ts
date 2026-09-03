@@ -25,7 +25,8 @@ class SmsRateLimited extends CredentialsSignin {
 }
 
 // Validate an SMS one-time code against VerificationToken. Without SMS.ir
-// configured (dev/CI) the fixed master code 123456 keeps the flow testable.
+// configured (dev/CI only) the fixed master code 123456 keeps the flow
+// testable; with the key set, ONLY the code actually sent is accepted.
 async function verifySmsOtp(phone: string, code: string): Promise<boolean> {
   if (!isSmsConfigured() && code === '123456') return true;
 
