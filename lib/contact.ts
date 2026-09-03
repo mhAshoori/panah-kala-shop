@@ -4,7 +4,7 @@ import {
   setPendingOtp,
   generateOtpCode,
 } from './otp';
-import { sendVerificationSms } from './sms/smsir';
+import { sendVerificationSms, isSmsConfigured } from './sms/smsir';
 import { sendVerificationEmail } from './email/mailer';
 
 /**
@@ -94,7 +94,7 @@ export async function issueContactCode(
 
 function isProviderConfiguredFor(type: ContactType): boolean {
   if (type === 'mobile') {
-    return Boolean(process.env.SMSIR_API_KEY && process.env.SMSIR_OTP_TEMPLATE_ID);
+    return isSmsConfigured();
   }
   return Boolean(
     process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS
@@ -131,14 +131,18 @@ export function verifyContactCode(
 export function validateContactChange(
   input: ContactChangeInput
 ): ContactChangeResult {
-  const oldValid = verifyContactCode(
-    input.type,
-    'old',
-    input.currentValue ?? null,
-    input.oldCode
-  );
-  if (!oldValid) {
-    return { ok: false, messageKey: 'contactOldCodeInvalid' };
+  // Adding a FIRST contact (email-only/Google user adding a mobile): there
+  // is no previous contact to prove ownership of — only the new code applies.
+  if (input.currentValue) {
+    const oldValid = verifyContactCode(
+      input.type,
+      'old',
+      input.currentValue,
+      input.oldCode
+    );
+    if (!oldValid) {
+      return { ok: false, messageKey: 'contactOldCodeInvalid' };
+    }
   }
 
   const newValid = verifyContactCode(

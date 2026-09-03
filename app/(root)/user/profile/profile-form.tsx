@@ -166,7 +166,9 @@ const ChangeContactDialog = ({
             {type === 'email' ? tAccount('newEmail') : tAccount('newMobile')}
           </DialogTitle>
           <DialogDescription className='text-right'>
-            {tAccount('contactChangeWarning')}
+            {currentValue
+              ? tAccount('contactChangeWarning')
+              : tAccount('contactAddWarning')}
           </DialogDescription>
         </DialogHeader>
 
@@ -196,7 +198,7 @@ const ChangeContactDialog = ({
             )}
           </Field>
 
-          {/* Request both codes (current + new contact) */}
+          {/* Request both codes (current + new contact); add-flow sends one */}
           {!codesSent ? (
             <Button
               type='button'
@@ -211,18 +213,23 @@ const ChangeContactDialog = ({
             </Button>
           ) : (
             <p className='text-center text-xs text-emerald-600'>
-              {tAccount('codesSentHint', {
-                current: currentValue ?? '—',
-                new: newValue,
-              })}
+              {currentValue
+                ? tAccount('codesSentHint', {
+                    current: currentValue,
+                    new: newValue,
+                  })
+                : tAccount('codeSentNewOnly', { new: newValue })}
             </p>
           )}
 
-          {/* Step 2: both digit inputs — enabled only after codes sent */}
-          <Field>
-            <FieldLabel>{tAccount('codePrevContact')}</FieldLabel>
-            <OtpInput value={oldCode} onChange={setOldCode} disabled={!codesSent} />
-          </Field>
+          {/* Step 2: both digit inputs — enabled only after codes sent.
+              Adding a first contact has no previous contact to verify. */}
+          {currentValue ? (
+            <Field>
+              <FieldLabel>{tAccount('codePrevContact')}</FieldLabel>
+              <OtpInput value={oldCode} onChange={setOldCode} disabled={!codesSent} />
+            </Field>
+          ) : null}
           <Field>
             <FieldLabel>{tAccount('codeNewContact')}</FieldLabel>
             <OtpInput value={newCode} onChange={setNewCode} disabled={!codesSent} />
@@ -231,7 +238,11 @@ const ChangeContactDialog = ({
           <DialogFooter className='flex-row-reverse gap-2'>
             <Button
               type='submit'
-              disabled={!codesSent || oldCode.length !== 6 || newCode.length !== 6}
+              disabled={
+                !codesSent ||
+                newCode.length !== 6 ||
+                (currentValue ? oldCode.length !== 6 : false)
+              }
             >
               {tCommon('save')}
             </Button>
@@ -275,9 +286,14 @@ const ContactRow = ({
             className='max-w-56'
           />
         </div>
-        <Button size='sm' variant='ghost' onClick={() => setDialogOpen(true)}>
+        <Button
+          size='sm'
+          variant='ghost'
+          type='button'
+          onClick={() => setDialogOpen(true)}
+        >
           <Pencil className='h-4 w-4' />
-          {tAccount('change')}
+          {value ? tAccount('change') : tAccount('addContact')}
         </Button>
       </div>
       <ChangeContactDialog

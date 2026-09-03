@@ -222,9 +222,6 @@ export async function requestContactChangeCode(
 
     const currentContact =
       type === 'email' ? currentUser?.email ?? null : currentUser?.mobile ?? null;
-    if (!currentContact) {
-      throw new Error(await withActionMessage('sessionExpired'));
-    }
 
     // Uniqueness excluding the current user — before sending codes
     const conflict = await prisma.user.findFirst({
@@ -235,13 +232,14 @@ export async function requestContactChangeCode(
     });
     if (conflict) throw new Error(await withActionMessage('accountExists'));
 
-    const [oldOk, newOk] = await Promise.all([
-      issueContactCode(type, 'old', currentContact),
-      issueContactCode(type, 'new', normalizedNew),
-    ]);
-    if (!oldOk || !newOk) {
-      throw new Error(await withActionMessage('otpSendFailed'));
+    // Adding a FIRST contact: no previous contact exists, so only the new
+    // contact needs its code. Otherwise both old + new codes are issued.
+    if (currentContact) {
+      const oldOk = await issueContactCode(type, 'old', currentContact);
+      if (!oldOk) throw new Error(await withActionMessage('otpSendFailed'));
     }
+    const newOk = await issueContactCode(type, 'new', normalizedNew);
+    if (!newOk) throw new Error(await withActionMessage('otpSendFailed'));
 
     return { success: true, message: await withActionMessage('otpSentReal') };
   } catch (error) {
