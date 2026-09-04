@@ -47,6 +47,10 @@ async function smsirPost(
   path: string,
   body: unknown,
 ): Promise<{ status: number; message?: string } | null> {
+  const debug = process.env.SMSIR_DEBUG === "1";
+  if (debug) {
+    console.info(`[SMS:debug] POST ${SMSIR_BASE}${path} body=${JSON.stringify(body)}`);
+  }
   try {
     const res = await fetch(`${SMSIR_BASE}${path}`, {
       method: "POST",
@@ -65,6 +69,11 @@ async function smsirPost(
       status?: number;
       message?: string;
     } | null;
+    if (debug) {
+      console.info(
+        `[SMS:debug] <- HTTP ${res.status} ${res.headers.get("content-type")} body=${JSON.stringify(json)}`
+      );
+    }
     if (!res.ok) {
       console.error(`[SMS] HTTP ${res.status}: ${json?.message ?? ""}`);
       return null;
