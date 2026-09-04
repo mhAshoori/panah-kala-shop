@@ -5,6 +5,7 @@ delete process.env.SMSIR_API_KEY;
 delete process.env.SMSIR_OTP_TEMPLATE_ID;
 delete process.env.SMSIR_BASE_URL;
 delete process.env.SMSIR_LINE_NUMBER;
+delete process.env.SMSIR_DEBUG;
 delete process.env.SMTP_HOST;
 delete process.env.SMTP_USER;
 delete process.env.SMTP_PASS;

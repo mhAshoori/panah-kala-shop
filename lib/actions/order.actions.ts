@@ -125,7 +125,8 @@ export async function createOrder() {
     const insertedOrderId = await prisma.$transaction(async (tx) => {
       // Worst-case guard: stock may have changed since the item was added.
       // Re-check every product inside the transaction to prevent overselling
-      // and to skip items whose product was deleted.
+      // and to skip items whose product was deleted. Variant lines check the
+      // variant's own stock (and that it still belongs to the product).
       const items = cart.items as CartItem[];
       for (const item of items) {
         const product = await tx.product.findFirst({
@@ -139,7 +140,22 @@ export async function createOrder() {
             })
           );
         }
-        if (product.stock < item.qty) {
+        if (item.variantId) {
+          const variant = await tx.productVariant.findUnique({
+            where: { id: item.variantId },
+            select: { stock: true, productId: true },
+          });
+          if (!variant || variant.productId !== item.productId) {
+            throw new Error(
+              await withActionMessage('productNoLongerAvailable', {
+                name: item.name,
+              })
+            );
+          }
+          if (variant.stock < item.qty) {
+            throw new Error(await withActionMessage('notEnoughStock'));
+          }
+        } else if (product.stock < item.qty) {
           throw new Error(await withActionMessage('notEnoughStock'));
         }
       }
@@ -161,11 +177,13 @@ export async function createOrder() {
         });
       }
 
-      // Create order items + decrement stock
+      // Create order items + decrement stock (variant first, then parent)
       for (const item of items) {
         await tx.orderItem.create({
           data: {
             productId: item.productId,
+            variantId: item.variantId ?? null,
+            variantLabel: item.variantLabel ?? null,
             qty: item.qty,
             price: item.price,
             name: item.name,
@@ -174,6 +192,12 @@ export async function createOrder() {
             orderId: insertedOrder.id,
           },
         });
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { decrement: item.qty } },
+          });
+        }
         await tx.product.update({
           where: { id: item.productId },
           data: { stock: { decrement: item.qty } },

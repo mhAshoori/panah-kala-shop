@@ -164,6 +164,18 @@ export async function addItemToCart(data: CartItem) {
     });
     if (!product) throw new Error(await msg('productNotFound'));
 
+    // Variant items check the variant's own stock, plain items the product's
+    let availableStock = product.stock;
+    if (item.variantId) {
+      const variant = await prisma.productVariant.findUnique({
+        where: { id: item.variantId },
+      });
+      if (!variant || variant.productId !== item.productId) {
+        throw new Error(await msg('productNotFound'));
+      }
+      availableStock = variant.stock;
+    }
+
     // Localized product display name
     const locale = await getLocale();
     const displayName = locale === 'fa' ? product.nameFa : product.name;
@@ -171,10 +183,15 @@ export async function addItemToCart(data: CartItem) {
     // Get current cart
     const cart = await getMyCart();
 
+    // Cart lines dedupe on the variant (or the product when no variant)
+    const sameLine = (x: CartItem) =>
+      x.productId === item.productId &&
+      (x.variantId ?? null) === (item.variantId ?? null);
+
     let messageKey: Extract<MessageKey, 'added' | 'updated'> = 'added';
 
     if (!cart) {
-      if (product.stock < 1) throw new Error(await msg('notEnoughStock'));
+      if (availableStock < 1) throw new Error(await msg('notEnoughStock'));
       await saveCart({
         sessionCartId,
         userId,
@@ -182,13 +199,11 @@ export async function addItemToCart(data: CartItem) {
       });
     } else {
       // Check for existing item in cart
-      const existItem = (cart.items as CartItem[]).find(
-        (x) => x.productId === item.productId
-      );
+      const existItem = (cart.items as CartItem[]).find(sameLine);
 
       if (existItem) {
         // If not enough stock, throw error
-        if (product.stock < existItem.qty + 1) {
+        if (availableStock < existItem.qty + 1) {
           throw new Error(await msg('notEnoughStock'));
         }
         messageKey = 'updated';
@@ -201,7 +216,7 @@ export async function addItemToCart(data: CartItem) {
         });
       } else {
         // If in stock, add the new item
-        if (product.stock < 1) throw new Error(await msg('notEnoughStock'));
+        if (availableStock < 1) throw new Error(await msg('notEnoughStock'));
         await saveCart({
           sessionCartId,
           userId,
@@ -222,8 +237,9 @@ export async function addItemToCart(data: CartItem) {
   }
 }
 
-// Remove one unit of an item from the cart in database
-export async function removeItemFromCart(productId: string) {
+// Remove one unit of an item from the cart in database.
+// variantId targets a specific variant line (undefined = plain product line).
+export async function removeItemFromCart(productId: string, variantId?: string) {
   try {
     // Check for session cart cookie
     const sessionCartId = (await cookies()).get('sessionCartId')?.value;
@@ -238,10 +254,12 @@ export async function removeItemFromCart(productId: string) {
     const cart = await getMyCart();
     if (!cart) throw new Error(await msg('cartNotFound'));
 
+    const sameLine = (x: CartItem) =>
+      x.productId === productId &&
+      (x.variantId ?? null) === (variantId ?? null);
+
     // Check if cart has the item
-    const exist = (cart.items as CartItem[]).find(
-      (x) => x.productId === productId
-    );
+    const exist = (cart.items as CartItem[]).find(sameLine);
     if (!exist) throw new Error(await msg('itemNotFound'));
 
     const locale = await getLocale();
@@ -254,12 +272,10 @@ export async function removeItemFromCart(productId: string) {
     // If only one left, remove it entirely; otherwise decrease quantity
     let items: CartItem[];
     if (exist.qty === 1) {
-      items = (cart.items as CartItem[]).filter(
-        (x) => x.productId !== productId
-      );
+      items = (cart.items as CartItem[]).filter((x) => !sameLine(x));
     } else {
       items = (cart.items as CartItem[]).map((x) =>
-        x.productId === productId ? { ...x, qty: x.qty - 1 } : x
+        sameLine(x) ? { ...x, qty: x.qty - 1 } : x
       );
     }
 
@@ -274,10 +290,9 @@ export async function removeItemFromCart(productId: string) {
 
     return {
       success: true,
-      message:
-        items.find((x) => x.productId === productId)
-          ? await msg('updated', displayName)
-          : await msg('removed', displayName),
+      message: items.find(sameLine)
+        ? await msg('updated', displayName)
+        : await msg('removed', displayName),
     };
   } catch (error) {
     return { success: false, message: formatError(error) };

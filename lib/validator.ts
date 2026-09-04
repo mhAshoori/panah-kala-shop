@@ -31,12 +31,54 @@ export const insertProductSchema = z.object({
     .union([currency, z.literal('')])
     .optional()
     .transform((v) => v || null),
+  // Physical properties (cm / grams) — DB Decimals arrive as strings via the
+  // $extends transform (same as price); forms submit them as strings too.
+  lengthCm: z.union([z.string(), z.number(), z.null()]).optional(),
+  widthCm: z.union([z.string(), z.number(), z.null()]).optional(),
+  heightCm: z.union([z.string(), z.number(), z.null()]).optional(),
+  weightG: z.union([z.string(), z.number(), z.null()]).optional(),
 })
   .refine(
     (data) =>
       !data.compareAtPrice || Number(data.compareAtPrice) > Number(data.price),
     { message: 'compareAtPrice must be greater than price', path: ['compareAtPrice'] }
   );
+
+// ---------------------------------------------------------------------------
+// Product diversity: options (color/...) and purchasable variant combos
+// ---------------------------------------------------------------------------
+
+export const optionValueSchema = z.object({
+  value: z.string().min(1, 'Value is required'),
+  valueFa: z.string().min(1, 'مقدار فارسی لازم است'),
+  hex: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, 'Invalid hex color')
+    .nullish(),
+});
+
+export const productOptionSchema = z.object({
+  name: z.string().min(1, 'Option name is required'),
+  nameFa: z.string().min(1, 'نام ویژگی فارسی لازم است'),
+  values: z.array(optionValueSchema).min(1, 'At least one value is required'),
+});
+
+export const variantInputSchema = z.object({
+  // Combo signature — recomputed server-side from created value ids
+  key: z.string().min(1),
+  price: currency,
+  compareAtPrice: z
+    .union([currency, z.literal('')])
+    .optional()
+    .transform((v) => v || null),
+  stock: z.coerce.number().int().min(0, 'Stock cannot be negative'),
+  image: z.string().nullish(),
+});
+
+export const productOptionsPayloadSchema = z.object({
+  options: z.array(productOptionSchema).min(1, 'At least one option is required'),
+  variants: z.array(variantInputSchema).min(1, 'At least one variant is required'),
+});
 
 // Schema for updating a product (adds the id field)
 export const updateProductSchema = insertProductSchema.extend({
@@ -97,6 +139,9 @@ export const signUpFormSchema = z
 // Cart
 export const cartItemSchema = z.object({
   productId: z.string().min(1, 'Product is required'),
+  // Present when the item is a specific variant of the product
+  variantId: z.string().optional(),
+  variantLabel: z.string().optional(),
   name: z.string().min(1, 'Name is required'),
   nameFa: z.string().optional(),
   slug: z.string().min(1, 'Slug is required'),
