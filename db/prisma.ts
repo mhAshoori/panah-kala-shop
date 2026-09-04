@@ -43,6 +43,40 @@ function createPrismaClient() {
             return product.rating.toString();
           },
         },
+        lengthCm: {
+          compute(product) {
+            return product.lengthCm === null ? null : product.lengthCm.toString();
+          },
+        },
+        widthCm: {
+          compute(product) {
+            return product.widthCm === null ? null : product.widthCm.toString();
+          },
+        },
+        heightCm: {
+          compute(product) {
+            return product.heightCm === null ? null : product.heightCm.toString();
+          },
+        },
+        weightG: {
+          compute(product) {
+            return product.weightG === null ? null : product.weightG.toString();
+          },
+        },
+      },
+      productVariant: {
+        price: {
+          compute(variant) {
+            return variant.price.toString();
+          },
+        },
+        compareAtPrice: {
+          compute(variant) {
+            return variant.compareAtPrice === null
+              ? null
+              : variant.compareAtPrice.toString();
+          },
+        },
       },
     },
   });
