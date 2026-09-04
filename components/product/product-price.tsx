@@ -1,15 +1,19 @@
-import { getLocale } from 'next-intl/server';
+'use client';
+
+import { useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { formatCurrencyLocale } from '@/lib/persian';
 
-const ProductPrice = async ({
+// Client component: rendered both on the server page and inside the client
+// VariantSelector (price updates when the user picks a variant).
+const ProductPrice = ({
   value,
   className,
 }: {
   value: number;
   className?: string;
 }) => {
-  const locale = await getLocale();
+  const locale = useLocale();
   const formatted = formatCurrencyLocale(value, locale);
 
   return (

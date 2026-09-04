@@ -26,6 +26,10 @@ import {
 } from '@/components/ui/field';
 import { createProduct, updateProduct } from '@/lib/actions/product.actions';
 import ImageUploadButton from '@/components/shared/image-upload';
+import OptionsEditor, {
+  type AdminOption,
+  type AdminVariant,
+} from '@/components/shared/admin/options-editor';
 import { productDefaultValues } from '@/lib/constants';
 import { Product } from '@/types';
 
@@ -45,6 +49,8 @@ const ProductForm = ({
   product,
   productId,
   categories = [],
+  options = [],
+  variants = [],
 }: {
   type: 'Create' | 'Update';
   product?: Product;
@@ -56,6 +62,8 @@ const ProductForm = ({
     nameFa: string;
     parentId: string | null;
   }[];
+  options?: AdminOption[];
+  variants?: AdminVariant[];
 }) => {
   const t = useTranslations('admin');
   const tCommon = useTranslations('common');
@@ -331,6 +339,61 @@ const ProductForm = ({
             />
           </Field>
         </div>
+
+        {/* Physical properties (shown in the storefront specs section) */}
+        <div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-4'>
+          <Field>
+            <FieldLabel htmlFor='lengthCm'>{t('lengthCm')}</FieldLabel>
+            <Input
+              id='lengthCm'
+              name='lengthCm'
+              type='number'
+              step='0.1'
+              min='0'
+              defaultValue={product?.lengthCm ?? ''}
+              placeholder='0.0'
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor='widthCm'>{t('widthCm')}</FieldLabel>
+            <Input
+              id='widthCm'
+              name='widthCm'
+              type='number'
+              step='0.1'
+              min='0'
+              defaultValue={product?.widthCm ?? ''}
+              placeholder='0.0'
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor='heightCm'>{t('heightCm')}</FieldLabel>
+            <Input
+              id='heightCm'
+              name='heightCm'
+              type='number'
+              step='0.1'
+              min='0'
+              defaultValue={product?.heightCm ?? ''}
+              placeholder='0.0'
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor='weightG'>{t('weightG')}</FieldLabel>
+            <Input
+              id='weightG'
+              name='weightG'
+              type='number'
+              step='1'
+              min='0'
+              defaultValue={product?.weightG ?? ''}
+              placeholder='0'
+            />
+          </Field>
+        </div>
+
+        {/* Diversity: options (color/...) + auto-generated variant combos */}
+        <OptionsEditor initialOptions={options} initialVariants={variants} />
 
         {/* Images: URL paste or direct upload to ArvanCloud storage */}
         <Field>

@@ -48,7 +48,7 @@ const AddToCart = ({
   // Remove item from cart
   const handleRemoveFromCart = async () => {
     startTransition(async () => {
-      const res = await removeItemFromCart(item.productId);
+      const res = await removeItemFromCart(item.productId, item.variantId);
 
       toast(res.message, {
         ...(res.success ? {} : { style: { background: '#f87171' } }),
@@ -57,7 +57,12 @@ const AddToCart = ({
   };
 
   const existItem =
-    cart && cart.items.find((x) => x.productId === item.productId);
+    cart &&
+    cart.items.find(
+      (x) =>
+        x.productId === item.productId &&
+        (x.variantId ?? null) === (item.variantId ?? null)
+    );
 
   return existItem ? (
     <div className='flex items-center justify-center gap-2'>

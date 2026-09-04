@@ -1,6 +1,8 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/db/prisma';
+import { Prisma } from '@/lib/generated/prisma/client';
 import { convertToPlainObject, formatError } from '../utils';
 import { LATEST_PRODUCTS_LIMIT, PAGE_SIZE } from '../constants';
 import { requireAdmin } from '../auth-guard';
@@ -8,7 +10,9 @@ import { withActionMessage } from '../action-messages';
 import {
   insertProductSchema,
   updateProductSchema,
+  productOptionsPayloadSchema,
 } from '../validator';
+import { buildVariantKey, cartesian, recomputeParent } from '../variants';
 import type { ActionState } from '@/types';
 
 // Get the latest products
@@ -66,10 +70,21 @@ export async function getSiteStats() {
   return { products, orders, users };
 }
 
-// Get single product by slug
+// Get single product by slug (with diversity: options + variants)
 export async function getProductBySlug(slug: string) {
   return await prisma.product.findFirst({
     where: { slug: slug },
+    include: {
+      options: {
+        orderBy: { sortOrder: 'asc' },
+        include: {
+          values: {
+            orderBy: { sortOrder: 'asc' },
+          },
+        },
+      },
+      variants: true,
+    },
   });
 }
 
@@ -417,10 +432,17 @@ export async function getAllProducts({
   };
 }
 
-// Get single product by id (admin)
+// Get single product by id (admin) — with diversity data
 export async function getProductById(productId: string) {
   const data = await prisma.product.findFirst({
     where: { id: productId },
+    include: {
+      options: {
+        orderBy: { sortOrder: 'asc' },
+        include: { values: { orderBy: { sortOrder: 'asc' } } },
+      },
+      variants: true,
+    },
   });
 
   return convertToPlainObject(data);
@@ -430,6 +452,10 @@ export async function getProductById(productId: string) {
 function productDataFromFormData(formData: FormData) {
   const imagesRaw = formData.get('images') as string | null;
   const banner = (formData.get('banner') as string | null)?.trim() || null;
+  const dim = (key: string) => {
+    const raw = (formData.get(key) as string | null)?.trim() || '';
+    return raw === '' ? null : raw;
+  };
 
   return {
     name: formData.get('name') as string,
@@ -447,7 +473,131 @@ function productDataFromFormData(formData: FormData) {
     isFeatured: formData.get('isFeatured') === 'on',
     banner,
     codAvailable: formData.get('codAvailable') === 'on',
+    lengthCm: dim('lengthCm'),
+    widthCm: dim('widthCm'),
+    heightCm: dim('heightCm'),
+    weightG: dim('weightG'),
   };
+}
+
+// Parse the diversity payloads from the admin form's hidden JSON inputs
+function diversityFromFormData(formData: FormData) {
+  const optionsRaw = formData.get('optionsJson') as string | null;
+  const variantsRaw = formData.get('variantsJson') as string | null;
+  if (!optionsRaw || !variantsRaw) return null;
+  if (optionsRaw === '[]' && variantsRaw === '[]') return null;
+  return productOptionsPayloadSchema.parse({
+    options: JSON.parse(optionsRaw),
+    variants: JSON.parse(variantsRaw),
+  });
+}
+
+type DiversityPayload = NonNullable<
+  ReturnType<typeof diversityFromFormData>
+>;
+
+/**
+ * Replace a product's options + variants transactionally and recompute the
+ * parent's derived price/compareAtPrice/stock from the variant rows.
+ * Keys are rebuilt server-side from the created value ids — the client
+ * cannot forge a combo signature.
+ */
+async function replaceProductDiversity(
+  tx: Prisma.TransactionClient,
+  productId: string,
+  diversity: DiversityPayload
+) {
+  await tx.productOption.deleteMany({ where: { productId } });
+  await tx.productVariant.deleteMany({ where: { productId } });
+
+  // Create options + values one level at a time (nested create cannot also
+  // include), remembering each created value's id by its index.
+  type CreatedValue = { id: string; idx: number; value: string; valueFa: string; hex: string | null };
+  const createdOptions: { optionId: string; nameFa: string; values: CreatedValue[] }[] = [];
+
+  for (const [optIdx, option] of diversity.options.entries()) {
+    const createdOption = await tx.productOption.create({
+      data: {
+        productId,
+        name: option.name,
+        nameFa: option.nameFa,
+        sortOrder: optIdx,
+      },
+    });
+    const createdValues: CreatedValue[] = [];
+    for (const [valIdx, v] of option.values.entries()) {
+      const createdValue = await tx.productOptionValue.create({
+        data: {
+          optionId: createdOption.id,
+          value: v.value,
+          valueFa: v.valueFa,
+          hex: v.hex ?? null,
+          sortOrder: valIdx,
+        },
+      });
+      createdValues.push({
+        id: createdValue.id,
+        idx: valIdx,
+        value: v.value,
+        valueFa: v.valueFa,
+        hex: v.hex ?? null,
+      });
+    }
+    createdOptions.push({ optionId: createdOption.id, nameFa: option.nameFa, values: createdValues });
+  }
+
+  // Recompute the combo keys from real value ids and build variant rows
+  const combos = cartesian(createdOptions.map((o) => o.values));
+  if (diversity.variants.length !== combos.length) {
+    throw new Error(
+      `Expected ${combos.length} variant rows, received ${diversity.variants.length}`
+    );
+  }
+
+  const seenKeys = new Set<string>();
+  const variantRows: { price: string; compareAtPrice: string | null; stock: number }[] = [];
+  for (const [comboIdx, combo] of combos.entries()) {
+    const key = buildVariantKey(combo.map((v) => v.id));
+    if (seenKeys.has(key)) throw new Error('Duplicate variant combination');
+    seenKeys.add(key);
+
+    const snapshot = combo.map((v, optIdx) => ({
+      optionId: createdOptions[optIdx].optionId,
+      optionFa: createdOptions[optIdx].nameFa,
+      valueId: v.id,
+      valueFa: v.valueFa,
+      hex: v.hex,
+    }));
+
+    const input = diversity.variants[comboIdx];
+    await tx.productVariant.create({
+      data: {
+        productId,
+        key,
+        price: input.price,
+        compareAtPrice: input.compareAtPrice,
+        stock: input.stock,
+        options: snapshot,
+        image: input.image ?? null,
+      },
+    });
+    variantRows.push({
+      price: input.price,
+      compareAtPrice: input.compareAtPrice,
+      stock: input.stock,
+    });
+  }
+
+  // Derived parent fields keep search/sort/carousels working without joins
+  const derived = recomputeParent(variantRows);
+  await tx.product.update({
+    where: { id: productId },
+    data: {
+      price: derived.price,
+      compareAtPrice: derived.compareAtPrice,
+      stock: derived.stock,
+    },
+  });
 }
 
 
@@ -492,13 +642,20 @@ export async function createProduct(
     const product = insertProductSchema.parse(productDataFromFormData(formData));
     const chain = await resolveCategoryChain(formData);
 
-    await prisma.product.create({
-      data: {
-        ...product,
-        categoryId: chain.categoryId,
-        subCategoryId: chain.subCategoryId,
-        subSubCategoryId: chain.subSubCategoryId,
-      },
+    const diversity = diversityFromFormData(formData);
+
+    await prisma.$transaction(async (tx) => {
+      const created = await tx.product.create({
+        data: {
+          ...product,
+          categoryId: chain.categoryId,
+          subCategoryId: chain.subCategoryId,
+          subSubCategoryId: chain.subSubCategoryId,
+        },
+      });
+      if (diversity) {
+        await replaceProductDiversity(tx as unknown as Prisma.TransactionClient, created.id, diversity);
+      }
     });
 
     return { success: true, message: await withActionMessage('productCreated') };
@@ -527,16 +684,25 @@ export async function updateProduct(
       throw new Error(await withActionMessage('productNotFound'));
 
     const chain = await resolveCategoryChain(formData);
+    const diversity = diversityFromFormData(formData);
 
-    await prisma.product.update({
-      where: { id: product.id },
-      data: {
-        ...product,
-        categoryId: chain.categoryId,
-        subCategoryId: chain.subCategoryId,
-        subSubCategoryId: chain.subSubCategoryId,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: product.id },
+        data: {
+          ...product,
+          categoryId: chain.categoryId,
+          subCategoryId: chain.subCategoryId,
+          subSubCategoryId: chain.subSubCategoryId,
+        },
+      });
+      if (diversity) {
+        await replaceProductDiversity(tx as unknown as Prisma.TransactionClient, product.id, diversity);
+      }
     });
+
+    revalidatePath(`/admin/products/${product.id}`);
+    revalidatePath('/admin/products');
 
     return { success: true, message: await withActionMessage('productUpdated') };
   } catch (error) {

@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import ProductPrice from '@/components/product/product-price';
 import ProductImages from '@/components/product/product-images';
 import AddToCart from '@/components/shared/product/add-to-cart';
+import VariantSelector from '@/components/shared/product/variant-selector';
 import FavoriteToggle from '@/components/shared/product/favorite-toggle';
 import StarRating from '@/components/shared/product/star-rating';
 import ReviewsSection from '@/components/shared/product/reviews-section';
@@ -53,8 +54,10 @@ export async function generateMetadata(props: {
 
 const ProductDetailsPage = async (props: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ variant?: string }>;
 }) => {
   const { slug } = await props.params;
+  const { variant: variantParam } = await props.searchParams;
   const locale = await getLocale();
   const t = await getTranslations('product');
   const tCommon = await getTranslations('common');
@@ -62,6 +65,47 @@ const ProductDetailsPage = async (props: {
 
   const product = await getProductBySlug(slug);
   if (!product) notFound();
+
+  const options = (product.options ?? []).map((o) => ({
+    id: o.id,
+    name: o.name,
+    nameFa: o.nameFa,
+    values: o.values.map((v) => ({
+      id: v.id,
+      value: v.value,
+      valueFa: v.valueFa,
+      hex: v.hex,
+    })),
+  }));
+  const variants = (product.variants ?? []).map((v) => ({
+    id: v.id,
+    key: v.key,
+    price: v.price.toString(),
+    compareAtPrice: v.compareAtPrice?.toString() ?? null,
+    stock: v.stock,
+    options: v.options as { optionFa: string; valueFa: string }[],
+    image: v.image,
+  }));
+  const hasVariants = options.length > 0 && variants.length > 0;
+
+  // Deep-link initial selection: ?variant=<id> resolves server-side so the
+  // first paint already shows that variant (no hydration flash)
+  const initialSelection: Record<string, string> = {};
+  if (variantParam) {
+    const target = variants.find((v) => v.id === variantParam);
+    if (target) {
+      for (const snap of target.options) {
+        const option = options.find((o) => o.nameFa === snap.optionFa);
+        const value = option?.values.find((v) => v.valueFa === snap.valueFa);
+        if (option && value) initialSelection[option.id] = value.id;
+      }
+    }
+  } else if (hasVariants) {
+    // Default to the first value of every option
+    for (const o of options) {
+      if (o.values[0]) initialSelection[o.id] = o.values[0].id;
+    }
+  }
 
   const discount = getDiscount(product.price, product.compareAtPrice);
 
@@ -161,49 +205,91 @@ const ProductDetailsPage = async (props: {
               {isFa ? product.descriptionFa : product.description}
             </p>
           </div>
+
+          {/* Physical properties (when provided) */}
+          {(product.lengthCm != null ||
+            product.widthCm != null ||
+            product.heightCm != null ||
+            product.weightG != null) && (
+            <div className='mt-6 space-y-1 text-sm text-muted-foreground'>
+              {(product.lengthCm != null ||
+                product.widthCm != null ||
+                product.heightCm != null) && (
+                <p>
+                  {t('dimensions')}:{' '}
+                  {formatNumberLocale(Number(product.lengthCm ?? 0), locale)} ×{' '}
+                  {formatNumberLocale(Number(product.widthCm ?? 0), locale)} ×{' '}
+                  {formatNumberLocale(Number(product.heightCm ?? 0), locale)}{' '}
+                  {tCommon('currency') === 'تومان' ? 'سانتی‌متر' : 'cm'}
+                </p>
+              )}
+              {product.weightG != null && (
+                <p>
+                  {t('weight')}:{' '}
+                  {formatNumberLocale(Number(product.weightG), locale)}{' '}
+                  {tCommon('currency') === 'تومان' ? 'گرم' : 'g'}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Action Column */}
         <div className='lg:col-span-1 min-w-0'>
-          <Card className='w-auto max-w-full overflow-hidden lg:sticky lg:top-24'>
-            <CardContent className='p-4 min-w-0'>
-              <div className="mb-2 flex justify-between">
-                <div>{t('details')}</div>
-                <div>
-                  <ProductPrice value={Number(product.price)} />
+          {hasVariants ? (
+            <VariantSelector
+              options={options}
+              variants={variants}
+              initialSelection={initialSelection}
+              productId={product.id}
+              productName={product.name}
+              nameFa={product.nameFa}
+              slug={product.slug}
+              defaultImage={product.images[0]}
+              cart={cart}
+              favorited={isFavorited}
+            />
+          ) : (
+            <Card className='w-auto max-w-full overflow-hidden lg:sticky lg:top-24'>
+              <CardContent className='p-4 min-w-0'>
+                <div className="mb-2 flex justify-between">
+                  <div>{t('details')}</div>
+                  <div>
+                    <ProductPrice value={Number(product.price)} />
+                  </div>
                 </div>
-              </div>
-              <div className="mb-2 flex justify-between">
-                <div>{t('status')}</div>
-                {product.stock > 0 ? (
-                  <Badge variant="outline">{t('inStock')}</Badge>
-                ) : (
-                  <Badge variant="destructive">{t('unavailable')}</Badge>
-                )}
-              </div>
-              {product.stock > 0 && (
-                <div className='mt-4 flex items-center gap-2'>
-                  <div className='flex-1'>
-                    <AddToCart
-                      cart={cart}
-                      item={{
-                        productId: product.id,
-                        name: product.name,
-                        nameFa: product.nameFa,
-                        slug: product.slug,
-                        price: product.price,
-                        image: product.images[0],
-                      }}
+                <div className="mb-2 flex justify-between">
+                  <div>{t('status')}</div>
+                  {product.stock > 0 ? (
+                    <Badge variant="outline">{t('inStock')}</Badge>
+                  ) : (
+                    <Badge variant="destructive">{t('unavailable')}</Badge>
+                  )}
+                </div>
+                {product.stock > 0 && (
+                  <div className='mt-4 flex items-center gap-2'>
+                    <div className='flex-1'>
+                      <AddToCart
+                        cart={cart}
+                        item={{
+                          productId: product.id,
+                          name: product.name,
+                          nameFa: product.nameFa,
+                          slug: product.slug,
+                          price: product.price,
+                          image: product.images[0],
+                        }}
+                      />
+                    </div>
+                    <FavoriteToggle
+                      productId={product.id}
+                      initialFavorited={isFavorited}
                     />
                   </div>
-                  <FavoriteToggle
-                    productId={product.id}
-                    initialFavorited={isFavorited}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 

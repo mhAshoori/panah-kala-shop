@@ -49,7 +49,7 @@ const CartTable = ({
         <div className='grid gap-6 lg:grid-cols-3 lg:items-start'>
           <div className='space-y-3 lg:col-span-2'>
             {cart.items.map((item) => (
-              <Card key={item.slug} size='sm'>
+              <Card key={`${item.productId}:${item.variantId ?? ''}`} size='sm'>
                 <CardContent className='flex flex-wrap items-center gap-4'>
                   <Link
                     href={`/product/${item.slug}`}
@@ -70,6 +70,11 @@ const CartTable = ({
                     >
                       {item.nameFa ?? item.name}
                     </Link>
+                    {item.variantLabel && (
+                      <p className='mt-0.5 text-xs text-muted-foreground'>
+                        {item.variantLabel}
+                      </p>
+                    )}
                     <p className='mt-1 text-sm text-muted-foreground'>
                       {formatNumberLocale(item.price, locale)}{' '}
                       <span className='text-xs'>{tc('currency')}</span>
@@ -83,7 +88,10 @@ const CartTable = ({
                       aria-label={t('remove')}
                       onClick={() =>
                         startTransition(async () => {
-                          const res = await removeItemFromCart(item.productId);
+                          const res = await removeItemFromCart(
+                            item.productId,
+                            item.variantId
+                          );
                           if (!res.success) {
                             toast.error(res.message);
                           }

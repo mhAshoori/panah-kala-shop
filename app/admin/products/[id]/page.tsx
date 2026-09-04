@@ -17,6 +17,30 @@ const UpdateProductPage = async (props: {
 
   if (!product) return notFound();
 
+  const options = (product.options ?? []).map((o: {
+    name: string;
+    nameFa: string;
+    values: { value: string; valueFa: string; hex: string | null }[];
+  }) => ({
+    name: o.name,
+    nameFa: o.nameFa,
+    values: o.values.map((v) => ({
+      value: v.value,
+      valueFa: v.valueFa,
+      hex: v.hex ?? '#888888',
+    })),
+  }));
+  const variants = (product.variants ?? []).map((v: {
+    price: string;
+    compareAtPrice: string | null;
+    stock: number;
+  }) => ({
+    key: '',
+    price: v.price,
+    compareAtPrice: v.compareAtPrice ?? '',
+    stock: String(v.stock),
+  }));
+
   return (
     <div className='max-w-5xl space-y-6'>
       <h1 className='h2-bold'>{t('editProduct')}</h1>
@@ -25,6 +49,8 @@ const UpdateProductPage = async (props: {
         product={product}
         productId={product.id}
         categories={categories}
+        options={options}
+        variants={variants}
       />
     </div>
   );
