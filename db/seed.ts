@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
-import sampleData from './sample-data';
+import sampleData, { type SampleProduct } from './sample-data';
+import { buildVariantKey, recomputeParent } from '../lib/variants';
 
 // Icon keys map to lucide icons in the category dock / grids
 const CATEGORY_ICONS: Record<string, string> = {
@@ -11,6 +12,8 @@ const CATEGORY_ICONS: Record<string, string> = {
   Cameras: 'camera',
   Monitors: 'monitor',
   Gaming: 'gamepad-2',
+  Stationery: 'pencil',
+  Bags: 'briefcase',
 };
 
 // Two-level tree: each main category gets subcategories
@@ -49,6 +52,19 @@ const SUBCATEGORY_NAMES: Record<string, { name: string; nameFa: string }[]> = {
     { name: 'Consoles', nameFa: 'کنسول بازی' },
     { name: 'Accessories', nameFa: 'لوازم جانبی گیمینگ' },
   ],
+  Stationery: [
+    { name: 'Pens', nameFa: 'خودکار' },
+    { name: 'Notebooks', nameFa: 'دفتر' },
+    { name: 'Pencils', nameFa: 'مداد' },
+    { name: 'Mechanical Pencils', nameFa: 'مداد نوکی' },
+    { name: 'Erasers', nameFa: 'پاک کن' },
+    { name: 'Pencil Cases', nameFa: 'جامدادی' },
+    { name: 'Sharpeners', nameFa: 'مداد تراش' },
+    { name: 'Sticky Notes', nameFa: 'استیکی نوت' },
+  ],
+  Bags: [
+    { name: 'Backpacks', nameFa: 'کوله پشتی' },
+  ],
 };
 
 async function main() {
@@ -65,32 +81,32 @@ async function main() {
     await prisma.product.deleteMany();
     await prisma.category.deleteMany();
 
-    // Main categories (curated, with icons + display order)
-    const distinctCategories = new Map<
-      string,
-      { name: string; nameFa: string }
-    >();
-    for (const p of sampleData.products) {
-      if (!distinctCategories.has(p.category)) {
-        distinctCategories.set(p.category, {
-          name: p.category,
-          nameFa: p.categoryFa,
-        });
-      }
-    }
-
-    const mainCategories = [...distinctCategories.entries()].map(
-      ([name, c], index) => ({
-        slug: name
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/(^-|-$)/g, ''),
-        name,
-        nameFa: c.nameFa,
-        icon: CATEGORY_ICONS[name] ?? 'package',
-        sortOrder: index,
-      })
-    );
+    // Main categories: every main in the SUBCATEGORY_NAMES tree is created
+    // (electronics stay alongside the new Stationery/Bags), ordered by the
+    // tree, with fa names from the products or the fallback map.
+    const mainFaByName: Record<string, string> = {
+      'Mobile Phones': 'گوشی موبایل',
+      Laptops: 'لپ‌تاپ',
+      Audio: 'صوتی',
+      Wearables: 'پوشیدنی',
+      Tablets: 'تبلت',
+      Cameras: 'دوربین',
+      Monitors: 'مانیتور',
+      Gaming: 'کنسول بازی',
+      Stationery: 'نوشت‌افزار',
+      Bags: 'کیف',
+    };
+    const mainNames = Object.keys(SUBCATEGORY_NAMES);
+    const mainCategories = mainNames.map((name, index) => ({
+      slug: name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, ''),
+      name,
+      nameFa: mainFaByName[name] ?? name,
+      icon: CATEGORY_ICONS[name] ?? 'package',
+      sortOrder: index,
+    }));
 
     await prisma.category.createMany({ data: mainCategories });
     const mainRows = await prisma.category.findMany({
@@ -136,18 +152,105 @@ async function main() {
       }
     }
 
-    // Products attach to a subcategory of their main category
-    await prisma.product.createMany({
-      data: sampleData.products.map((p, index) => ({
-        ...p,
-        categoryId: mainIdByName.get(p.category) ?? null,
-        subCategoryId:
-          firstSubIdByMain.get(p.category) ??
-          mainIdByName.get(p.category) ??
-          null,
-        codAvailable: index < 4,
-      })),
-    });
+    // Subcategory lookup: "MainName/SubName" -> id (products pick exactly)
+    const subIdByPath = new Map<string, string>();
+    for (const sub of subRows) {
+      const main = mainRows.find((m) => m.id === sub.parentId)!;
+      subIdByPath.set(`${main.name}/${sub.name}`, sub.id);
+    }
+
+    // Products attach to their subcategory; option/value/variant rows are
+    // created per product, then the parent price/stock are derived.
+    for (const [index, p] of sampleData.products.entries()) {
+      // subCategory is seed-only routing info, not a Product column
+      const { subCategory: _subCategory, ...productData } = p;
+      const product = await prisma.product.create({
+        data: {
+          ...productData,
+          // Required by the schema; overwritten by the derived values below
+          stock: 0,
+          price: '0',
+          categoryId: mainIdByName.get(p.category) ?? null,
+          subCategoryId:
+            subIdByPath.get(`${p.category}/${p.subCategory}`) ??
+            mainIdByName.get(p.category) ??
+            null,
+          codAvailable: p.codAvailable ?? index < 4,
+          options: undefined,
+        },
+      });
+
+      const variantRows: { price: string; compareAtPrice: string | null; stock: number }[] = [];
+      for (const [optIdx, option] of (p.options ?? []).entries()) {
+        const createdOption = await prisma.productOption.create({
+          data: {
+            productId: product.id,
+            name: option.name,
+            nameFa: option.nameFa,
+            sortOrder: optIdx,
+          },
+        });
+        const createdValues: { id: string; valueFa: string; hex: string | null }[] = [];
+        for (const [valIdx, v] of option.values.entries()) {
+          const createdValue = await prisma.productOptionValue.create({
+            data: {
+              optionId: createdOption.id,
+              value: v.value,
+              valueFa: v.valueFa,
+              hex: v.hex ?? null,
+              sortOrder: valIdx,
+            },
+          });
+          createdValues.push({ id: createdValue.id, valueFa: v.valueFa, hex: v.hex ?? null });
+        }
+
+        // One variant row per value (single-option products in this catalog)
+        const variantInputs = option.variants;
+        if (variantInputs.length !== createdValues.length) {
+          throw new Error(
+            `Seed variant mismatch for ${p.slug}: ${variantInputs.length} inputs vs ${createdValues.length} values`
+          );
+        }
+        for (const [i, v] of createdValues.entries()) {
+          const input = variantInputs[i];
+          await prisma.productVariant.create({
+            data: {
+              productId: product.id,
+              key: buildVariantKey([v.id]),
+              price: input.price,
+              compareAtPrice: input.compareAtPrice ?? null,
+              stock: input.stock,
+              options: [
+                {
+                  optionId: createdOption.id,
+                  optionFa: option.nameFa,
+                  valueId: v.id,
+                  valueFa: v.valueFa,
+                  hex: v.hex,
+                },
+              ],
+            },
+          });
+          variantRows.push({
+            price: input.price,
+            compareAtPrice: input.compareAtPrice ?? null,
+            stock: input.stock,
+          });
+        }
+      }
+
+      if (variantRows.length > 0) {
+        const derived = recomputeParent(variantRows);
+        await prisma.product.update({
+          where: { id: product.id },
+          data: {
+            price: derived.price,
+            compareAtPrice: derived.compareAtPrice,
+            stock: derived.stock,
+          },
+        });
+      }
+    }
 
     await prisma.user.createMany({ data: sampleData.users });
 
