@@ -220,6 +220,7 @@ async function main() {
               price: input.price,
               compareAtPrice: input.compareAtPrice ?? null,
               stock: input.stock,
+              image: input.image ?? null,
               options: [
                 {
                   optionId: createdOption.id,
