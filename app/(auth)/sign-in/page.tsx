@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
 import { auth } from '@/auth';
+import { getValidUserId } from '@/lib/auth-helpers';
 import { redirect } from 'next/navigation';
 import {
   Card,
@@ -30,8 +31,11 @@ const SignInPage = async (props: {
     process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
   );
 
+  // Redirect signed-in users only when the session user still exists in the
+  // DB — a stale JWT (post-reseed) must fall through to the sign-in form
+  // instead of bouncing back and forth with guarded pages.
   const session = await auth();
-  if (session) redirect(cb);
+  if (session && (await getValidUserId())) redirect(cb);
 
   const t = await getTranslations('auth');
 

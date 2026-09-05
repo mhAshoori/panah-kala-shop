@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
 import { auth } from '@/auth';
+import { getValidUserId } from '@/lib/auth-helpers';
 import { redirect } from 'next/navigation';
 import {
   Card,
@@ -30,8 +31,10 @@ const SignUpPage = async (props: {
     process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
   );
 
+  // Same stale-JWT guard as the sign-in page: only treat the visitor as
+  // signed in when the session user still exists in the DB.
   const session = await auth();
-  if (session) redirect(cb);
+  if (session && (await getValidUserId())) redirect(cb);
 
   const t = await getTranslations('auth');
 
