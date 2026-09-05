@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowLeft } from 'lucide-react';
 
 import { getCategoriesWithCount } from '@/lib/actions/product.actions';
+import { filterVisibleCategories } from '@/lib/category-visibility';
 import { getCategoryIcon } from '@/components/shared/category/category-icons';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
@@ -21,9 +22,8 @@ const CategoryGrid = async ({ title: titleOverride }: { title?: string }) => {
   const t = await getTranslations('home');
   const locale = await getLocale();
   const isFa = locale === 'fa';
-  const categories = (await getCategoriesWithCount()).filter(
-    (c) => !c.parentId
-  );
+  const categories = filterVisibleCategories(await getCategoriesWithCount())
+    .filter((c) => !c.parentId);
 
   if (categories.length === 0) return null;
 

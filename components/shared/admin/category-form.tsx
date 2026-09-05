@@ -112,6 +112,7 @@ const CategoryForm = ({
     icon: string;
     sortOrder: number;
     parentId: string | null;
+    hideEmpty: boolean;
   };
   /** Main categories available as parents (exclude self on update) */
   parentOptions?: { id: string; nameFa: string }[];
@@ -121,6 +122,9 @@ const CategoryForm = ({
   const router = useRouter();
   const [parentId, setParentId] = useState<string>(category?.parentId ?? '');
   const [icon, setIcon] = useState<string>(category?.icon ?? 'package');
+  const [hideEmpty, setHideEmpty] = useState<boolean>(
+    category?.hideEmpty ?? true
+  );
 
   const action = type === 'Create' ? createCategory : updateCategory;
   const [state, formAction] = useActionState(action, {
@@ -228,6 +232,22 @@ const CategoryForm = ({
             />
           </Field>
         </div>
+
+        <Field>
+          <label className='flex items-center gap-2 text-sm font-normal'>
+            <input
+              type='checkbox'
+              name='hideEmpty'
+              checked={hideEmpty}
+              onChange={(e) => setHideEmpty(e.target.checked)}
+              className='h-4 w-4 accent-primary'
+            />
+            {t('hideEmpty')}
+            <span className='text-xs text-muted-foreground'>
+              {t('hideEmptyHint')}
+            </span>
+          </label>
+        </Field>
       </FieldGroup>
 
       <SubmitButton label={tCommon('save')} />

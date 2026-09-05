@@ -31,6 +31,7 @@ const UpdateCategoryPage = async (props: {
           icon: category.icon,
           sortOrder: category.sortOrder,
           parentId: category.parentId,
+          hideEmpty: category.hideEmpty,
         }}
         parentOptions={parentOptions}
       />

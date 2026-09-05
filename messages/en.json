@@ -462,7 +462,10 @@
     "fCta1": "Banner 1 button",
     "fCta2": "Banner 2 button",
     "fLink1": "Banner 1 link",
-    "fLink2": "Banner 2 link"
+    "fLink2": "Banner 2 link",
+    "hideEmpty": "Hide when empty",
+    "hideEmptyHint": "(hidden on the storefront until it has products)",
+    "hiddenInStore": "hidden in store"
   },
   "assistant": {
     "title": "Panah Kala Assistant",

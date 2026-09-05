@@ -147,3 +147,18 @@ describe('recomputeParent', () => {
     expect(recomputeParent([])).toEqual({ price: '0', compareAtPrice: null, stock: 0 });
   });
 });
+
+describe('filterVisibleCategories (via product.actions)', () => {
+  it('drops empty categories with hideEmpty, keeps non-empty and opted-out', async () => {
+    const { filterVisibleCategories } = await import('@/lib/category-visibility');
+    const cats = [
+      { id: 'a', parentId: null, hideEmpty: true, count: 3 },
+      { id: 'b', parentId: null, hideEmpty: true, count: 0 },
+      { id: 'c', parentId: null, hideEmpty: false, count: 0 },
+      { id: 'd', parentId: 'a', hideEmpty: true, count: 0 },
+      { id: 'e', parentId: 'b', hideEmpty: true, count: 0 },
+    ];
+    const out = filterVisibleCategories(cats);
+    expect(out.map((c) => c.id).sort()).toEqual(['a', 'c', 'd']);
+  });
+});

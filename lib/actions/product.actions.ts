@@ -13,6 +13,7 @@ import {
   productOptionsPayloadSchema,
 } from '../validator';
 import { buildVariantKey, cartesian, recomputeParent } from '../variants';
+import { filterVisibleCategories } from '../category-visibility';
 import type { ActionState } from '@/types';
 
 // Get the latest products
@@ -142,6 +143,7 @@ export async function getCategoriesWithCount() {
     icon: c.icon,
     sortOrder: c.sortOrder,
     parentId: c.parentId as string | null,
+    hideEmpty: c.hideEmpty as boolean,
     count:
       c._count.mainProducts + c._count.subProducts + c._count.subSubProducts,
   }));
@@ -160,7 +162,7 @@ export async function getCategoriesWithCount() {
 
 // Full category tree (mains with nested children) for the mega menu & forms
 export async function getCategoryTree(): Promise<CategoryNode[]> {
-  const flat = await getCategoriesWithCount();
+  const flat = filterVisibleCategories(await getCategoriesWithCount());
 
   const nodes = new Map<string, CategoryNode>();
   for (const c of flat) {

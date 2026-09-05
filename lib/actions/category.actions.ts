@@ -15,6 +15,9 @@ const categoryFormSchema = z.object({
   slug: z.string().min(2, 'Slug must be at least 2 characters'),
   icon: z.string().min(2),
   sortOrder: z.coerce.number().int().min(0),
+  // Auto-hide on the storefront while the category has no products
+  // (the action converts the checkbox value before parsing)
+  hideEmpty: z.boolean().default(true),
   parentId: z.string().uuid().nullable().optional(),
 });
 
@@ -55,6 +58,7 @@ export async function getAllCategoriesAdmin() {
     icon: string;
     sortOrder: number;
     parentId: string | null;
+    hideEmpty: boolean;
     parent?: { name: string; nameFa: string } | null;
     _count: {
       mainProducts: number;
@@ -71,6 +75,7 @@ export async function getAllCategoriesAdmin() {
     icon: c.icon,
     sortOrder: c.sortOrder,
     parentId: c.parentId as string | null,
+    hideEmpty: c.hideEmpty as boolean,
     parentName: c.parent?.nameFa ?? null,
     count:
       c._count.mainProducts + c._count.subProducts + c._count.subSubProducts,
@@ -93,6 +98,7 @@ export async function createCategory(
         slugifyCategory(formData.get('name') as string),
       icon: (formData.get('icon') as string) || 'package',
       sortOrder: formData.get('sortOrder') ?? 0,
+      hideEmpty: formData.get('hideEmpty') === 'on',
     });
 
     const exists = await prisma.category.findUnique({
@@ -129,6 +135,7 @@ export async function updateCategory(
         slugifyCategory(formData.get('name') as string),
       icon: (formData.get('icon') as string) || 'package',
       sortOrder: formData.get('sortOrder') ?? 0,
+      hideEmpty: formData.get('hideEmpty') === 'on',
     });
     const id = formData.get('id') as string;
 

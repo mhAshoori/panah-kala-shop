@@ -7,6 +7,7 @@ import SortDropdown from '@/components/shared/product/sort-dropdown';
 import Pagination from '@/components/shared/pagination';
 import SearchBar from '@/components/shared/header/search';
 import { getFilteredProducts, getCategoriesWithCount } from '@/lib/actions/product.actions';
+import { filterVisibleCategories } from '@/lib/category-visibility';
 import { formatNumberLocale } from '@/lib/persian';
 import { Link } from '@/i18n/navigation';
 
@@ -79,9 +80,8 @@ const SearchPage = async (props: {
     page,
   });
 
-  const categories = (await getCategoriesWithCount()).filter(
-    (c) => !c.parentId
-  );
+  const categories = filterVisibleCategories(await getCategoriesWithCount())
+    .filter((c) => !c.parentId);
   const priceLabel = (range: string) => {
     if (range === 'all') return t('priceAny');
     const [minRaw, maxRaw] = range.split('-');

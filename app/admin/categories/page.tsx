@@ -47,6 +47,8 @@ const AdminCategoriesPage = async () => {
   const tCommon = await getTranslations('common');
 
   const categories = sortHierarchically(await getAllCategoriesAdmin());
+  const hiddenInStore = (c: { hideEmpty: boolean; count: number }) =>
+    c.hideEmpty && c.count === 0;
 
   return (
     <div className='space-y-4'>
@@ -113,7 +115,22 @@ const AdminCategoriesPage = async () => {
                         <Icon className='h-4 w-4' aria-hidden='true' />
                       </span>
                     </TableCell>
-                    <TableCell>{c.count}</TableCell>
+                    <TableCell>
+                      <span
+                        className={
+                          hiddenInStore(c)
+                            ? 'text-muted-foreground'
+                            : undefined
+                        }
+                      >
+                        {c.count}
+                      </span>
+                      {hiddenInStore(c) && (
+                        <span className='ms-2 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'>
+                          {t('hiddenInStore')}
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell className='flex justify-end gap-1'>
                       <Button asChild size='sm' variant='outline'>
                         <Link href={`/admin/categories/${c.id}`}>{t('edit')}</Link>
