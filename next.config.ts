@@ -22,8 +22,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   trailingSlash: false,
-  // VPS deploy: `.next/standalone` bundles a minimal server + pruned deps
-  output: 'standalone',
+  // Standalone server.js for the VPS deploy (docs/DEPLOYMENT.md). Vercel
+  // builds the app itself — standalone there breaks output tracing
+  // (missing .next/next-server.js.nft.json) so it stays off on Vercel.
+  ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**" },
