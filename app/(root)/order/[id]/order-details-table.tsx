@@ -123,7 +123,7 @@ const OrderDetailsTable = ({
                 </TableHeader>
                 <TableBody>
                   {orderItems.map((item) => (
-                    <TableRow key={item.slug}>
+                    <TableRow key={`${item.slug}-${item.variantId ?? 'base'}`}>
                       <TableCell>
                         <Link
                           href={`/product/${item.slug}`}

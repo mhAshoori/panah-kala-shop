@@ -116,7 +116,7 @@ const PlaceOrderPage = async () => {
                 </TableHeader>
                 <TableBody>
                   {cart.items.map((item) => (
-                    <TableRow key={item.slug}>
+                    <TableRow key={`${item.slug}-${item.variantId ?? 'base'}`}>
                       <TableCell>
                         <a
                           href={`/product/${item.slug}`}
