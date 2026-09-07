@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { Loader2, Save } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -13,11 +13,22 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Field,
   FieldGroup,
   FieldLabel,
 } from '@/components/ui/field';
-import { updateHomeBlock } from '@/lib/actions/home.actions';
+import { updateHomeBlock, moveHomeBlock } from '@/lib/actions/home.actions';
 import ImageUploadButton from '@/components/shared/image-upload';
 import { cn } from '@/lib/utils';
 
@@ -66,12 +77,15 @@ const HomeBlockEditor = ({
   fields,
   initialEnabled,
   initialData,
+  reorderable = false,
 }: {
   blockKey: string;
   title: string;
   fields: BlockField[];
   initialEnabled: boolean;
   initialData: BlockData;
+  /** Homepage blocks only: show up/down reorder buttons */
+  reorderable?: boolean;
 }) => {
   const t = useTranslations('admin');
   const tCommon = useTranslations('common');
@@ -79,6 +93,12 @@ const HomeBlockEditor = ({
   const [enabled, setEnabled] = useState(initialEnabled);
   const [data, setData] = useState<BlockData>(initialData);
   const [isPending, startTransition] = useTransition();
+  const [isMoving, startMove] = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const isDirty =
+    enabled !== initialEnabled ||
+    JSON.stringify(data) !== JSON.stringify(initialData);
 
   const save = () => {
     startTransition(async () => {
@@ -90,6 +110,26 @@ const HomeBlockEditor = ({
       if (res.success) {
         toast.success(res.message);
       } else {
+        toast.error(res.message);
+      }
+    });
+  };
+
+  // Revert to the values the page loaded with
+  const discard = () => {
+    setEnabled(initialEnabled);
+    setData(initialData);
+    setConfirmOpen(false);
+    toast.info(tCommon('changesDiscarded'));
+  };
+
+  const move = (direction: 'up' | 'down') => {
+    startMove(async () => {
+      const res = await moveHomeBlock(blockKey, direction);
+      // 'noop' = block already at the top/bottom — nothing to show
+      if (res.success && res.message !== 'noop') {
+        toast.success(res.message);
+      } else if (!res.success) {
         toast.error(res.message);
       }
     });
@@ -183,13 +223,45 @@ const HomeBlockEditor = ({
       <CardContent className='space-y-4 p-4'>
         <div className='flex items-center justify-between'>
           <h2 className='font-semibold'>{title}</h2>
-          <Label className='flex items-center gap-2 text-sm font-normal'>
-            <Checkbox
-              checked={enabled}
-              onCheckedChange={(checked) => setEnabled(checked === true)}
-            />
-            {t('blockEnabled')}
-          </Label>
+          <div className='flex items-center gap-2'>
+            {reorderable && (
+              <div className='flex items-center'>
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className='h-7 w-7'
+                  aria-label={t('moveUp')}
+                  disabled={isMoving}
+                  onClick={() => move('up')}
+                >
+                  {isMoving ? (
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                  ) : (
+                    <ChevronUp className='h-4 w-4' />
+                  )}
+                </Button>
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className='h-7 w-7'
+                  aria-label={t('moveDown')}
+                  disabled={isMoving}
+                  onClick={() => move('down')}
+                >
+                  <ChevronDown className='h-4 w-4' />
+                </Button>
+              </div>
+            )}
+            <Label className='flex items-center gap-2 text-sm font-normal'>
+              <Checkbox
+                checked={enabled}
+                onCheckedChange={(checked) => setEnabled(checked === true)}
+              />
+              {t('blockEnabled')}
+            </Label>
+          </div>
         </div>
 
         <FieldGroup>
@@ -226,14 +298,54 @@ const HomeBlockEditor = ({
           ))}
         </FieldGroup>
 
-        <Button onClick={save} disabled={isPending}>
-          {isPending ? (
-            <Loader2 className='h-4 w-4 animate-spin' />
+        <div className='flex flex-wrap items-center gap-2'>
+          {isDirty ? (
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+              <AlertDialogTrigger asChild>
+                <Button disabled={isPending}>
+                  {isPending ? (
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                  ) : (
+                    <Save className='h-4 w-4' />
+                  )}
+                  {tCommonSave}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('confirmSave')}</AlertDialogTitle>
+                  <AlertDialogDescription>{t('unsavedConfirm')}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      setConfirmOpen(false);
+                      save();
+                    }}
+                  >
+                    {tCommon('save')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           ) : (
-            <Save className='h-4 w-4' />
+            <Button onClick={save} disabled={isPending}>
+              {isPending ? (
+                <Loader2 className='h-4 w-4 animate-spin' />
+              ) : (
+                <Save className='h-4 w-4' />
+              )}
+              {tCommonSave}
+            </Button>
           )}
-          {tCommonSave}
-        </Button>
+
+          {isDirty && (
+            <Button variant='outline' onClick={discard}>
+              {t('discardChanges')}
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

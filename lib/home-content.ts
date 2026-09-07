@@ -121,6 +121,9 @@ export type SiteMeta = {
   robotsExtraDisallow: string;
   /** Emergency maintenance switch: whole site noindex + robots disallow-all */
   noindex: boolean;
+  /** Announcement strip above the header (empty text = hidden) */
+  promoText: LocalizedText;
+  promoLink: string;
 };
 
 export const DEFAULT_SITE_META_NOINDEX = false;
@@ -156,6 +159,8 @@ export const DEFAULT_SITE_META: SiteMeta = {
   googleVerification: '',
   robotsExtraDisallow: '',
   noindex: DEFAULT_SITE_META_NOINDEX,
+  promoText: { fa: '', en: '' },
+  promoLink: '/search',
 };
 
 /** Defaults mirror the current i18n strings so the homepage works with an
@@ -312,6 +317,30 @@ export const getHomeConfig = cache(async (): Promise<HomeBlocks> => {
   }
 
   return config;
+});
+
+/**
+ * Storefront render order for the homepage blocks. DB `position` (lower
+ * first) wins; blocks without a stored position keep the default sequence.
+ */
+export const getHomeBlockOrder = cache(async (): Promise<HomeBlockKey[]> => {
+  try {
+    const rows = await prisma.homeBlock.findMany({
+      select: { key: true, position: true },
+    });
+    const positions = new Map<string, number>();
+    for (const r of rows) {
+      if ((HOME_BLOCK_KEYS as readonly string[]).includes(r.key)) {
+        positions.set(r.key, r.position ?? Infinity);
+      }
+    }
+    if (positions.size === 0) return [...HOME_BLOCK_KEYS];
+    return [...HOME_BLOCK_KEYS].sort(
+      (a, b) => (positions.get(a) ?? Infinity) - (positions.get(b) ?? Infinity)
+    ) as HomeBlockKey[];
+  } catch {
+    return [...HOME_BLOCK_KEYS];
+  }
 });
 
 /** Contact-page content — admin-editable, env/default fallbacks. */

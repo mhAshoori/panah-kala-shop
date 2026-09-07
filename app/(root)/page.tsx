@@ -18,7 +18,7 @@ import {
   getSiteStats,
   getProductById,
 } from '@/lib/actions/product.actions';
-import { getHomeConfig } from '@/lib/home-content';
+import { getHomeConfig, getHomeBlockOrder } from '@/lib/home-content';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 
@@ -35,7 +35,10 @@ function pickText(
 const HomePage = async () => {
   const locale = await getLocale();
   const t = await getTranslations('home');
-  const config = await getHomeConfig();
+  const [config, blockOrder] = await Promise.all([
+    getHomeConfig(),
+    getHomeBlockOrder(),
+  ]);
 
   const [latestProducts, featuredProducts, bestSellers, stats] = await Promise.all([
     getLatestProducts(),
@@ -51,31 +54,31 @@ const HomePage = async () => {
         | null)
     : (featuredProducts.find((p) => p.banner) ?? featuredProducts[0]);
 
-  return (
-    <div className='space-y-12'>
-      {/* Hero */}
-      {config.hero.enabled && (
-        <Hero
-          image={config.hero.image}
-          badge={config.hero.badge}
-          title={config.hero.title}
-          subtitle={config.hero.subtitle}
-          cta={config.hero.cta}
-          link={config.hero.link}
-        />
-      )}
+  // One renderer per admin-editable block key, cycled in the saved order
+  const blocks: Record<string, React.ReactNode> = {
+    hero: config.hero.enabled ? (
+      <Hero
+        key='hero'
+        image={config.hero.image}
+        badge={config.hero.badge}
+        title={config.hero.title}
+        subtitle={config.hero.subtitle}
+        cta={config.hero.cta}
+        link={config.hero.link}
+      />
+    ) : null,
 
-      {/* Feature highlights */}
-      {config.iconBoxes.enabled && <IconBoxes items={config.iconBoxes.items} />}
+    iconBoxes: config.iconBoxes.enabled ? (
+      <IconBoxes key='iconBoxes' items={config.iconBoxes.items} />
+    ) : null,
 
-      {/* Animated counters */}
-      {config.stats.enabled && (
-        <StatsStrip stats={stats} labels={config.stats.labels} />
-      )}
+    stats: config.stats.enabled ? (
+      <StatsStrip key='stats' stats={stats} labels={config.stats.labels} />
+    ) : null,
 
-      {/* Deal of the day */}
-      {config.deal.enabled && dealProduct && (
-        <section>
+    deal:
+      config.deal.enabled && dealProduct ? (
+        <section key='deal'>
           <div className='relative overflow-hidden rounded-2xl border'>
             <Image
               src={dealProduct.banner ?? '/images/banner-1.webp'}
@@ -110,98 +113,88 @@ const HomePage = async () => {
             </div>
           </div>
         </section>
-      )}
+      ) : null,
 
-      {/* Categories */}
-      {config.categoryGrid.enabled && (
-        <CategoryGrid title={pickText(config.categoryGrid.title, locale, t('shopByCategory'))} />
-      )}
+    categoryGrid: config.categoryGrid.enabled ? (
+      <CategoryGrid
+        key='categoryGrid'
+        title={pickText(config.categoryGrid.title, locale, t('shopByCategory'))}
+      />
+    ) : null,
 
-      {/* Promo banners */}
-      {config.promoBanners.enabled && (
-        <section className='grid gap-4 md:grid-cols-2'>
-          {config.promoBanners.banners.map((banner, i) => {
-            const title = pickText(banner.title, locale, '');
-            if (!banner.image || !title) return null;
-            return (
-              <Link
-                key={i}
-                href={banner.link || '/search'}
-                className='group relative block overflow-hidden rounded-2xl border'
-              >
-                <Image
-                  src={banner.image}
-                  alt={title}
-                  width={960}
-                  height={340}
-                  className='h-[220px] w-full object-cover transition-transform duration-500 group-hover:scale-105'
-                />
-                <div className='absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent rtl:bg-gradient-to-tl' />
-                <div className='absolute inset-x-0 bottom-0 p-5'>
-                  <h3 className='text-lg font-bold'>{title}</h3>
-                  <p className='mt-1 text-xs text-muted-foreground'>
-                    {pickText(banner.subtitle, locale, '')}
-                  </p>
-                  <span className='mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary'>
-                    {pickText(banner.cta, locale, t('shopNow'))}
-                    <ArrowLeft className='h-4 w-4 rtl:hidden' />
-                    <ArrowRight className='h-4 w-4 ltr:hidden rtl:-scale-x-100' />
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
-        </section>
-      )}
+    promoBanners: config.promoBanners.enabled ? (
+      <section key='promoBanners' className='grid gap-4 md:grid-cols-2'>
+        {config.promoBanners.banners.map((banner, i) => {
+          const title = pickText(banner.title, locale, '');
+          if (!banner.image || !title) return null;
+          return (
+            <Link
+              key={i}
+              href={banner.link || '/search'}
+              className='group relative block overflow-hidden rounded-2xl border'
+            >
+              <Image
+                src={banner.image}
+                alt={title}
+                width={960}
+                height={340}
+                className='h-[220px] w-full object-cover transition-transform duration-500 group-hover:scale-105'
+              />
+              <div className='absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent rtl:bg-gradient-to-tl' />
+              <div className='absolute inset-x-0 bottom-0 p-5'>
+                <h3 className='text-lg font-bold'>{title}</h3>
+                <p className='mt-1 text-xs text-muted-foreground'>
+                  {pickText(banner.subtitle, locale, '')}
+                </p>
+                <span className='mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary'>
+                  {pickText(banner.cta, locale, t('shopNow'))}
+                  <ArrowLeft className='h-4 w-4 rtl:hidden' />
+                  <ArrowRight className='h-4 w-4 ltr:hidden rtl:-scale-x-100' />
+                </span>
+              </div>
+            </Link>
+          );
+        })}
+      </section>
+    ) : null,
 
-      {/* Latest products (carousel with pagination dots) */}
-      {config.latest.enabled && (
+    latest: config.latest.enabled ? (
+      <ProductCarousel
+        key='latest'
+        title={pickText(config.latest.title, locale, t('latestProducts'))}
+        action={
+          <Button asChild variant='ghost' size='sm'>
+            <Link href='/search'>{t('viewAll')}</Link>
+          </Button>
+        }
+      >
+        {latestProducts.slice(0, config.latest.limit).map((p) => (
+          <ProductCard key={p.slug} product={p} />
+        ))}
+      </ProductCarousel>
+    ) : null,
+
+    featured: config.featured.enabled ? (
+      <ProductCarousel
+        key='featured'
+        title={pickText(config.featured.title, locale, t('featuredProducts'))}
+        action={
+          <Button asChild variant='ghost' size='sm'>
+            <Link href='/search'>{t('viewAll')}</Link>
+          </Button>
+        }
+      >
+        {featuredProducts.slice(0, config.featured.limit).map((p) => (
+          <ProductCard key={p.slug} product={p} />
+        ))}
+      </ProductCarousel>
+    ) : null,
+
+    bestSellers:
+      config.bestSellers.enabled && bestSellers.length > 0 ? (
         <ProductCarousel
-          title={pickText(
-            config.latest.title,
-            locale,
-            t('latestProducts')
-          )}
-          action={
-            <Button asChild variant='ghost' size='sm'>
-              <Link href='/search'>{t('viewAll')}</Link>
-            </Button>
-          }
-        >
-          {latestProducts.slice(0, config.latest.limit).map((p) => (
-            <ProductCard key={p.slug} product={p} />
-          ))}
-        </ProductCarousel>
-      )}
-
-      {/* Featured products (carousel with pagination dots) */}
-      {config.featured.enabled && (
-        <ProductCarousel
-          title={pickText(
-            config.featured.title,
-            locale,
-            t('featuredProducts')
-          )}
-          action={
-            <Button asChild variant='ghost' size='sm'>
-              <Link href='/search'>{t('viewAll')}</Link>
-            </Button>
-          }
-        >
-          {featuredProducts.slice(0, config.featured.limit).map((p) => (
-            <ProductCard key={p.slug} product={p} />
-          ))}
-        </ProductCarousel>
-      )}
-
-      {/* Best sellers */}
-      {config.bestSellers.enabled && bestSellers.length > 0 && (
-        <ProductCarousel
-          title={pickText(
-            config.bestSellers.title,
-            locale,
-            t('featuredProducts')
-          )}
+          key='bestSellers'
+          title={pickText(config.bestSellers.title, locale, t('featuredProducts'))}
           action={
             <Button asChild variant='ghost' size='sm'>
               <Link href='/search'>{t('viewAll')}</Link>
@@ -212,24 +205,29 @@ const HomePage = async () => {
             <ProductCard key={p.slug} product={p} />
           ))}
         </ProductCarousel>
-      )}
+      ) : null,
 
-      {/* Brands marquee */}
-      {config.brands.enabled && (
-        <BrandMarquee
-          title={pickText(config.brands.title, locale, t('brandsTitle'))}
-        />
-      )}
+    brands: config.brands.enabled ? (
+      <BrandMarquee
+        key='brands'
+        title={pickText(config.brands.title, locale, t('brandsTitle'))}
+      />
+    ) : null,
 
-      {/* Support CTA */}
-      {config.support.enabled && (
-        <SupportCta
-          title={config.support.title}
-          desc={config.support.desc}
-          cta={config.support.cta}
-          link={config.support.link}
-        />
-      )}
+    support: config.support.enabled ? (
+      <SupportCta
+        key='support'
+        title={config.support.title}
+        desc={config.support.desc}
+        cta={config.support.cta}
+        link={config.support.link}
+      />
+    ) : null,
+  };
+
+  return (
+    <div className='space-y-12'>
+      {blockOrder.map((key) => blocks[key] ?? null)}
 
       {/* View all */}
       <div className='flex justify-center'>

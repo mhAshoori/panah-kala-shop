@@ -49,6 +49,7 @@ const AdminHomepagePage = async () => {
       <HomeBlockEditor
         blockKey='hero'
         title={t('blockHero')}
+        reorderable
         initialEnabled={config.hero.enabled}
         initialData={config.hero as unknown as Record<string, unknown>}
         fields={[
@@ -64,6 +65,7 @@ const AdminHomepagePage = async () => {
       {/* Icon boxes */}
       <HomeBlockEditor
         blockKey='iconBoxes'
+        reorderable
         title={t('blockIconBoxes')}
         initialEnabled={config.iconBoxes.enabled}
         initialData={config.iconBoxes as unknown as Record<string, unknown>}
@@ -77,6 +79,7 @@ const AdminHomepagePage = async () => {
       {/* Deal of the day */}
       <HomeBlockEditor
         blockKey='deal'
+        reorderable
         title={t('blockDeal')}
         initialEnabled={config.deal.enabled}
         initialData={config.deal as unknown as Record<string, unknown>}
@@ -89,6 +92,7 @@ const AdminHomepagePage = async () => {
       {/* Stats */}
       <HomeBlockEditor
         blockKey='stats'
+        reorderable
         title={t('blockStats')}
         initialEnabled={config.stats.enabled}
         initialData={config.stats as unknown as Record<string, unknown>}
@@ -102,6 +106,7 @@ const AdminHomepagePage = async () => {
       {/* Category grid */}
       <HomeBlockEditor
         blockKey='categoryGrid'
+        reorderable
         title={t('blockCategoryGrid')}
         initialEnabled={config.categoryGrid.enabled}
         initialData={config.categoryGrid as unknown as Record<string, unknown>}
@@ -113,6 +118,7 @@ const AdminHomepagePage = async () => {
       {/* Latest products */}
       <HomeBlockEditor
         blockKey='latest'
+        reorderable
         title={t('blockLatest')}
         initialEnabled={config.latest.enabled}
         initialData={config.latest as unknown as Record<string, unknown>}
@@ -125,6 +131,7 @@ const AdminHomepagePage = async () => {
       {/* Featured products */}
       <HomeBlockEditor
         blockKey='featured'
+        reorderable
         title={t('blockFeatured')}
         initialEnabled={config.featured.enabled}
         initialData={config.featured as unknown as Record<string, unknown>}
@@ -137,6 +144,7 @@ const AdminHomepagePage = async () => {
       {/* Best sellers */}
       <HomeBlockEditor
         blockKey='bestSellers'
+        reorderable
         title={t('blockBestSellers')}
         initialEnabled={config.bestSellers.enabled}
         initialData={config.bestSellers as unknown as Record<string, unknown>}
@@ -149,6 +157,7 @@ const AdminHomepagePage = async () => {
       {/* Promo banners (two side-by-side image banners) */}
       <HomeBlockEditor
         blockKey='promoBanners'
+        reorderable
         title={t('blockPromoBanners')}
         initialEnabled={config.promoBanners.enabled}
         initialData={config.promoBanners as unknown as Record<string, unknown>}
@@ -164,6 +173,7 @@ const AdminHomepagePage = async () => {
       {/* Brands marquee */}
       <HomeBlockEditor
         blockKey='brands'
+        reorderable
         title={t('blockBrands')}
         initialEnabled={config.brands.enabled}
         initialData={config.brands as unknown as Record<string, unknown>}
@@ -175,6 +185,7 @@ const AdminHomepagePage = async () => {
       {/* Support CTA */}
       <HomeBlockEditor
         blockKey='support'
+        reorderable
         title={t('blockSupport')}
         initialEnabled={config.support.enabled}
         initialData={config.support as unknown as Record<string, unknown>}
@@ -215,6 +226,8 @@ const AdminHomepagePage = async () => {
           { path: 'googleVerification', label: 'fGoogleVerification', type: 'text' },
           { path: 'robotsExtraDisallow', label: 'fRobotsExtra', type: 'textarea' },
           { path: 'noindex', label: 'fNoindex', type: 'boolean' },
+          { path: 'promoText', label: 'fPromoText', type: 'text', localized: true },
+          { path: 'promoLink', label: 'fPromoLink', type: 'text' },
         ]}
       />
     </div>
