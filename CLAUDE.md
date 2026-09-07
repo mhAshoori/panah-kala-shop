@@ -132,3 +132,25 @@ Jest 30 via `next/jest`, `testEnvironment: 'node'`, tests only under `__tests__/
 - Bucket-side lifecycle/backup policy for orphaned uploads (deleted avatar/product rows leave objects in the bucket).
 - `sharp`-based server-side image resize/optimization before upload (currently raw upload; `next/image` optimizes on delivery).
 - Everything in "Pending (for production launch)" above, plus set the real `ARVAN_*` values in the Vercel/VPS env and configure an ArvanCloud CDN custom domain for `ARVAN_PUBLIC_BASE_URL`.
+
+---
+
+## Session updates (2026-09-07) — variants, SEO lockdown, deploy docs
+
+### What's done (this session)
+- **Product variants** (Digikala-style): `ProductOption`/`ProductOptionValue`/`ProductVariant` models (variant key = sorted valueIds joined `:` @unique); per-variant price/compareAtPrice/stock/image; parent price=min, stock=Σ (derived on write); options snapshot JSON on variant + `variantLabel` denormalized on OrderItem (surrogate PK added — composite orderId+productId collided on 2 variants of one product). Cart items carry variantId/variantLabel; dedupe key productId+variantId; stock checked against variant. Variant selector UI on product page (hex swatches, Digikala layout, `?variant=` deep link). Admin product form has combos table.
+- **Seed**: 13 real products (نوشت‌افزار + کیف), real ArvanCloud bucket images, per-variant IRT prices, dimensions (L/W/H cm + weightG) on all products; mock products deleted.
+- **Category hideEmpty**: auto-hide empty categories on storefront; admin toggle per category (`lib/category-visibility.ts` pure helper — NOT re-exported from 'use server' files, Next 16 forbids non-async exports there).
+- **SMS.ir real OTP**: `lib/sms/smsir.ts` (POST /v1/send/verify, template→bulk fallback, SMSIR_DEBUG wire logging). Sandbox key simulates only (constant messageId 89545112, template 123456, no delivery). Unconfigured fallback = master code 123456 (dev only).
+- **Fixes**: stale-JWT redirect loop on /sign-in + /shipping-address (getValidUserId() as DB-truth); duplicate React keys on multi-variant order rows; Vercel ENOENT next-server.js.nft.json (standalone gated by `process.env.VERCEL`).
+- **Docs**: `docs/DEPLOYMENT.md` (Vercel) + `docs/DEPLOY_DEV_SUBDOMAIN.md` (beginner VPS guide for dev.panahkalashop.com — DNS, hardening, Node 22, local PG, systemd, Nginx, certbot, noindex chain, backups, promotion checklist).
+
+### Key decisions (new)
+- Variant price/stock derived fields recomputed on every variant write (parent min-price, Σ stock).
+- Production DB = local PostgreSQL on same VPS (user overrode Neon for prod); Neon stays for dev.
+- `output: "standalone"` only when NOT on Vercel (next.config.ts VERCEL env check).
+
+### Pending
+- **26 commits unpushed** on main → `git@github.com:mhAshoori/panah-kala-shop.git` (user said "wanna push", final confirmation pending — guide step 0 requires it).
+- User executes VPS deploy guide; support through it.
+- Production promotion: apex domain, noindex OFF, real ZarinPal merchant, SMS.ir production key/template, fresh DB.
