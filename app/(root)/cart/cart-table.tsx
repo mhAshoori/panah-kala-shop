@@ -13,6 +13,7 @@ import {
   removeItemFromCart,
 } from '@/lib/actions/cart.actions';
 import CouponBox from './coupon-box';
+import { FREE_SHIPPING_THRESHOLD } from '@/lib/constants';
 import { formatNumberLocale } from '@/lib/persian';
 import { Link, useRouter } from '@/i18n/navigation';
 import { Cart } from '@/types';
@@ -139,6 +140,40 @@ const CartTable = ({
                 <span className='text-muted-foreground'>{t('items')}</span>
                 <span>{totalQty}</span>
               </div>
+
+              {/* Free-shipping progress (Digikala-style) */}
+              {Number(cart.shippingPrice) > 0 && (
+                <div className='space-y-1.5'>
+                  <p className='text-xs text-muted-foreground'>
+                    {t('freeShippingProgress', {
+                      remaining: formatNumberLocale(
+                        Math.max(
+                          0,
+                          FREE_SHIPPING_THRESHOLD - Number(cart.itemsPrice)
+                        ),
+                        locale
+                      ),
+                    })}
+                  </p>
+                  <div className='h-1.5 w-full overflow-hidden rounded-full bg-muted'>
+                    <div
+                      className='h-full rounded-full bg-green-500 transition-all'
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          (Number(cart.itemsPrice) / FREE_SHIPPING_THRESHOLD) *
+                            100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              {Number(cart.shippingPrice) === 0 && (
+                <p className='text-xs font-medium text-green-600 dark:text-green-400'>
+                  {t('freeShippingEarned')}
+                </p>
+              )}
 
               {/* Coupon: apply / applied state */}
               <CouponBox
