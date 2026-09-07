@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 
 import { APP_NAME } from '@/lib/constants';
+import { getSiteMeta } from '@/lib/home-content';
 import { Link } from '@/i18n/navigation';
 import Menu from './menu';
 import SearchBar from './search';
@@ -11,6 +12,8 @@ import { getCategoryTree, type CategoryNode } from '@/lib/actions/product.action
 const Header = async () => {
   const t = await getTranslations('header');
   const tree = await getCategoryTree();
+  const meta = await getSiteMeta();
+  const promoText = meta.promoText?.fa || meta.promoText?.en || '';
 
   // Flatten the whole tree (mains + subs + sub-subs) for the mega menu
   const flat: Omit<CategoryNode, 'children'>[] = [];
@@ -62,6 +65,16 @@ const Header = async () => {
 
   return (
     <header className='sticky top-0 z-40 w-full border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/75'>
+      {/* Admin-editable announcement strip (empty text = hidden) */}
+      {promoText && (
+        <div className='bg-primary text-primary-foreground'>
+          <div className='wrapper flex items-center justify-center gap-2 py-1.5 text-xs font-medium'>
+            <Link href={meta.promoLink || '/search'} className='hover:underline'>
+              {promoText}
+            </Link>
+          </div>
+        </div>
+      )}
       <div className='wrapper flex-between gap-4'>
         <div className='flex items-center gap-3'>
           <Link href='/' className='flex-start'>
