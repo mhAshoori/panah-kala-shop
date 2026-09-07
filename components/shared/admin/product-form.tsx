@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useTranslations } from 'next-intl';
@@ -9,6 +9,18 @@ import { useRouter } from 'next/navigation';
 import slugify from 'slugify';
 import { Loader2, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -119,6 +131,102 @@ const ProductForm = ({
     message: '',
   });
 
+  // ---------------------------------------------------------------------------
+  // Dirty tracking + discard. All inputs (controlled or not) are diffed
+  // against a serialized baseline of the ORIGINAL props: visible inputs by
+  // their defaultValue attribute, controlled state via an explicit snapshot.
+  // ---------------------------------------------------------------------------
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // Serialized view of the controlled state at mount — the "pristine" snapshot
+  const pristine = useMemo(
+    () =>
+      JSON.stringify({
+        mainId: initialMain || '',
+        subId: initialSub?.id ?? '',
+        subSubId: initialSubSub?.id ?? '',
+        images: product?.images ?? productDefaultValues.images,
+        isFeatured: product?.isFeatured ?? productDefaultValues.isFeatured,
+        codAvailable: product?.codAvailable ?? productDefaultValues.codAvailable,
+        banner: product?.banner ?? '',
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  const controlledSnapshot = () =>
+    JSON.stringify({
+      mainId,
+      subId,
+      subSubId,
+      images,
+      isFeatured,
+      codAvailable,
+      banner,
+    });
+
+  // Poll-free dirty check: runs on every render via effect on controlled
+  // state + an input/blur listener for the uncontrolled fields.
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+    const check = () => {
+      const controlled = controlledSnapshot() !== pristine;
+      const uncontrolled = Array.from(
+        form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+          'input[name], textarea[name], select[name]'
+        )
+      ).some((el) => el.type !== 'hidden' && el.value !== (el as HTMLInputElement).defaultValue);
+      setIsDirty(controlled || uncontrolled);
+    };
+    check();
+    form.addEventListener('input', check);
+    form.addEventListener('change', check);
+    return () => {
+      form.removeEventListener('input', check);
+      form.removeEventListener('change', check);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pristine, mainId, subId, subSubId, images, isFeatured, codAvailable, banner]);
+
+  // Warn before leaving with unsaved edits (refresh / close tab)
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  // Reset every field to its initial value (discard)
+  const onDiscard = () => {
+    const form = formRef.current;
+    if (form) {
+      form
+        .querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+          'input[name], textarea[name], select[name]'
+        )
+        .forEach((el) => {
+          el.value = (el as HTMLInputElement).defaultValue;
+          el.dispatchEvent(new Event(el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
+        });
+    }
+    setMainId(initialMain || '');
+    setSubId(initialSub?.id ?? '');
+    setSubSubId(initialSubSub?.id ?? '');
+    setImages(product?.images ?? productDefaultValues.images);
+    setIsFeatured(product?.isFeatured ?? productDefaultValues.isFeatured);
+    setCodAvailable(product?.codAvailable ?? productDefaultValues.codAvailable);
+    setBanner(product?.banner ?? '');
+    setIsDirty(false);
+    setConfirmOpen(false);
+    toast.info(tCommon('changesDiscarded'));
+    if (type === 'Update') router.push('/admin/products');
+  };
+
   useEffect(() => {
     if (state.success) {
       toast.success(state.message);
@@ -141,7 +249,7 @@ const ProductForm = ({
   };
 
   return (
-    <form action={formAction} className='space-y-6'>
+    <form ref={formRef} action={formAction} className='space-y-6'>
       {type === 'Update' && <input type='hidden' name='id' value={productId} />}
       <input type='hidden' name='images' value={JSON.stringify(images)} />
       <input
@@ -527,8 +635,42 @@ const ProductForm = ({
         </div>
       </FieldGroup>
 
-      <div className='flex gap-2'>
-        <SubmitButton label={type === 'Create' ? t('createProduct') : t('editProduct')} />
+      <div className='flex flex-wrap items-center gap-2'>
+        {/* Confirm-before-save: a dirty form asks before submitting */}
+        {isDirty ? (
+          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <AlertDialogTrigger asChild>
+              <Button type='button'>
+                {type === 'Create' ? t('createProduct') : t('editProduct')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('confirmSave')}</AlertDialogTitle>
+                <AlertDialogDescription>{t('unsavedConfirm')}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    setConfirmOpen(false);
+                    formRef.current?.requestSubmit();
+                  }}
+                >
+                  {tCommon('save')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ) : (
+          <SubmitButton label={type === 'Create' ? t('createProduct') : t('editProduct')} />
+        )}
+
+        {isDirty && (
+          <Button type='button' variant='outline' onClick={onDiscard}>
+            {t('discardChanges')}
+          </Button>
+        )}
       </div>
     </form>
   );

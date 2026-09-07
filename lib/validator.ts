@@ -64,8 +64,9 @@ export const productOptionSchema = z.object({
 });
 
 export const variantInputSchema = z.object({
-  // Combo signature — recomputed server-side from created value ids
-  key: z.string().min(1),
+  // Combo signature — recomputed server-side from created value ids;
+  // the client only sends combo order, so the key may be empty
+  key: z.string(),
   price: currency,
   compareAtPrice: z
     .union([currency, z.literal('')])
