@@ -28,7 +28,7 @@ const ReviewsSection = async ({
   const t = await getTranslations('review');
   const locale = await getLocale();
 
-  const [reviews, userId] = await Promise.all([
+  const [{ reviews, distribution }, userId] = await Promise.all([
     getReviews(productId),
     getValidUserId(),
   ]);
@@ -54,12 +54,41 @@ const ReviewsSection = async ({
         )}
       </div>
 
-      <div className='flex items-center gap-2'>
-        <StarRating value={rating} />
-        <span className='text-sm text-muted-foreground'>
-          {formatNumberLocale(rating.toFixed(1), locale)} ·{' '}
-          {formatNumberLocale(numReviews, locale)} {t('count')}
-        </span>
+      <div className='flex flex-wrap items-center gap-x-6 gap-y-3'>
+        <div className='flex items-center gap-2'>
+          <StarRating value={rating} />
+          <span className='text-sm text-muted-foreground'>
+            {formatNumberLocale(rating.toFixed(1), locale)} ·{' '}
+            {formatNumberLocale(numReviews, locale)} {t('count')}
+          </span>
+        </div>
+
+        {/* Rating distribution bars (Digikala-style) */}
+        {numReviews > 0 && (
+          <div className='flex min-w-48 flex-1 flex-col gap-1'>
+            {distribution
+              .slice()
+              .reverse()
+              .map(({ star, count }) => (
+                <div key={star} className='flex items-center gap-2 text-xs'>
+                  <span className='w-8 text-muted-foreground'>
+                    {formatNumberLocale(star, locale)} ★
+                  </span>
+                  <div className='h-1.5 flex-1 overflow-hidden rounded-full bg-muted'>
+                    <div
+                      className='h-full rounded-full bg-amber-400'
+                      style={{
+                        width: `${(count / numReviews) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <span className='w-8 text-end text-muted-foreground'>
+                    {formatNumberLocale(count, locale)}
+                  </span>
+                </div>
+              ))}
+          </div>
+        )}
       </div>
 
       <ReviewList reviews={reviews} />

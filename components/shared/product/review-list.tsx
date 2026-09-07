@@ -21,7 +21,14 @@ const ReviewList = ({ reviews }: { reviews: Review[] }) => {
                 {review.user.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className='text-sm font-medium'>{review.user.name}</p>
+                <p className='flex items-center gap-1.5 text-sm font-medium'>
+                  {review.user.name}
+                  {review.verified && (
+                    <span className='rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-900/40 dark:text-green-400'>
+                      {t('verifiedPurchase')}
+                    </span>
+                  )}
+                </p>
                 <p className='text-xs text-muted-foreground'>
                   {formatDateTime(review.createdAt).dateOnly}
                 </p>

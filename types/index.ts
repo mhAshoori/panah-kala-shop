@@ -38,6 +38,10 @@ export type OrderItem = z.infer<typeof insertOrderItemSchema>;
 export type Review = z.infer<typeof insertReviewSchema> & {
   id: string;
   createdAt: Date;
+  /** Moderation gate (Digikala-style); approved reviews render on the PDP */
+  isApproved?: boolean;
+  /** Reviewer bought the product (paid order contains it) */
+  verified?: boolean;
   user: { name: string };
 };
 export type Order = z.infer<typeof insertOrderSchema> & {

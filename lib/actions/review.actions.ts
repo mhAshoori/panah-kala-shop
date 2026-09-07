@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { formatError } from '../utils';
+import { requireAdmin } from '../auth-guard';
 import { withActionMessage } from '../action-messages';
 import { insertReviewSchema } from '../validator';
 import { prisma } from '@/db/prisma';
@@ -36,6 +37,12 @@ export async function createUpdateReview(
       where: { productId: review.productId, userId: review.userId },
     });
 
+    // Verified purchase: the user has any order containing this product
+    const verified = await prisma.orderItem.findFirst({
+      where: { productId: review.productId, order: { userId, isPaid: true } },
+      select: { id: true },
+    });
+
     await prisma.$transaction(async (tx) => {
       if (reviewExists) {
         await tx.review.update({
@@ -44,20 +51,23 @@ export async function createUpdateReview(
             title: review.title,
             description: review.description,
             rating: review.rating,
+            verified: !!verified,
           },
         });
       } else {
-        await tx.review.create({ data: review });
+        await tx.review.create({
+          data: { ...review, verified: !!verified },
+        });
       }
 
-      // Recalculate the product's aggregate rating
+      // Recalculate the product's aggregate rating (approved reviews only)
       const averageRating = await tx.review.aggregate({
         _avg: { rating: true },
-        where: { productId: review.productId },
+        where: { productId: review.productId, isApproved: true },
       });
 
       const numReviews = await tx.review.count({
-        where: { productId: review.productId },
+        where: { productId: review.productId, isApproved: true },
       });
 
       await tx.product.update({
@@ -77,15 +87,157 @@ export async function createUpdateReview(
   }
 }
 
-// Get all reviews for a product (latest first)
+// Get approved reviews for a product (latest first) + rating distribution
 export async function getReviews(productId: string) {
   const data = await prisma.review.findMany({
-    where: { productId },
+    where: { productId, isApproved: true },
     include: { user: { select: { name: true } } },
     orderBy: { createdAt: 'desc' },
   });
 
-  return JSON.parse(JSON.stringify(data)) as Review[];
+  const counts = [1, 2, 3, 4, 5].map((star) => ({
+    star,
+    count: data.filter((r) => r.rating === star).length,
+  }));
+
+  return {
+    reviews: JSON.parse(JSON.stringify(data)) as Review[],
+    distribution: counts,
+  };
+}
+
+// The signed-in user's own reviews (for /user/reviews)
+export async function getMyReviews() {
+  const userId = await getValidUserId();
+  if (!userId) return [];
+
+  const data = await prisma.review.findMany({
+    where: { userId },
+    include: {
+      product: { select: { slug: true, name: true, nameFa: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return JSON.parse(JSON.stringify(data)) as (Review & {
+    product: { slug: string; name: string; nameFa: string };
+  })[];
+}
+
+// ---------------------------------------------------------------------------
+// Admin moderation
+// ---------------------------------------------------------------------------
+
+// All reviews (admin) — newest first, with user + product context
+export async function getAllReviewsAdmin() {
+  await requireAdmin();
+
+  const data = await prisma.review.findMany({
+    include: {
+      user: { select: { name: true, email: true } },
+      product: { select: { slug: true, name: true, nameFa: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+  });
+
+  return JSON.parse(JSON.stringify(data)) as {
+    id: string;
+    rating: number;
+    title: string;
+    description: string;
+    isApproved: boolean;
+    verified: boolean;
+    createdAt: Date;
+    user: { name: string; email: string };
+    product: { slug: string; name: string; nameFa: string };
+  }[];
+}
+
+// Approve / un-approve a review (admin); keeps product aggregates in sync
+export async function setReviewApproval(
+  reviewId: string,
+  isApproved: boolean
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    await requireAdmin();
+
+    const review = await prisma.review.findUnique({ where: { id: reviewId } });
+    if (!review)
+      throw new Error(await withActionMessage('reviewNotFound'));
+
+    await prisma.$transaction(async (tx) => {
+      await tx.review.update({
+        where: { id: reviewId },
+        data: { isApproved },
+      });
+
+      const averageRating = await tx.review.aggregate({
+        _avg: { rating: true },
+        where: { productId: review.productId, isApproved: true },
+      });
+      const numReviews = await tx.review.count({
+        where: { productId: review.productId, isApproved: true },
+      });
+
+      await tx.product.update({
+        where: { id: review.productId },
+        data: {
+          rating: averageRating._avg.rating || 0,
+          numReviews,
+        },
+      });
+    });
+
+    revalidatePath('/admin/reviews');
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Error',
+    };
+  }
+}
+
+// Delete a review (admin)
+export async function deleteReviewAdmin(
+  reviewId: string
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    await requireAdmin();
+
+    const review = await prisma.review.findUnique({ where: { id: reviewId } });
+    if (!review)
+      throw new Error(await withActionMessage('reviewNotFound'));
+
+    await prisma.$transaction(async (tx) => {
+      await tx.review.delete({ where: { id: reviewId } });
+
+      const averageRating = await tx.review.aggregate({
+        _avg: { rating: true },
+        where: { productId: review.productId, isApproved: true },
+      });
+      const numReviews = await tx.review.count({
+        where: { productId: review.productId, isApproved: true },
+      });
+
+      await tx.product.update({
+        where: { id: review.productId },
+        data: {
+          rating: averageRating._avg.rating || 0,
+          numReviews,
+        },
+      });
+    });
+
+    revalidatePath('/admin/reviews');
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Error',
+    };
+  }
 }
 
 // Get the signed-in user's existing review for a product (if any)

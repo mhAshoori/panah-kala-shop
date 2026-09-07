@@ -21,6 +21,8 @@ const messages = {
     cartEmpty: 'Your cart is empty',
     couponNotFound: 'Coupon code is invalid',
     couponInactive: 'This coupon is not active',
+ nothingToReorder: 'None of these items are currently available',
+ reordered: 'Items added back to your cart',
     couponExpired: 'This coupon has expired',
     couponMinCart: 'Your cart total is below this coupon minimum',
     couponUsageLimit: 'This coupon has reached its usage limit',
@@ -44,6 +46,7 @@ const messages = {
     productUpdated: 'Product updated successfully',
     productDeleted: 'Product deleted successfully',
     productNotFound: 'Product not found',
+ reviewNotFound: 'Review not found',
     // Categories
     categoryCreated: 'Category created successfully',
     categoryUpdated: 'Category updated successfully',
@@ -100,6 +103,8 @@ const messages = {
     cartEmpty: 'سبد خرید شما خالی است',
     couponNotFound: 'کد تخفیف نامعتبر است',
     couponInactive: 'این کد تخفیف فعال نیست',
+ nothingToReorder: 'هیچ کالایی از این سفارش اکنون موجود نیست',
+ reordered: 'اقلام سفارش به سبد خرید اضافه شد',
     couponExpired: 'این کد تخفیف منقضی شده است',
     couponMinCart: 'مبلغ سبد خرید برای این کد تخفیف کافی نیست',
     couponUsageLimit: 'سقف استفاده از این کد تخفیف پر شده است',
@@ -123,6 +128,7 @@ const messages = {
     productUpdated: 'محصول با موفقیت به‌روزرسانی شد',
     productDeleted: 'محصول با موفقیت حذف شد',
     productNotFound: 'محصول یافت نشد',
+ reviewNotFound: 'دیدگاه یافت نشد',
     // Categories
     categoryCreated: 'دسته‌بندی با موفقیت ایجاد شد',
     categoryUpdated: 'دسته‌بندی با موفقیت به‌روزرسانی شد',
