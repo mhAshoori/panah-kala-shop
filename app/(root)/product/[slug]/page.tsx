@@ -8,13 +8,18 @@ import VariantSelector from '@/components/shared/product/variant-selector';
 import FavoriteToggle from '@/components/shared/product/favorite-toggle';
 import StarRating from '@/components/shared/product/star-rating';
 import ReviewsSection from '@/components/shared/product/reviews-section';
+import ProductList from '@/components/shared/product/product-list';
 import Breadcrumbs from '@/components/shared/breadcrumbs';
 import { Card, CardContent } from '@/components/ui/card';
-import { getProductBySlug } from '@/lib/actions/product.actions';
+import {
+  getProductBySlug,
+  getRelatedProducts,
+} from '@/lib/actions/product.actions';
 import { getMyCart } from '@/lib/actions/cart.actions';
 import { isProductFavorited } from '@/lib/actions/favorite.actions';
 import { Badge } from '@/components/ui/badge';
 import { formatNumberLocale } from '@/lib/persian';
+import { LOW_STOCK_THRESHOLD } from '@/lib/constants';
 import { getDiscount } from '@/lib/discount';
 import {
   breadcrumbJsonLd,
@@ -65,6 +70,11 @@ const ProductDetailsPage = async (props: {
 
   const product = await getProductBySlug(slug);
   if (!product) notFound();
+
+  const relatedProducts = await getRelatedProducts(
+    product.id,
+    product.category
+  );
 
   const options = (product.options ?? []).map((o) => ({
     id: o.id,
@@ -261,7 +271,13 @@ const ProductDetailsPage = async (props: {
                 <div className="mb-2 flex justify-between">
                   <div>{t('status')}</div>
                   {product.stock > 0 ? (
-                    <Badge variant="outline">{t('inStock')}</Badge>
+                    product.stock <= LOW_STOCK_THRESHOLD ? (
+                      <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400">
+                        {t('onlyLeft', { count: formatNumberLocale(product.stock, locale) })}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">{t('inStock')}</Badge>
+                    )
                   ) : (
                     <Badge variant="destructive">{t('unavailable')}</Badge>
                   )}
@@ -300,6 +316,11 @@ const ProductDetailsPage = async (props: {
         numReviews={product.numReviews}
         slug={product.slug}
       />
+
+      {/* Related products (same category) */}
+      {relatedProducts.length > 0 && (
+        <ProductList title={t('relatedProducts')} data={relatedProducts} />
+      )}
     </section>
   );
 };

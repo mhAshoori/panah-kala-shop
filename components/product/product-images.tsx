@@ -12,17 +12,33 @@ const ProductImages = ({
   name: string;
 }) => {
   const [current, setCurrent] = useState(0);
+  const [zoom, setZoom] = useState(false);
+  const [origin, setOrigin] = useState('50% 50%');
 
   return (
     <div className='space-y-3'>
-      <div className='relative aspect-square overflow-hidden rounded-xl bg-muted'>
+      <div
+        className='relative aspect-square cursor-zoom-in overflow-hidden rounded-xl bg-muted'
+        onMouseEnter={() => setZoom(true)}
+        onMouseLeave={() => setZoom(false)}
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = ((e.clientX - rect.left) / rect.width) * 100;
+          const y = ((e.clientY - rect.top) / rect.height) * 100;
+          setOrigin(`${x}% ${y}%`);
+        }}
+      >
         <Image
           src={images[current]}
           alt={name}
           fill
           priority
           sizes='(max-width: 768px) 100vw, 40vw'
-          className='object-cover'
+          className={cn(
+            'object-cover transition-transform duration-200',
+            zoom && 'scale-[2] cursor-zoom-out'
+          )}
+          style={zoom ? { transformOrigin: origin } : undefined}
         />
       </div>
       {images.length > 1 && (
