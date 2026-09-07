@@ -26,6 +26,30 @@ export async function getLatestProducts() {
   return convertToPlainObject(data);
 }
 
+// Distinct brand list for the storefront filter (admin-seeded brands only)
+export async function getBrandOptions() {
+  const rows = await prisma.product.findMany({
+    select: { brand: true },
+    distinct: ['brand'],
+    orderBy: { brand: 'asc' },
+  });
+  return rows.map((r) => r.brand).filter((b) => b.length > 0);
+}
+
+// Related products: same category, exclude self, prefer in-stock
+export async function getRelatedProducts(
+  productId: string,
+  category: string,
+  limit = 4
+) {
+  const data = await prisma.product.findMany({
+    where: { category, id: { not: productId } },
+    orderBy: [{ isFeatured: 'desc' }, { numReviews: 'desc' }],
+    take: Math.min(Math.max(limit, 1), 12),
+  });
+  return convertToPlainObject(data);
+}
+
 // Get featured products
 export async function getFeaturedProducts() {
   const data = await prisma.product.findMany({
@@ -238,7 +262,9 @@ export async function getProductsByCategorySlug({
         ? { price: 'desc' as const }
         : sort === 'rating'
           ? { rating: 'desc' as const }
-          : { createdAt: 'desc' as const };
+          : sort === 'popular'
+            ? { numReviews: 'desc' as const }
+            : { createdAt: 'desc' as const };
 
   const where = {
     OR: [
@@ -307,6 +333,8 @@ export async function getFilteredProducts({
   price,
   rating,
   sort,
+  brand,
+  inStock,
   limit = PAGE_SIZE,
   page,
 }: {
@@ -315,6 +343,8 @@ export async function getFilteredProducts({
   price?: string;
   rating?: string;
   sort?: string;
+  brand?: string;
+  inStock?: string;
   limit?: number;
   page: number;
 }) {
@@ -371,6 +401,16 @@ export async function getFilteredProducts({
     filters.push({ rating: ratingFilter });
   }
 
+  // Brand filter (exact name match from the filter chips)
+  if (brand && brand !== 'all' && brand.length <= 100) {
+    filters.push({ brand: { equals: brand, mode: 'insensitive' as const } });
+  }
+
+  // In-stock only
+  if (inStock === '1' || inStock === 'true') {
+    filters.push({ stock: { gt: 0 } });
+  }
+
   const where = filters.length > 0 ? { AND: filters } : {};
 
   const orderBy =
@@ -380,7 +420,9 @@ export async function getFilteredProducts({
         ? { price: 'desc' as const }
         : sort === 'rating'
           ? { rating: 'desc' as const }
-          : { createdAt: 'desc' as const };
+          : sort === 'popular'
+            ? { numReviews: 'desc' as const }
+            : { createdAt: 'desc' as const };
 
   const data = await prisma.product.findMany({
     where,
@@ -424,12 +466,38 @@ export async function getAllProducts({
     orderBy: { createdAt: 'desc' },
     take: limit,
     skip: (page - 1) * limit,
+    include: {
+      subCategoryRef: { select: { name: true, nameFa: true } },
+      subSubCategoryRef: { select: { name: true, nameFa: true } },
+    },
   });
 
   const dataCount = await prisma.product.count({ where: queryFilter });
 
+  const rows = (
+    convertToPlainObject(data) as (Record<string, unknown> & {
+      id: string;
+      images: string[];
+      name: string;
+      nameFa: string;
+      slug: string;
+      category: string;
+      categoryFa: string;
+      price: string;
+      stock: number;
+      rating: string;
+    })[]
+  ).map((p) => ({
+    ...p,
+    subCategory: (p.subCategoryRef as { name?: string } | null)?.name,
+    subCategoryFa: (p.subCategoryRef as { nameFa?: string } | null)?.nameFa,
+    subSubCategory: (p.subSubCategoryRef as { name?: string } | null)?.name,
+    subSubCategoryFa: (p.subSubCategoryRef as { nameFa?: string } | null)
+      ?.nameFa,
+  }));
+
   return {
-    data: convertToPlainObject(data),
+    data: rows,
     totalPages: Math.ceil(dataCount / limit),
   };
 }

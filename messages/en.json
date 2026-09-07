@@ -19,7 +19,8 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "categories": "Categories",
-    "allCategories": "All Categories"
+    "allCategories": "All Categories",
+    "myReviews": "My Reviews"
   },
   "footer": {
     "brand": "Panah Kala",
@@ -86,7 +87,8 @@
     "details": "Details",
     "from": "From",
     "dimensions": "Dimensions",
-    "weight": "Weight"
+    "weight": "Weight",
+    "codBadge": "Cash on Delivery"
   },
   "cart": {
     "title": "Shopping Cart",
@@ -106,7 +108,9 @@
     "couponPlaceholder": "Coupon code",
     "couponApply": "Apply",
     "couponRemove": "Remove",
-    "couponDiscount": "Coupon discount"
+    "couponDiscount": "Coupon discount",
+    "freeShippingProgress": "{remaining} Toman away from free shipping",
+    "freeShippingEarned": "This order ships free"
   },
   "auth": {
     "signIn": "Sign In",
@@ -180,10 +184,15 @@
     "priceOver": "Over",
     "ratingAny": "Any Rating",
     "sortBy": "Sort By",
+    "perPage": "Per page",
     "sortNewest": "Newest",
+    "sortPopular": "Most Popular",
     "sortLowest": "Price: Low to High",
     "sortHighest": "Price: High to Low",
-    "sortRating": "Top Rated"
+    "sortRating": "Top Rated",
+    "allBrands": "All Brands",
+    "availability": "Availability",
+    "inStockOnly": "In-stock only"
   },
   "review": {
     "title": "Customer Reviews",
@@ -197,7 +206,11 @@
     "descriptionLabel": "Your Review",
     "empty": "No reviews yet. Be the first to share your thoughts!",
     "favoriteAdd": "Add to favorites",
-    "favoriteRemove": "Remove from favorites"
+    "favoriteRemove": "Remove from favorites",
+    "verifiedPurchase": "Verified buyer",
+    "myReviews": "My Reviews",
+    "approvedBadge": "Published",
+    "pendingBadge": "Pending approval"
   },
   "order": {
     "title": "Order",
@@ -231,7 +244,10 @@
     "checkoutTitle": "Redirecting to ZarinPal...",
     "paymentSuccess": "Payment completed successfully",
     "paymentFailed": "Payment failed",
-    "retryPayment": "Retry Payment"
+    "retryPayment": "Retry Payment",
+    "reorder": "Reorder",
+    "reordered": "Items added back to your cart",
+    "nothingToReorder": "None of these items are currently available"
   },
   "account": {
     "profile": "Profile Details",
@@ -377,6 +393,11 @@
     "homepage": "Homepage Content",
     "homepageHint": "Edit each block of the homepage — every field is optional per language and applied site-wide after saving.",
     "blockEnabled": "Enabled",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "confirmSave": "Save changes",
+    "discardChanges": "Discard changes",
+    "unsavedConfirm": "You have unsaved changes. Save them?",
     "blockHero": "Hero Banner",
     "blockIconBoxes": "Feature Icons",
     "blockDeal": "Deal of the Day",
@@ -465,7 +486,19 @@
     "fLink2": "Banner 2 link",
     "hideEmpty": "Hide when empty",
     "hideEmptyHint": "(hidden on the storefront until it has products)",
-    "hiddenInStore": "hidden in store"
+    "hiddenInStore": "hidden in store",
+    "fPromoText": "Announcement strip text (empty = hidden)",
+    "fPromoLink": "Announcement strip link",
+    "reviews": "Reviews",
+    "approved": "Approved",
+    "pending": "Pending",
+    "approve": "Approve",
+    "unapprove": "Un-approve",
+    "reviewUpdated": "Review status updated",
+    "deleted": "Deleted",
+    "error": "Something went wrong",
+    "status": "Status",
+    "noReviews": "No reviews yet"
   },
   "assistant": {
     "title": "Panah Kala Assistant",
@@ -505,6 +538,9 @@
     "storageNotConfigured": "Storage service is not configured",
     "storageInvalidFile": "Invalid file",
     "storageTooLarge": "File is larger than 5 MB",
-    "storageInvalidType": "Image format is not supported"
+    "storageInvalidType": "Image format is not supported",
+    "changesDiscarded": "Changes discarded",
+    "brand": "Brand",
+    "delete": "Delete"
   }
 }

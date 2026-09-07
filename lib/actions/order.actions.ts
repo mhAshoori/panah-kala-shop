@@ -3,7 +3,7 @@
 import { formatError } from '../utils';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
-import { getMyCart } from './cart.actions';
+import { getMyCart, addItemToCart } from './cart.actions';
 import { getUserById } from './user.actions';
 import { insertOrderSchema } from '../validator';
 import { PAGE_SIZE } from '../constants';
@@ -261,6 +261,72 @@ export async function getOrderById(orderId: string) {
   });
   if (!data) return null;
   return JSON.parse(JSON.stringify(data));
+}
+
+// Re-add every item of a past order to the user's cart (Digikala-style
+// reorder). Skips out-of-stock lines; reports what happened.
+export async function reorderOrder(
+  orderId: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const userId = await getValidUserId();
+    if (!userId) throw new Error('Your session has expired — please sign in again');
+
+    const order = await prisma.order.findFirst({
+      where: { id: orderId, userId },
+      include: { orderItems: true },
+    });
+    if (!order) throw new Error(await withActionMessage('orderNotFound'));
+    if (order.orderItems.length === 0)
+      throw new Error(await withActionMessage('cartEmpty'));
+
+    let added = 0;
+    for (const item of order.orderItems) {
+      const product = await prisma.product.findFirst({
+        where: { id: item.productId },
+      });
+      if (!product) continue;
+
+      // Current price wins; stock checked on the variant or the product
+      let price = product.price.toString();
+      let stock = product.stock;
+      if (item.variantId) {
+        const variant = await prisma.productVariant.findUnique({
+          where: { id: item.variantId },
+        });
+        if (!variant || variant.productId !== product.id) continue;
+        price = variant.price.toString();
+        stock = variant.stock;
+      }
+      if (stock < 1) continue;
+
+      const res = await addItemToCart({
+        productId: product.id,
+        variantId: item.variantId ?? undefined,
+        variantLabel: item.variantLabel ?? undefined,
+        name: product.name,
+        nameFa: product.nameFa,
+        slug: product.slug,
+        image: item.image,
+        price,
+        qty: 1,
+      });
+      if (res.success) added++;
+    }
+
+    if (added === 0) {
+      return {
+        success: false,
+        message: await withActionMessage('nothingToReorder'),
+      };
+    }
+    return { success: true, message: await withActionMessage('reordered') };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Error',
+    };
+  }
 }
 
 // Get the signed-in user's orders with pagination

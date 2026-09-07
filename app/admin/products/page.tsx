@@ -13,16 +13,18 @@ import {
 import Pagination from '@/components/shared/pagination';
 import AdminSearch from '@/components/shared/admin/search';
 import DeleteDialog from '@/components/shared/delete-dialog';
+import PageSizeSelector from '@/components/shared/page-size-selector';
+import { parsePageSize } from '@/lib/constants';
 import { getAllProducts, deleteProduct } from '@/lib/actions/product.actions';
 import { formatId } from '@/lib/utils';
 import { formatNumberLocale } from '@/lib/persian';
 import { Link } from '@/i18n/navigation';
 
 const AdminProductsPage = async (props: {
-  searchParams: Promise<{ page: string; q?: string }>;
+  searchParams: Promise<{ page: string; q?: string; size?: string }>;
 }) => {
   const locale = await getLocale();
-  const { page, q } = await props.searchParams;
+  const { page, q, size } = await props.searchParams;
 
   const t = await getTranslations('admin');
   const tCommon = await getTranslations('common');
@@ -30,6 +32,7 @@ const AdminProductsPage = async (props: {
   const products = await getAllProducts({
     query: q,
     page: Number(page) || 1,
+    limit: parsePageSize(size),
   });
 
   return (
@@ -40,7 +43,10 @@ const AdminProductsPage = async (props: {
           <Link href='/admin/products/create'>{t('createProduct')}</Link>
         </Button>
       </div>
-      <AdminSearch />
+      <div className='flex flex-wrap items-center justify-between gap-2'>
+        <AdminSearch />
+        <PageSizeSelector current={parsePageSize(size)} />
+      </div>
 
       <div className='overflow-x-auto rounded-lg border'>
         <Table>
@@ -88,6 +94,18 @@ const AdminProductsPage = async (props: {
                   </TableCell>
                   <TableCell>
                     {locale === 'fa' ? product.categoryFa : product.category}
+                    {product.subCategoryFa && (
+                      <span className='block text-xs text-muted-foreground'>
+                        {'← '}
+                        {locale === 'fa' ? product.subCategoryFa : product.subCategory}
+                      </span>
+                    )}
+                    {product.subSubCategoryFa && (
+                      <span className='block text-xs text-muted-foreground'>
+                        {'← '}
+                        {locale === 'fa' ? product.subSubCategoryFa : product.subSubCategory}
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell>{formatNumberLocale(product.price, locale)}</TableCell>
                   <TableCell>{formatNumberLocale(product.stock, locale)}</TableCell>

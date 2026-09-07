@@ -13,6 +13,9 @@ import {
 import { getMyOrders } from '@/lib/actions/order.actions';
 import { formatCurrency, formatDateTime, formatId } from '@/lib/utils';
 import { auth } from '@/auth';
+import PageSizeSelector from '@/components/shared/page-size-selector';
+import ReorderButton from '@/components/shared/user/reorder-button';
+import { parsePageSize } from '@/lib/constants';
 import Pagination from '@/components/shared/pagination';
 import { Link } from '@/i18n/navigation';
 
@@ -22,20 +25,26 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const OrdersPage = async (props: {
-  searchParams: Promise<{ page: string }>;
+  searchParams: Promise<{ page: string; size?: string }>;
 }) => {
-  const { page } = await props.searchParams;
+  const { page, size } = await props.searchParams;
 
   const session = await auth();
   if (!session) redirect('/sign-in');
 
   const t = await getTranslations('order');
 
-  const orders = await getMyOrders({ page: Number(page) || 1 });
+  const orders = await getMyOrders({
+    page: Number(page) || 1,
+    limit: parsePageSize(size),
+  });
 
   return (
     <div className='space-y-4'>
-      <h2 className='h2-bold'>{t('myOrders')}</h2>
+      <div className='flex items-center justify-between gap-2'>
+        <h2 className='h2-bold'>{t('myOrders')}</h2>
+        <PageSizeSelector current={parsePageSize(size)} />
+      </div>
       <div className='overflow-x-auto rounded-lg border'>
         <Table>
           <TableHeader>
@@ -69,9 +78,12 @@ const OrdersPage = async (props: {
                       : t('pending')}
                 </TableCell>
                 <TableCell className='text-end'>
-                  <Link href={`/order/${order.id}`} className='link text-primary'>
-                    {t('details')}
-                  </Link>
+                  <div className='flex items-center justify-end gap-2'>
+                    <ReorderButton orderId={order.id} />
+                    <Link href={`/order/${order.id}`} className='link text-primary'>
+                      {t('details')}
+                    </Link>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

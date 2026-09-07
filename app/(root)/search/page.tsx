@@ -5,8 +5,10 @@ import { cn } from '@/lib/utils';
 import ProductList from '@/components/shared/product/product-list';
 import SortDropdown from '@/components/shared/product/sort-dropdown';
 import Pagination from '@/components/shared/pagination';
+import PageSizeSelector from '@/components/shared/page-size-selector';
 import SearchBar from '@/components/shared/header/search';
-import { getFilteredProducts, getCategoriesWithCount } from '@/lib/actions/product.actions';
+import { parsePageSize } from '@/lib/constants';
+import { getFilteredProducts, getCategoriesWithCount, getBrandOptions } from '@/lib/actions/product.actions';
 import { filterVisibleCategories } from '@/lib/category-visibility';
 import { formatNumberLocale } from '@/lib/persian';
 import { Link } from '@/i18n/navigation';
@@ -30,7 +32,10 @@ const SearchPage = async (props: {
     price?: string;
     rating?: string;
     sort?: string;
+    brand?: string;
+    inStock?: string;
     page?: string;
+    size?: string;
   }>;
 }) => {
   const locale = await getLocale();
@@ -42,7 +47,10 @@ const SearchPage = async (props: {
   const price = sp.price ?? 'all';
   const rating = sp.rating ?? 'all';
   const sort = sp.sort ?? 'newest';
+  const brand = sp.brand ?? 'all';
+  const inStock = sp.inStock ?? '';
   const page = Number(sp.page) || 1;
+  const size = parsePageSize(sp.size);
 
   const t = await getTranslations('search');
   const tCommon = await getTranslations('common');
@@ -52,12 +60,16 @@ const SearchPage = async (props: {
     p,
     r,
     s,
+    b,
+    k,
     pg,
   }: {
     c?: string;
     p?: string;
     r?: string;
     s?: string;
+    b?: string;
+    k?: string;
     pg?: string;
   }) => {
     const params = new URLSearchParams();
@@ -66,6 +78,8 @@ const SearchPage = async (props: {
     if (p && p !== 'all') params.set('price', p);
     if (r && r !== 'all') params.set('rating', r);
     if (s && s !== 'newest') params.set('sort', s);
+    if (b && b !== 'all') params.set('brand', b);
+    if (k === '1') params.set('inStock', '1');
     if (pg && pg !== '1') params.set('page', pg);
     const qs = params.toString();
     return `/search${qs ? `?${qs}` : ''}`;
@@ -77,11 +91,18 @@ const SearchPage = async (props: {
     price,
     rating,
     sort,
+    brand,
+    inStock,
     page,
+    limit: size,
   });
 
-  const categories = filterVisibleCategories(await getCategoriesWithCount())
-    .filter((c) => !c.parentId);
+  const [categories, brands] = await Promise.all([
+    getCategoriesWithCount().then((cats) =>
+      filterVisibleCategories(cats).filter((c) => !c.parentId)
+    ),
+    getBrandOptions(),
+  ]);
   const priceLabel = (range: string) => {
     if (range === 'all') return t('priceAny');
     const [minRaw, maxRaw] = range.split('-');
@@ -117,7 +138,10 @@ const SearchPage = async (props: {
               ? `${t('category')}: ${locale === 'fa' ? categories.find((c) => c.name === category)?.nameFa : category}`
               : t('title')}
         </h1>
-        <SortDropdown />
+        <div className='flex items-center gap-2'>
+          <SortDropdown />
+          <PageSizeSelector current={size} />
+        </div>
       </div>
 
       {/* Search again from the results page */}
@@ -164,6 +188,34 @@ const SearchPage = async (props: {
               {ratingLabel(r)}
             </Link>
           ))}
+        </div>
+
+        {brands.length > 1 && (
+          <div className='flex flex-wrap items-center gap-2'>
+            <span className='text-sm text-muted-foreground'>
+              {tCommon('brand')}:
+            </span>
+            <Link href={getFilterUrl({ b: 'all' })} className={chip(brand === 'all')}>
+              {t('allBrands')}
+            </Link>
+            {brands.map((b) => (
+              <Link key={b} href={getFilterUrl({ b })} className={chip(brand === b)}>
+                {b}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className='flex flex-wrap items-center gap-2'>
+          <span className='text-sm text-muted-foreground'>
+            {t('availability')}:
+          </span>
+          <Link
+            href={getFilterUrl({ k: inStock ? '' : '1' })}
+            className={chip(!!inStock)}
+          >
+            {t('inStockOnly')}
+          </Link>
         </div>
       </div>
 

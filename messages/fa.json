@@ -19,7 +19,8 @@
     "themeLight": "روشن",
     "themeDark": "تیره",
     "categories": "دسته‌بندی‌ها",
-    "allCategories": "همه دسته‌بندی‌ها"
+    "allCategories": "همه دسته‌بندی‌ها",
+    "myReviews": "دیدگاه‌های من"
   },
   "footer": {
     "brand": "پناه کالا",
@@ -86,7 +87,8 @@
     "details": "مشخصات",
     "from": "شروع از",
     "dimensions": "ابعاد",
-    "weight": "وزن"
+    "weight": "وزن",
+    "codBadge": "پرداخت در محل"
   },
   "cart": {
     "title": "سبد خرید",
@@ -106,7 +108,9 @@
     "couponPlaceholder": "کد تخفیف",
     "couponApply": "اعمال",
     "couponRemove": "حذف کد",
-    "couponDiscount": "تخفیف کد"
+    "couponDiscount": "تخفیف کد",
+    "freeShippingProgress": "{remaining} تومان دیگر تا ارسال رایگان",
+    "freeShippingEarned": "ارسال این سفارش رایگان است"
   },
   "auth": {
     "signIn": "ورود",
@@ -180,10 +184,15 @@
     "priceOver": "بیشتر از",
     "ratingAny": "هر امتیازی",
     "sortBy": "مرتب‌سازی",
+    "perPage": "تعداد در صفحه",
     "sortNewest": "جدیدترین",
+    "sortPopular": "محبوب‌ترین",
     "sortLowest": "ارزان‌ترین",
     "sortHighest": "گران‌ترین",
-    "sortRating": "بهترین امتیاز"
+    "sortRating": "بهترین امتیاز",
+    "allBrands": "همه برندها",
+    "availability": "موجودی",
+    "inStockOnly": "فقط کالاهای موجود"
   },
   "review": {
     "title": "دیدگاه‌های مشتریان",
@@ -197,7 +206,11 @@
     "descriptionLabel": "متن دیدگاه",
     "empty": "هنوز دیدگاهی ثبت نشده است. اولین نفر باشید!",
     "favoriteAdd": "افزودن به علاقه‌مندی‌ها",
-    "favoriteRemove": "حذف از علاقه‌مندی‌ها"
+    "favoriteRemove": "حذف از علاقه‌مندی‌ها",
+    "verifiedPurchase": "خریدار",
+    "myReviews": "دیدگاه‌های من",
+    "approvedBadge": "منتشر شده",
+    "pendingBadge": "در انتظار تایید"
   },
   "order": {
     "title": "سفارش",
@@ -231,7 +244,10 @@
     "checkoutTitle": "در حال انتقال به درگاه زرین‌پال...",
     "paymentSuccess": "پرداخت با موفقیت انجام شد",
     "paymentFailed": "پرداخت ناموفق بود",
-    "retryPayment": "پرداخت مجدد"
+    "retryPayment": "پرداخت مجدد",
+    "reorder": "سفارش مجدد",
+    "reordered": "اقلام سفارش به سبد خرید اضافه شد",
+    "nothingToReorder": "هیچ کالایی از این سفارش اکنون موجود نیست"
   },
   "account": {
     "profile": "اطلاعات حساب",
@@ -377,6 +393,11 @@
     "homepage": "محتوای صفحه اصلی",
     "homepageHint": "هر بلوک از صفحه اصلی را ویرایش کنید — همه فیلدها برای هر دو زبان اختیاری است و پس از ذخیره در کل سایت اعمال می‌شود.",
     "blockEnabled": "فعال",
+    "moveUp": "انتقال به بالا",
+    "moveDown": "انتقال به پایین",
+    "confirmSave": "ثبت تغییرات",
+    "discardChanges": "بازگردانی تغییرات",
+    "unsavedConfirm": "تغییرات ذخیره‌نشده دارید. ثبت شود؟",
     "blockHero": "بنر اصلی (هیرو)",
     "blockIconBoxes": "آیکون‌های ویژگی‌ها",
     "blockDeal": "پیشنهاد ویژه روز",
@@ -465,7 +486,19 @@
     "fLink2": "لینک بنر ۲",
     "hideEmpty": "مخفی کردن دسته‌بندی خالی",
     "hideEmptyHint": "(تا وقتی محصولی ندارد در فروشگاه نمایش داده نمی‌شود)",
-    "hiddenInStore": "مخفی در فروشگاه"
+    "hiddenInStore": "مخفی در فروشگاه",
+    "fPromoText": "متن نوار اطلاعیه (خالی = مخفی)",
+    "fPromoLink": "لینک نوار اطلاعیه",
+    "reviews": "دیدگاه‌ها",
+    "approved": "تایید شده",
+    "pending": "در انتظار تایید",
+    "approve": "تایید",
+    "unapprove": "لغو تایید",
+    "reviewUpdated": "وضعیت دیدگاه بروزرسانی شد",
+    "deleted": "حذف شد",
+    "error": "خطایی رخ داد",
+    "status": "وضعیت",
+    "noReviews": "هنوز دیدگاهی ثبت نشده است"
   },
   "assistant": {
     "title": "دستیار پناه کالا",
@@ -505,6 +538,9 @@
     "storageNotConfigured": "سرویس ذخیره‌سازی تنظیم نشده است",
     "storageInvalidFile": "فایل نامعتبر است",
     "storageTooLarge": "حجم فایل بیش از ۵ مگابایت است",
-    "storageInvalidType": "فرمت تصویر پشتیبانی نمی‌شود"
+    "storageInvalidType": "فرمت تصویر پشتیبانی نمی‌شود",
+    "changesDiscarded": "تغییرات بازگردانی شد",
+    "brand": "برند",
+    "delete": "حذف"
   }
 }

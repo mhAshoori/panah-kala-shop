@@ -12,16 +12,18 @@ import { Badge } from '@/components/ui/badge';
 import AdminSearch from '@/components/shared/admin/search';
 import OrderActions from '@/components/shared/admin/order-actions';
 import Pagination from '@/components/shared/pagination';
+import PageSizeSelector from '@/components/shared/page-size-selector';
+import { parsePageSize } from '@/lib/constants';
 import { Link } from '@/i18n/navigation';
 import { getAllOrders } from '@/lib/actions/admin.actions';
 import { formatDateTime, formatId } from '@/lib/utils';
 import { formatCurrencyLocale } from '@/lib/persian';
 
 const AdminOrdersPage = async (props: {
-  searchParams: Promise<{ page: string; q?: string }>;
+  searchParams: Promise<{ page: string; q?: string; size?: string }>;
 }) => {
   const locale = await getLocale();
-  const { page, q } = await props.searchParams;
+  const { page, q, size } = await props.searchParams;
 
   const t = await getTranslations('admin');
   const tOrder = await getTranslations('order');
@@ -30,12 +32,16 @@ const AdminOrdersPage = async (props: {
   const orders = await getAllOrders({
     page: Number(page) || 1,
     query: q,
+    limit: parsePageSize(size),
   });
 
   return (
     <div className='space-y-4'>
       <h1 className='h2-bold'>{t('orders')}</h1>
-      <AdminSearch />
+      <div className='flex flex-wrap items-center justify-between gap-2'>
+        <AdminSearch />
+        <PageSizeSelector current={parsePageSize(size)} />
+      </div>
 
       <div className='overflow-x-auto rounded-lg border'>
         <Table>
