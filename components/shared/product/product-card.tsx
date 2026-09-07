@@ -7,6 +7,7 @@ import { Link } from '@/i18n/navigation';
 import ProductPrice from '@/components/product/product-price';
 import StarRating from '@/components/shared/product/star-rating';
 import { getDiscount } from '@/lib/discount';
+import { LOW_STOCK_THRESHOLD } from '@/lib/constants';
 import { formatNumberLocale } from '@/lib/persian';
 import type { Product } from '@/types';
 
@@ -16,6 +17,10 @@ const ProductCard = async ({ product }: { product: Product }) => {
   const name = locale === 'fa' ? product.nameFa : product.name;
   const category = locale === 'fa' ? product.categoryFa : product.category;
   const discount = getDiscount(product.price, product.compareAtPrice);
+  // Digikala-style urgency: low stock (not out, not plentiful)
+  const lowStock =
+    product.stock > 0 &&
+    product.stock <= LOW_STOCK_THRESHOLD;
 
   return (
     <Card className='group w-full h-full pt-0 gap-3 transition-all duration-300 hover:shadow-lg hover:-translate-y-1'>
@@ -70,6 +75,20 @@ const ProductCard = async ({ product }: { product: Product }) => {
           <div className='flex items-center gap-1'>
             <StarRating value={Number(product.rating)} />
           </div>
+        </div>
+
+        {/* Trust/urgency badges (Digikala-style) */}
+        <div className='flex flex-wrap items-center gap-1.5'>
+          {lowStock && (
+            <span className='text-xs font-medium text-amber-600 dark:text-amber-400'>
+              {t('onlyLeft', { count: formatNumberLocale(product.stock, locale) })}
+            </span>
+          )}
+          {product.codAvailable && product.stock > 0 && (
+            <span className='rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground'>
+              {t('codBadge')}
+            </span>
+          )}
         </div>
       </CardContent>
     </Card>

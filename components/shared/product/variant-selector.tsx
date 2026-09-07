@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +9,8 @@ import AddToCart from '@/components/shared/product/add-to-cart';
 import FavoriteToggle from '@/components/shared/product/favorite-toggle';
 import ProductPrice from '@/components/product/product-price';
 import { cn } from '@/lib/utils';
+import { LOW_STOCK_THRESHOLD } from '@/lib/constants';
+import { formatNumberLocale } from '@/lib/persian';
 import { resolveVariant } from '@/lib/variants';
 import type { OptionLite, VariantLite } from '@/lib/variants';
 import type { Cart } from '@/types';
@@ -44,6 +46,7 @@ const VariantSelector = ({
   favorited: boolean;
 }) => {
   const t = useTranslations('product');
+  const locale = useLocale();
   const [selection, setSelection] =
     useState<Record<string, string>>(initialSelection);
 
@@ -145,7 +148,18 @@ const VariantSelector = ({
         <div className='flex items-center justify-between'>
           <span className='text-sm'>{t('status')}</span>
           {stock > 0 ? (
-            <Badge variant='outline'>{t('inStock')}</Badge>
+            stock <= LOW_STOCK_THRESHOLD ? (
+              <Badge
+                variant='outline'
+                className='border-amber-500 text-amber-600 dark:text-amber-400'
+              >
+                {t('onlyLeft', {
+                  count: formatNumberLocale(stock, locale),
+                })}
+              </Badge>
+            ) : (
+              <Badge variant='outline'>{t('inStock')}</Badge>
+            )
           ) : (
             <Badge variant='destructive'>{t('unavailable')}</Badge>
           )}

@@ -42,6 +42,7 @@ const SortDropdown = () => {
         className='h-9 rounded-md border bg-transparent px-2 text-sm outline-none cursor-pointer'
       >
         <option value='newest'>{t('sortNewest')}</option>
+        <option value='popular'>{t('sortPopular')}</option>
         <option value='lowest'>{t('sortLowest')}</option>
         <option value='highest'>{t('sortHighest')}</option>
         <option value='rating'>{t('sortRating')}</option>
