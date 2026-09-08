@@ -134,10 +134,7 @@ const VariantSelector = ({
         })}
 
         <div className='flex items-center justify-between border-t pt-3'>
-          <span className='text-sm'>
-            {t('from')}{' '}
-            <ProductPrice value={price} className='font-bold' />
-          </span>
+          <ProductPrice value={price} className='font-bold' />
           {compareAtPrice && compareAtPrice > price && (
             <span className='text-sm text-muted-foreground line-through'>
               {compareAtPrice}

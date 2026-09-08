@@ -123,16 +123,28 @@ const ProductDetailsPage = async (props: {
   const cart = await getMyCart();
   const isFavorited = await isProductFavorited(product.id);
 
-  const categoryRow = product.categoryId
-    ? await getCategoryById(product.categoryId)
-    : null;
-  const categorySlug = categoryRow?.slug ?? null;
+  // Full category chain: deepest assigned category (sub-sub → sub → main)
+  // walked up to the root via parentId
+  const deepestId =
+    product.subSubCategoryId ?? product.subCategoryId ?? product.categoryId;
+  const chain = [];
+  let cursor = deepestId ? await getCategoryById(deepestId) : null;
+  while (cursor) {
+    chain.unshift(cursor);
+    cursor = cursor.parentId
+      ? await getCategoryById(cursor.parentId)
+      : null;
+  }
+  const crumbItems = chain.map((c) => ({
+    label: isFa ? c.nameFa : c.name,
+    href: `/category/${c.slug}`,
+  }));
 
   const categoryName = isFa ? product.categoryFa : product.category;
   const jsonLd = productJsonLd(product, locale);
   const breadcrumbs = breadcrumbJsonLd([
     { name: isFa ? 'خانه' : 'Home', url: getSiteUrl() },
-    { name: categoryName, url: `${getSiteUrl()}/search?category=${encodeURIComponent(product.category)}` },
+    ...crumbItems.map((c) => ({ name: c.label, url: `${getSiteUrl()}${c.href}` })),
     { name: isFa ? product.nameFa : product.name, url: `${getSiteUrl()}/product/${product.slug}` },
   ]);
 
@@ -147,18 +159,10 @@ const ProductDetailsPage = async (props: {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
       />
 
-      {/* Breadcrumb trail — ends with the product name */}
+      {/* Breadcrumb trail — full category chain, ends with the product name */}
       <Breadcrumbs
         className='mb-4'
-        items={[
-          {
-            label: isFa ? product.categoryFa : product.category,
-            href: categorySlug
-              ? `/category/${categorySlug}`
-              : `/search?category=${encodeURIComponent(product.category)}`,
-          },
-          { label: isFa ? product.nameFa : product.name },
-        ]}
+        items={[...crumbItems, { label: isFa ? product.nameFa : product.name }]}
       />
       <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5'>
         {/* Images Column */}
