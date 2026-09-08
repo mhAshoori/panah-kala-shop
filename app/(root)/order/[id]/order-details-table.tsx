@@ -4,9 +4,11 @@ import Image from 'next/image';
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
+import { Printer } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from '@/i18n/navigation';
 import {
@@ -60,10 +62,17 @@ const OrderDetailsTable = ({
 
   return (
     <>
-      <h1 className='py-4 h2-bold'>
-        {t('title')} {formatId(id)}
-      </h1>
-      <div className='grid md:grid-cols-3 md:gap-5'>
+      <div className='flex flex-wrap items-center justify-between gap-2 py-4'>
+        <h1 className='h2-bold'>
+          {t('title')} {formatId(id)}
+        </h1>
+        {/* Print-friendly receipt (browser print dialog) */}
+        <Button variant='outline' onClick={() => window.print()}>
+          <Printer className='h-4 w-4' />
+          {t('print')}
+        </Button>
+      </div>
+      <div className='grid md:grid-cols-3 md:gap-5 print:block'>
         <div className='overflow-x-auto md:col-span-2 space-y-4'>
           {/* Payment method */}
           <Card>
