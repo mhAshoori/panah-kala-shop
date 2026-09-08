@@ -85,7 +85,6 @@
     "relatedProducts": "Related Products",
     "stock": "Stock",
     "details": "Details",
-    "from": "From",
     "dimensions": "Dimensions",
     "weight": "Weight",
     "codBadge": "Cash on Delivery"
@@ -166,7 +165,8 @@
       "shipping": "Shipping",
       "payment": "Payment",
       "placeOrder": "Place Order"
-    }
+    },
+    "finalizeOrder": "Place Final Order"
   },
   "category": {
     "title": "Product Categories",
@@ -247,7 +247,8 @@
     "retryPayment": "Retry Payment",
     "reorder": "Reorder",
     "reordered": "Items added back to your cart",
-    "nothingToReorder": "None of these items are currently available"
+    "nothingToReorder": "None of these items are currently available",
+    "print": "Print Order"
   },
   "account": {
     "profile": "Profile Details",

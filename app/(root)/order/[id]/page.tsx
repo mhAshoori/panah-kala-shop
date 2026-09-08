@@ -34,14 +34,18 @@ const OrderDetailsPage = async (props: {
   const ct = await getTranslations('common');
 
   return (
-    <Suspense fallback={<div className='h2-bold py-4'>{ct('loading')}</div>}>
-      <OrderDetailsTable
-        order={{
-          ...order,
-          shippingAddress: order.shippingAddress as ShippingAddress,
-        }}
-      />
-    </Suspense>
+    <>
+      {/* Print: strip the site chrome, keep the receipt */}
+      <style>{`@media print { header, footer, nav, aside { display: none !important; } }`}</style>
+      <Suspense fallback={<div className='h2-bold py-4'>{ct('loading')}</div>}>
+        <OrderDetailsTable
+          order={{
+            ...order,
+            shippingAddress: order.shippingAddress as ShippingAddress,
+          }}
+        />
+      </Suspense>
+    </>
   );
 };
 

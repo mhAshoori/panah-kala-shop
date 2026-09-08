@@ -85,7 +85,6 @@
     "relatedProducts": "محصولات مرتبط",
     "stock": "موجودی",
     "details": "مشخصات",
-    "from": "شروع از",
     "dimensions": "ابعاد",
     "weight": "وزن",
     "codBadge": "پرداخت در محل"
@@ -166,7 +165,8 @@
       "shipping": "ارسال",
       "payment": "پرداخت",
       "placeOrder": "ثبت سفارش"
-    }
+    },
+    "finalizeOrder": "ثبت نهایی سفارش"
   },
   "category": {
     "title": "دسته‌بندی محصولات",
@@ -247,7 +247,8 @@
     "retryPayment": "پرداخت مجدد",
     "reorder": "سفارش مجدد",
     "reordered": "اقلام سفارش به سبد خرید اضافه شد",
-    "nothingToReorder": "هیچ کالایی از این سفارش اکنون موجود نیست"
+    "nothingToReorder": "هیچ کالایی از این سفارش اکنون موجود نیست",
+    "print": "چاپ سفارش"
   },
   "account": {
     "profile": "اطلاعات حساب",

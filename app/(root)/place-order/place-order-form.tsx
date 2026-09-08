@@ -41,7 +41,7 @@ const PlaceOrderForm = () => {
           {t('common.loading')}
         </>
       ) : (
-        t('checkout.placeOrder')
+        t('checkout.finalizeOrder')
       )}
     </Button>
   );
