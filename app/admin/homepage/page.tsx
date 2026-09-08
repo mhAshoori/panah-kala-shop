@@ -7,6 +7,8 @@ import {
   getHomeConfig,
   getContactContent,
   getSiteMeta,
+  getHomeBlockOrder,
+  type HomeBlockKey,
 } from '@/lib/home-content';
 import { prisma } from '@/db/prisma';
 
@@ -22,10 +24,11 @@ const ICON_OPTIONS = [
 
 const AdminHomepagePage = async () => {
   const t = await getTranslations('admin');
-  const [config, contact, meta] = await Promise.all([
+  const [config, contact, meta, blockOrder] = await Promise.all([
     getHomeConfig(),
     getContactContent(),
     getSiteMeta(),
+    getHomeBlockOrder(),
   ]);
 
   // Product picker for the deal block
@@ -38,6 +41,106 @@ const AdminHomepagePage = async () => {
     ...products.map((p) => ({ value: p.id, label: p.nameFa })),
   ];
 
+  // Field sets + props per block key (rendered below in the saved order)
+  const editors: Record<
+    HomeBlockKey,
+    { title: string; initialData: Record<string, unknown>; fields: BlockField[] }
+  > = {
+    hero: {
+      title: t('blockHero'),
+      initialData: config.hero as unknown as Record<string, unknown>,
+      fields: [
+        { path: 'image', label: 'fImage', type: 'image' },
+        { path: 'badge', label: 'fBadge', type: 'text', localized: true },
+        { path: 'title', label: 'fTitle', type: 'text', localized: true },
+        { path: 'subtitle', label: 'fSubtitle', type: 'textarea', localized: true },
+        { path: 'cta', label: 'fCta', type: 'text', localized: true },
+        { path: 'link', label: 'fLink', type: 'text' },
+      ],
+    },
+    iconBoxes: {
+      title: t('blockIconBoxes'),
+      initialData: config.iconBoxes as unknown as Record<string, unknown>,
+      fields: [0, 1, 2, 3].flatMap((i): BlockField[] => [
+        { path: `items.${i}.icon`, label: `fIconBoxIcon`, type: 'text', options: ICON_OPTIONS },
+        { path: `items.${i}.title`, label: `fIconBoxTitle${i + 1}`, type: 'text', localized: true },
+        { path: `items.${i}.desc`, label: `fIconBoxDesc${i + 1}`, type: 'textarea', localized: true },
+      ]),
+    },
+    deal: {
+      title: t('blockDeal'),
+      initialData: config.deal as unknown as Record<string, unknown>,
+      fields: [
+        { path: 'productId', label: 'fProduct', type: 'text', options: productOptions },
+        { path: 'badge', label: 'fBadge', type: 'text', localized: true },
+      ],
+    },
+    stats: {
+      title: t('blockStats'),
+      initialData: config.stats as unknown as Record<string, unknown>,
+      fields: [
+        { path: 'labels.products', label: 'fStatProducts', type: 'text', localized: true },
+        { path: 'labels.orders', label: 'fStatOrders', type: 'text', localized: true },
+        { path: 'labels.customers', label: 'fStatCustomers', type: 'text', localized: true },
+      ],
+    },
+    categoryGrid: {
+      title: t('blockCategoryGrid'),
+      initialData: config.categoryGrid as unknown as Record<string, unknown>,
+      fields: [{ path: 'title', label: 'fTitle', type: 'text', localized: true }],
+    },
+    latest: {
+      title: t('blockLatest'),
+      initialData: config.latest as unknown as Record<string, unknown>,
+      fields: [
+        { path: 'title', label: 'fTitle', type: 'text', localized: true },
+        { path: 'limit', label: 'fLimit', type: 'number' },
+      ],
+    },
+    featured: {
+      title: t('blockFeatured'),
+      initialData: config.featured as unknown as Record<string, unknown>,
+      fields: [
+        { path: 'title', label: 'fTitle', type: 'text', localized: true },
+        { path: 'limit', label: 'fLimit', type: 'number' },
+      ],
+    },
+    bestSellers: {
+      title: t('blockBestSellers'),
+      initialData: config.bestSellers as unknown as Record<string, unknown>,
+      fields: [
+        { path: 'title', label: 'fTitle', type: 'text', localized: true },
+        { path: 'limit', label: 'fLimit', type: 'number' },
+      ],
+    },
+    promoBanners: {
+      title: t('blockPromoBanners'),
+      initialData: config.promoBanners as unknown as Record<string, unknown>,
+      fields: [0, 1].flatMap((i): BlockField[] => [
+        { path: `banners.${i}.image`, label: `fImage${i + 1}`, type: 'image' },
+        { path: `banners.${i}.title`, label: `fTitle${i + 1}`, type: 'text', localized: true },
+        { path: `banners.${i}.subtitle`, label: `fSubtitle${i + 1}`, type: 'text', localized: true },
+        { path: `banners.${i}.cta`, label: `fCta${i + 1}`, type: 'text', localized: true },
+        { path: `banners.${i}.link`, label: `fLink${i + 1}`, type: 'text' },
+      ]),
+    },
+    brands: {
+      title: t('blockBrands'),
+      initialData: config.brands as unknown as Record<string, unknown>,
+      fields: [{ path: 'title', label: 'fTitle', type: 'text', localized: true }],
+    },
+    support: {
+      title: t('blockSupport'),
+      initialData: config.support as unknown as Record<string, unknown>,
+      fields: [
+        { path: 'title', label: 'fTitle', type: 'text', localized: true },
+        { path: 'desc', label: 'fDescription', type: 'textarea', localized: true },
+        { path: 'cta', label: 'fCta', type: 'text', localized: true },
+        { path: 'link', label: 'fLink', type: 'text' },
+      ],
+    },
+  };
+
   return (
     <div className='space-y-6'>
       <div className='space-y-1'>
@@ -45,157 +148,18 @@ const AdminHomepagePage = async () => {
         <p className='text-sm text-muted-foreground'>{t('homepageHint')}</p>
       </div>
 
-      {/* Hero */}
-      <HomeBlockEditor
-        blockKey='hero'
-        title={t('blockHero')}
-        reorderable
-        initialEnabled={config.hero.enabled}
-        initialData={config.hero as unknown as Record<string, unknown>}
-        fields={[
-          { path: 'image', label: 'fImage', type: 'image' },
-          { path: 'badge', label: 'fBadge', type: 'text', localized: true },
-          { path: 'title', label: 'fTitle', type: 'text', localized: true },
-          { path: 'subtitle', label: 'fSubtitle', type: 'textarea', localized: true },
-          { path: 'cta', label: 'fCta', type: 'text', localized: true },
-          { path: 'link', label: 'fLink', type: 'text' },
-        ]}
-      />
-
-      {/* Icon boxes */}
-      <HomeBlockEditor
-        blockKey='iconBoxes'
-        reorderable
-        title={t('blockIconBoxes')}
-        initialEnabled={config.iconBoxes.enabled}
-        initialData={config.iconBoxes as unknown as Record<string, unknown>}
-        fields={[0, 1, 2, 3].flatMap((i): BlockField[] => [
-          { path: `items.${i}.icon`, label: `fIconBoxIcon`, type: 'text', options: ICON_OPTIONS },
-          { path: `items.${i}.title`, label: `fIconBoxTitle${i + 1}`, type: 'text', localized: true },
-          { path: `items.${i}.desc`, label: `fIconBoxDesc${i + 1}`, type: 'textarea', localized: true },
-        ])}
-      />
-
-      {/* Deal of the day */}
-      <HomeBlockEditor
-        blockKey='deal'
-        reorderable
-        title={t('blockDeal')}
-        initialEnabled={config.deal.enabled}
-        initialData={config.deal as unknown as Record<string, unknown>}
-        fields={[
-          { path: 'productId', label: 'fProduct', type: 'text', options: productOptions },
-          { path: 'badge', label: 'fBadge', type: 'text', localized: true },
-        ]}
-      />
-
-      {/* Stats */}
-      <HomeBlockEditor
-        blockKey='stats'
-        reorderable
-        title={t('blockStats')}
-        initialEnabled={config.stats.enabled}
-        initialData={config.stats as unknown as Record<string, unknown>}
-        fields={[
-          { path: 'labels.products', label: 'fStatProducts', type: 'text', localized: true },
-          { path: 'labels.orders', label: 'fStatOrders', type: 'text', localized: true },
-          { path: 'labels.customers', label: 'fStatCustomers', type: 'text', localized: true },
-        ]}
-      />
-
-      {/* Category grid */}
-      <HomeBlockEditor
-        blockKey='categoryGrid'
-        reorderable
-        title={t('blockCategoryGrid')}
-        initialEnabled={config.categoryGrid.enabled}
-        initialData={config.categoryGrid as unknown as Record<string, unknown>}
-        fields={[
-          { path: 'title', label: 'fTitle', type: 'text', localized: true },
-        ]}
-      />
-
-      {/* Latest products */}
-      <HomeBlockEditor
-        blockKey='latest'
-        reorderable
-        title={t('blockLatest')}
-        initialEnabled={config.latest.enabled}
-        initialData={config.latest as unknown as Record<string, unknown>}
-        fields={[
-          { path: 'title', label: 'fTitle', type: 'text', localized: true },
-          { path: 'limit', label: 'fLimit', type: 'number' },
-        ]}
-      />
-
-      {/* Featured products */}
-      <HomeBlockEditor
-        blockKey='featured'
-        reorderable
-        title={t('blockFeatured')}
-        initialEnabled={config.featured.enabled}
-        initialData={config.featured as unknown as Record<string, unknown>}
-        fields={[
-          { path: 'title', label: 'fTitle', type: 'text', localized: true },
-          { path: 'limit', label: 'fLimit', type: 'number' },
-        ]}
-      />
-
-      {/* Best sellers */}
-      <HomeBlockEditor
-        blockKey='bestSellers'
-        reorderable
-        title={t('blockBestSellers')}
-        initialEnabled={config.bestSellers.enabled}
-        initialData={config.bestSellers as unknown as Record<string, unknown>}
-        fields={[
-          { path: 'title', label: 'fTitle', type: 'text', localized: true },
-          { path: 'limit', label: 'fLimit', type: 'number' },
-        ]}
-      />
-
-      {/* Promo banners (two side-by-side image banners) */}
-      <HomeBlockEditor
-        blockKey='promoBanners'
-        reorderable
-        title={t('blockPromoBanners')}
-        initialEnabled={config.promoBanners.enabled}
-        initialData={config.promoBanners as unknown as Record<string, unknown>}
-        fields={[0, 1].flatMap((i): BlockField[] => [
-          { path: `banners.${i}.image`, label: `fImage${i + 1}`, type: 'image' },
-          { path: `banners.${i}.title`, label: `fTitle${i + 1}`, type: 'text', localized: true },
-          { path: `banners.${i}.subtitle`, label: `fSubtitle${i + 1}`, type: 'text', localized: true },
-          { path: `banners.${i}.cta`, label: `fCta${i + 1}`, type: 'text', localized: true },
-          { path: `banners.${i}.link`, label: `fLink${i + 1}`, type: 'text' },
-        ])}
-      />
-
-      {/* Brands marquee */}
-      <HomeBlockEditor
-        blockKey='brands'
-        reorderable
-        title={t('blockBrands')}
-        initialEnabled={config.brands.enabled}
-        initialData={config.brands as unknown as Record<string, unknown>}
-        fields={[
-          { path: 'title', label: 'fTitle', type: 'text', localized: true },
-        ]}
-      />
-
-      {/* Support CTA */}
-      <HomeBlockEditor
-        blockKey='support'
-        reorderable
-        title={t('blockSupport')}
-        initialEnabled={config.support.enabled}
-        initialData={config.support as unknown as Record<string, unknown>}
-        fields={[
-          { path: 'title', label: 'fTitle', type: 'text', localized: true },
-          { path: 'desc', label: 'fDescription', type: 'textarea', localized: true },
-          { path: 'cta', label: 'fCta', type: 'text', localized: true },
-          { path: 'link', label: 'fLink', type: 'text' },
-        ]}
-      />
+      {/* Homepage blocks in the admin's saved display order */}
+      {blockOrder.map((key) => (
+        <HomeBlockEditor
+          key={key}
+          blockKey={key}
+          title={editors[key].title}
+          reorderable
+          initialEnabled={config[key].enabled}
+          initialData={editors[key].initialData}
+          fields={editors[key].fields}
+        />
+      ))}
 
       {/* Contact page content */}
       <HomeBlockEditor

@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/db/prisma';
 import { convertToPlainObject } from '../utils';
 import { PAGE_SIZE } from '../constants';
@@ -122,6 +123,9 @@ export async function updateOrderToPaid(orderId: string) {
     where: { id: orderId },
     data: { isPaid: true, paidAt: new Date() },
   });
+  revalidatePath('/admin/orders');
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath(`/order/${orderId}`);
   return { success: true as const };
 }
 
@@ -141,6 +145,9 @@ export async function updateOrderToDelivered(orderId: string) {
     where: { id: orderId },
     data: { isDelivered: true, deliveredAt: new Date() },
   });
+  revalidatePath('/admin/orders');
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath(`/order/${orderId}`);
   return { success: true as const };
 }
 
@@ -153,5 +160,6 @@ export async function deleteOrder(orderId: string) {
 
   await prisma.order.delete({ where: { id: orderId } });
 
+  revalidatePath('/admin/orders');
   return { success: true };
 }

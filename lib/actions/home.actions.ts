@@ -47,6 +47,7 @@ export async function updateHomeBlock(
     });
 
     revalidatePath('/', 'layout');
+    revalidatePath('/admin/homepage');
 
     return { success: true, message: await withActionMessage('homeSaved') };
   } catch (error) {
@@ -75,22 +76,24 @@ export async function moveHomeBlock(
     const rows = await prisma.homeBlock.findMany({
       select: { key: true, position: true },
     });
-    const positions = new Map<string, number>();
+    const stored = new Map<string, number>();
     for (const r of rows) {
-      if ((HOME_BLOCK_KEYS as readonly string[]).includes(r.key)) {
-        positions.set(r.key, r.position ?? Infinity);
+      if (
+        (HOME_BLOCK_KEYS as readonly string[]).includes(r.key) &&
+        r.position != null
+      ) {
+        stored.set(r.key, r.position);
       }
     }
-    // Every block must have a concrete position before swapping
-    HOME_BLOCK_KEYS.forEach((k, i) => {
-      if (positions.get(k) === Infinity || positions.get(k) === undefined) {
-        positions.set(k, i);
-      }
+    // Blocks without a stored position sort after all positioned ones,
+    // keeping HOME_BLOCK_KEYS order among themselves — never reuse stored
+    // index values (they collide with real positions and scramble moves)
+    const order = [...HOME_BLOCK_KEYS].sort((a, b) => {
+      const pa = stored.get(a) ?? Number.MAX_SAFE_INTEGER;
+      const pb = stored.get(b) ?? Number.MAX_SAFE_INTEGER;
+      if (pa !== pb) return pa - pb;
+      return HOME_BLOCK_KEYS.indexOf(a) - HOME_BLOCK_KEYS.indexOf(b);
     });
-
-    const order = [...HOME_BLOCK_KEYS].sort(
-      (a, b) => positions.get(a)! - positions.get(b)!
-    );
     const idx = order.indexOf(homeKey);
     const swapWith = direction === 'up' ? idx - 1 : idx + 1;
     if (swapWith < 0 || swapWith >= order.length) {
@@ -109,6 +112,7 @@ export async function moveHomeBlock(
     );
 
     revalidatePath('/', 'layout');
+    revalidatePath('/admin/homepage');
 
     return { success: true, message: await withActionMessage('homeSaved') };
   } catch (error) {
