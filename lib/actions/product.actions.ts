@@ -701,6 +701,29 @@ async function resolveCategoryChain(formData: FormData) {
   return { categoryId, subCategoryId, subSubCategoryId };
 }
 
+// Slug uniqueness guard (Product.slug is @unique — a conflict otherwise
+// surfaces as an unformatted P2002 crash). Auto-dedupes with -2, -3, …
+async function resolveUniqueSlug(slug: string, excludeId?: string) {
+  const base = slug.trim();
+  if (!base) return base;
+
+  const taken = new Set(
+    (
+      await prisma.product.findMany({
+        where: { slug: { startsWith: base }, ...(excludeId ? { id: { not: excludeId } } : {}) },
+        select: { slug: true },
+      })
+    ).map((p) => p.slug)
+  );
+
+  if (!taken.has(base)) return base;
+
+  for (let n = 2; ; n++) {
+    const candidate = `${base}-${n}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+}
+
 // Create a product (admin)
 export async function createProduct(
   _prevState: ActionState,
@@ -711,6 +734,7 @@ export async function createProduct(
 
     const product = insertProductSchema.parse(productDataFromFormData(formData));
     const chain = await resolveCategoryChain(formData);
+    product.slug = await resolveUniqueSlug(product.slug);
 
     const diversity = diversityFromFormData(formData);
 
@@ -754,6 +778,7 @@ export async function updateProduct(
       throw new Error(await withActionMessage('productNotFound'));
 
     const chain = await resolveCategoryChain(formData);
+    product.slug = await resolveUniqueSlug(product.slug, product.id);
     const diversity = diversityFromFormData(formData);
 
     await prisma.$transaction(async (tx) => {
