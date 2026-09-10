@@ -45,13 +45,13 @@ export function setPendingOtp(key: string, code: string): void {
   pending.set(key, { code, expiresAt: Date.now() + OTP_TTL_MS });
 }
 
-/** Check + consume a pending contact-change code (one attempt per code). */
+/** Check + consume a pending contact-change code (one attempt per code —
+ *  a wrong guess destroys the entry, so the code space can't be brute-forced
+ *  within the TTL; request a fresh code to try again). */
 export function checkPendingOtp(key: string, code: string): boolean {
   const entry = pending.get(key);
-  if (!entry || entry.expiresAt <= Date.now()) {
-    pending.delete(key);
-    return false;
-  }
+  pending.delete(key);
+  if (!entry || entry.expiresAt <= Date.now()) return false;
   return entry.code === code;
 }
 

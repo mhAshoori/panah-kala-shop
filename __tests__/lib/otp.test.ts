@@ -34,10 +34,16 @@ describe('OTP primitives', () => {
       expect(checkPendingOtp(key, '042317')).toBe(true);
     });
 
-    it('rejects a wrong code without consuming the right one', () => {
+    it('consumes the code on a wrong guess (one attempt per code)', () => {
       setPendingOtp(key, '042317');
       expect(checkPendingOtp(key, '999999')).toBe(false);
+      expect(checkPendingOtp(key, '042317')).toBe(false);
+    });
+
+    it('consumes the code on success (no replay)', () => {
+      setPendingOtp(key, '042317');
       expect(checkPendingOtp(key, '042317')).toBe(true);
+      expect(checkPendingOtp(key, '042317')).toBe(false);
     });
 
     it('rejects after clear', () => {
