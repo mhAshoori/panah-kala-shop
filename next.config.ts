@@ -26,6 +26,12 @@ const nextConfig: NextConfig = {
   // builds the app itself — standalone there breaks output tracing
   // (missing .next/next-server.js.nft.json) so it stays off on Vercel.
   ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
+  // Admin edits (homepage blocks, products, orders) must show up on the
+  // storefront immediately — kill the client Router Cache's 30s hold on
+  // dynamic pages so soft navigation always re-fetches fresh RSC payloads.
+  experimental: {
+    staleTimes: { dynamic: 0 },
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**" },
