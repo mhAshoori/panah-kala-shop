@@ -29,6 +29,7 @@ const CartTable = ({
   const router = useRouter();
   const t = useTranslations('cart');
   const tc = useTranslations('common');
+  const to = useTranslations('order');
   const locale = useLocale();
   const [isPending, startTransition] = useTransition();
 
@@ -192,10 +193,37 @@ const CartTable = ({
                 </div>
               )}
 
+              <div className='flex justify-between text-sm'>
+                <span className='text-muted-foreground'>{to('itemsPrice')}</span>
+                <span className='tabular-nums'>
+                  {formatNumberLocale(cart.itemsPrice, locale)}
+                  <span className='ms-1 text-xs text-muted-foreground'>
+                    {tc('currency')}
+                  </span>
+                </span>
+              </div>
+              <div className='flex justify-between text-sm'>
+                <span className='text-muted-foreground'>{to('shippingPrice')}</span>
+                <span className='tabular-nums'>
+                  {Number(cart.shippingPrice) === 0
+                    ? t('freeShippingEarned')
+                    : formatNumberLocale(cart.shippingPrice, locale)}
+                </span>
+              </div>
+              <div className='flex justify-between text-sm'>
+                <span className='text-muted-foreground'>{to('taxPrice')}</span>
+                <span className='tabular-nums'>
+                  {formatNumberLocale(cart.taxPrice, locale)}
+                  <span className='ms-1 text-xs text-muted-foreground'>
+                    {tc('currency')}
+                  </span>
+                </span>
+              </div>
+
               <div className='flex justify-between border-t pt-3 text-base font-semibold'>
                 <span>{t('totalPrice')}</span>
                 <span>
-                  {formatNumberLocale(cart.itemsPrice, locale)}
+                  {formatNumberLocale(cart.totalPrice, locale)}
                   <span className='ms-1 text-xs font-normal text-muted-foreground'>
                     {tc('currency')}
                   </span>

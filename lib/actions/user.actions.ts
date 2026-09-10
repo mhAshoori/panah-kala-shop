@@ -703,6 +703,11 @@ export async function requestPhoneOtp(
 export async function checkPhoneRegistered(
   phone: string
 ): Promise<{ registered: boolean }> {
+  // Public action — throttle so it can't be used to enumerate registered
+  // mobile numbers at scale
+  const rl = rateLimit(`phonecheck:${phone.slice(-10)}`, 10, 10 * 60 * 1000);
+  if (!rl.allowed) return { registered: false };
+
   const normalized = normalizeIranMobile(phone);
   if (!normalized) return { registered: false };
 
