@@ -21,4 +21,12 @@ describe('toCsv', () => {
   it('passes numbers through', () => {
     expect(toCsv(['n'], [[42]])).toContain('42');
   });
+
+  it('neutralizes formula-injection prefixes', () => {
+    const csv = toCsv(['a', 'b', 'c', 'd'], [['=SUM(A1)', '+1', '-2', '@x']]);
+    expect(csv).toContain("'=SUM(A1)");
+    expect(csv).toContain("'+1");
+    expect(csv).toContain("'-2");
+    expect(csv).toContain("'@x");
+  });
 });

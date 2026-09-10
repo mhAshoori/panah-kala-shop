@@ -9,6 +9,10 @@ import type { Order } from '@/types';
  * the rendered email is delivered.
  */
 
+// User-controlled fields (item names, recipient name) must never inject HTML
+const esc = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 type OrderReceiptInput = {
   to: string;
   order: Order;
@@ -52,7 +56,7 @@ function renderReceiptHtml({ order, locale }: Omit<OrderReceiptInput, 'to'>): st
     .map(
       (item) => `
         <tr>
-          <td style="padding:8px 0;">${item.name} × ${item.qty}</td>
+          <td style="padding:8px 0;">${esc(item.name)} × ${item.qty}</td>
           <td style="padding:8px 0;text-align:left;">${formatCurrency(Number(item.price) * item.qty)} ${d.currency}</td>
         </tr>`
     )
@@ -63,7 +67,7 @@ function renderReceiptHtml({ order, locale }: Omit<OrderReceiptInput, 'to'>): st
   <body style="font-family:system-ui,sans-serif;background:#f6f7f9;padding:24px;">
     <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;padding:24px;">
       <h1 style="font-size:18px;margin:0 0 8px;">${d.title}</h1>
-      <p style="color:#6b7280;font-size:14px;margin:0 0 4px;">${d.greeting} ${order.shippingAddress.fullName}</p>
+      <p style="color:#6b7280;font-size:14px;margin:0 0 4px;">${d.greeting} ${esc(order.shippingAddress.fullName)}</p>
       <p style="color:#6b7280;font-size:14px;margin:0 0 16px;">${d.thanks}</p>
       <p style="font-size:14px;margin:0 0 16px;">${d.orderNo}: <strong>${order.id}</strong></p>
       <h2 style="font-size:15px;margin:0 0 8px;">${d.items}</h2>
