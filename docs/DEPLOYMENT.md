@@ -324,6 +324,14 @@ journalctl -u panah -n 100 --no-pager
 curl -s -o /dev/null -w '%{http_code}' https://your-domain.ir   # 200
 ```
 
+Deep health probe (checks the DB connection too — 200 `{status:ok}` healthy,
+503 `{status:degraded}` when the DB is unreachable). Point an uptime monitor
+(e.g. UptimeRobot, or a cron `curl` on another box) at it:
+
+```bash
+curl -s -w '\n%{http_code}\n' https://your-domain.ir/api/health
+```
+
 ---
 
 ## Troubleshooting
