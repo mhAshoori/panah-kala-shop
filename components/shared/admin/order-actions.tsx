@@ -12,16 +12,19 @@ import {
   deleteOrder,
   updateOrderToDelivered,
   updateOrderToPaid,
+  updateOrderToShipped,
 } from '@/lib/actions/admin.actions';
 
-// Two-step fulfilment: 1) mark as paid, 2) mark as delivered (paid first!)
+// Three-step fulfilment: 1) paid, 2) shipped, 3) delivered
 const OrderActions = ({
   orderId,
   isPaid,
+  isShipped,
   isDelivered,
 }: {
   orderId: string;
   isPaid: boolean;
+  isShipped: boolean;
   isDelivered: boolean;
 }) => {
   const t = useTranslations('admin');
@@ -60,6 +63,23 @@ const OrderActions = ({
           <span className='hidden xl:inline'>{t('markPaid')}</span>
         </Button>
       )}
+      {isPaid && !isShipped && !isDelivered && (
+        <Button
+          size='sm'
+          variant='outline'
+          disabled={isPending}
+          onClick={() =>
+            run(() => updateOrderToShipped(orderId), t('orderShipped'))
+          }
+        >
+          {isPending ? (
+            <Loader2 className='h-4 w-4 animate-spin' />
+          ) : (
+            <Truck className='h-4 w-4' />
+          )}
+          <span className='hidden xl:inline'>{t('markShipped')}</span>
+        </Button>
+      )}
       {isPaid && !isDelivered && (
         <Button
           size='sm'
@@ -72,7 +92,7 @@ const OrderActions = ({
           {isPending ? (
             <Loader2 className='h-4 w-4 animate-spin' />
           ) : (
-            <Truck className='h-4 w-4' />
+            <CheckCircle2 className='h-4 w-4' />
           )}
           <span className='hidden xl:inline'>{t('markDelivered')}</span>
         </Button>

@@ -51,6 +51,7 @@ export type Order = z.infer<typeof insertOrderSchema> & {
   paidAt: Date | null;
   isDelivered: boolean;
   deliveredAt: Date | null;
+  shippedAt?: Date | null;
   paymentAuthority?: string | null;
   /** Applied coupon (normalized code) and its computed Toman discount */
   couponCode?: string | null;

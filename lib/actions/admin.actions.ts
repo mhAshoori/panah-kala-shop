@@ -7,6 +7,7 @@ import { PAGE_SIZE } from '../constants';
 import { requireAdmin } from '../auth-guard';
 import { withActionMessage } from '../action-messages';
 import { Order } from '@/types';
+import { sendOrderShippedEmail } from '../email/order-shipped';
 
 // Get dashboard summary: counts, total sales, monthly sales and latest sales
 export async function getOrderSummary() {
@@ -129,7 +130,35 @@ export async function updateOrderToPaid(orderId: string) {
   return { success: true as const };
 }
 
-// Mark a paid order as delivered (step 2 — requires payment first)
+// Mark a paid order as shipped (step 2 — requires payment first)
+export async function updateOrderToShipped(orderId: string) {
+  await requireAdmin();
+
+  const order = await prisma.order.findFirst({ where: { id: orderId } });
+  if (!order) throw new Error(await withActionMessage('orderNotFound'));
+  if (order.shippedAt)
+    throw new Error(await withActionMessage('orderAlreadyShipped'));
+  if (!order.isPaid) {
+    throw new Error(await withActionMessage('orderMustBePaid'));
+  }
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { shippedAt: new Date() },
+  });
+
+  // Fire-and-forget shipping notice (never blocks the admin action)
+  sendOrderShippedEmail(order).catch((e) =>
+    console.error('[email] shipped notice failed:', e)
+  );
+
+  revalidatePath('/admin/orders');
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath(`/order/${orderId}`);
+  return { success: true as const };
+}
+
+// Mark a paid order as delivered (step 3 — shipped state optional)
 export async function updateOrderToDelivered(orderId: string) {
   await requireAdmin();
 

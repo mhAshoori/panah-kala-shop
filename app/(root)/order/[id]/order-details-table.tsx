@@ -110,6 +110,10 @@ const OrderDetailsTable = ({
                 <Badge variant='secondary' className='mt-2'>
                   {t('deliveredAt')}: {formatDateTime(deliveredAt!).dateTime}
                 </Badge>
+              ) : order.shippedAt ? (
+                <Badge className='mt-2'>
+                  {t('shippedAt')}: {formatDateTime(order.shippedAt).dateTime}
+                </Badge>
               ) : (
                 <Badge variant='outline' className='mt-2'>
                   {t('notDelivered')}

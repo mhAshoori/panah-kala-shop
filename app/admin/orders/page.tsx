@@ -110,6 +110,7 @@ const AdminOrdersPage = async (props: {
                     <OrderActions
                       orderId={order.id}
                       isPaid={order.isPaid}
+                      isShipped={!!order.shippedAt}
                       isDelivered={order.isDelivered}
                     />
                   </TableCell>

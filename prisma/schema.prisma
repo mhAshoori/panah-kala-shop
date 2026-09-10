@@ -176,6 +176,7 @@ model Order {
   couponDiscount   Decimal     @default(0) @db.Decimal(12, 2)
   isPaid           Boolean     @default(false)
   paidAt           DateTime?   @db.Timestamp(6)
+  shippedAt        DateTime?   @db.Timestamp(6)
   isDelivered      Boolean     @default(false)
   deliveredAt      DateTime?   @db.Timestamp(6)
   createdAt        DateTime    @default(now()) @db.Timestamp(6)
