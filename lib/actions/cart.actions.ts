@@ -166,6 +166,8 @@ export async function addItemToCart(data: CartItem) {
 
     // Variant items check the variant's own stock, plain items the product's
     let availableStock = product.stock;
+    let serverPrice = product.price.toString();
+    let serverImage = product.images[0] ?? item.image;
     if (item.variantId) {
       const variant = await prisma.productVariant.findUnique({
         where: { id: item.variantId },
@@ -174,7 +176,16 @@ export async function addItemToCart(data: CartItem) {
         throw new Error(await msg('productNotFound'));
       }
       availableStock = variant.stock;
+      serverPrice = variant.price.toString();
+      if (variant.image) serverImage = variant.image;
     }
+    // Server is the price authority — client-sent price/display fields are
+    // ignored so a forged payload can never check out at a fake price
+    item.price = serverPrice;
+    item.image = serverImage;
+    item.slug = product.slug;
+    item.name = product.name;
+    item.nameFa = product.nameFa;
 
     // Localized product display name
     const locale = await getLocale();

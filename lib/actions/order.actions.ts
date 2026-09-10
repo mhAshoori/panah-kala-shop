@@ -2,6 +2,7 @@
 
 import { formatError } from '../utils';
 import { revalidatePath } from 'next/cache';
+import { getLocale } from 'next-intl/server';
 import { auth } from '@/auth';
 import { getMyCart, addItemToCart } from './cart.actions';
 import { getUserById } from './user.actions';
@@ -67,24 +68,46 @@ export async function createOrder() {
       };
     }
 
-    // Re-validate the cart's applied coupon at purchase time (it may have
-    // expired or hit its usage limit since it was applied). A failing coupon
-    // is dropped and totals recalculated without it — never blocks checkout.
-    let couponCode: string | null = null;
-    let couponDiscountAmount = 0;
     let itemsPrice = cart.itemsPrice;
     let taxPrice = cart.taxPrice;
     let totalPrice = cart.totalPrice;
     let shippingPrice = cart.shippingPrice;
 
+    // Server is the price authority: re-derive every item's price from the
+    // DB. Cart rows are written by addItemToCart (which already overwrites
+    // client prices), but stale or tampered cart rows must not survive here.
+    const pricedItems: CartItem[] = [];
+    for (const item of cart.items as CartItem[]) {
+      const product = await prisma.product.findFirst({
+        where: { id: item.productId },
+        select: { price: true },
+      });
+      if (!product) continue;
+      let price = product.price.toString();
+      if (item.variantId) {
+        const variant = await prisma.productVariant.findFirst({
+          where: { id: item.variantId, productId: item.productId },
+          select: { price: true },
+        });
+        if (variant) price = variant.price.toString();
+      }
+      pricedItems.push({ ...item, price });
+    }
+    if (pricedItems.length === 0) {
+      throw new Error(await withActionMessage('cartEmpty'));
+    }
+
+    const gross = pricedItems.reduce(
+      (acc, i) => acc + Number(i.price) * i.qty,
+      0
+    );
+    let couponCode: string | null = null;
+    let couponDiscountAmount = 0;
+
     if (cart.couponCode) {
       const coupon = await prisma.coupon.findUnique({
         where: { code: cart.couponCode },
       });
-      const gross = (cart.items as CartItem[]).reduce(
-        (acc, i) => acc + Number(i.price) * i.qty,
-        0
-      );
       if (
         coupon &&
         checkCouponUsable(coupon as unknown as CouponInput, gross).ok
@@ -95,15 +118,15 @@ export async function createOrder() {
           coupon.value.toString(),
           gross
         );
-      } else {
-        // Coupon no longer valid — recalc totals without it
-        const totals = await calcPrice(cart.items as CartItem[], 0);
-        itemsPrice = totals.itemsPrice;
-        taxPrice = totals.taxPrice;
-        shippingPrice = totals.shippingPrice;
-        totalPrice = totals.totalPrice;
       }
     }
+
+    // Totals always computed server-side from DB prices (+ validated coupon)
+    const totals = await calcPrice(pricedItems, couponDiscountAmount);
+    itemsPrice = totals.itemsPrice;
+    taxPrice = totals.taxPrice;
+    shippingPrice = totals.shippingPrice;
+    totalPrice = totals.totalPrice;
 
     const order = insertOrderSchema.parse({
       userId: user.id,
@@ -127,7 +150,7 @@ export async function createOrder() {
       // Re-check every product inside the transaction to prevent overselling
       // and to skip items whose product was deleted. Variant lines check the
       // variant's own stock (and that it still belongs to the product).
-      const items = cart.items as CartItem[];
+      const items = pricedItems;
       for (const item of items) {
         const product = await tx.product.findFirst({
           where: { id: item.productId },
@@ -178,6 +201,7 @@ export async function createOrder() {
       }
 
       // Create order items + decrement stock (variant first, then parent)
+      const locale = await getLocale();
       for (const item of items) {
         await tx.orderItem.create({
           data: {
@@ -186,7 +210,8 @@ export async function createOrder() {
             variantLabel: item.variantLabel ?? null,
             qty: item.qty,
             price: item.price,
-            name: item.name,
+            name:
+              locale === 'fa' && item.nameFa ? item.nameFa : item.name,
             slug: item.slug,
             image: item.image,
             orderId: insertedOrder.id,
