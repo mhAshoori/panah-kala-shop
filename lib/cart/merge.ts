@@ -72,7 +72,7 @@ export async function mergeGuestCartOnSignIn(
     }
   );
 
-  const totals = calcPrice(mergedItems);
+  const totals = await calcPrice(mergedItems);
 
   await prisma.cart.update({
     where: { id: existingUserCart.id },

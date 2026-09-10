@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getMyCart } from '@/lib/actions/cart.actions';
 import { getTranslations } from 'next-intl/server';
 import CartTable from './cart-table';
+import { getFreeShippingThreshold } from '@/lib/store-config';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('cart');
@@ -9,10 +10,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const CartPage = async () => {
-  const cart = await getMyCart();
+  const [cart, freeShippingThreshold] = await Promise.all([
+    getMyCart(),
+    getFreeShippingThreshold(),
+  ]);
   const t = await getTranslations('cart');
 
-  return <CartTable cart={cart} title={t('title')} />;
+  return (
+    <CartTable
+      cart={cart}
+      title={t('title')}
+      freeShippingThreshold={freeShippingThreshold}
+    />
+  );
 };
 
 export default CartPage;

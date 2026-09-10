@@ -18,6 +18,63 @@ import {
   AI_ENABLED_KEY,
   AI_MODEL_KEY,
 } from '../ai/settings';
+import {
+  FREE_SHIPPING_THRESHOLD_KEY,
+  SHIPPING_FEE_KEY,
+  TAX_RATE_KEY,
+} from '../store-config';
+
+// Store pricing (shipping fee, free-shipping threshold, VAT rate) — admin only
+export async function updateStorePricing(
+  shippingFee: number,
+  freeShippingThreshold: number,
+  taxRate: number
+) {
+  try {
+    await requireAdmin();
+
+    const fee = Math.round(shippingFee);
+    const threshold = Math.round(freeShippingThreshold);
+    const rate = taxRate;
+
+    if (!Number.isFinite(fee) || fee < 0 || fee > 100_000_000) {
+      throw new Error(await withActionMessage('invalidValue'));
+    }
+    if (!Number.isFinite(threshold) || threshold < 0 || threshold > 10_000_000_000) {
+      throw new Error(await withActionMessage('invalidValue'));
+    }
+    if (!Number.isFinite(rate) || rate < 0 || rate > 1) {
+      throw new Error(await withActionMessage('invalidValue'));
+    }
+
+    await prisma.$transaction([
+      prisma.setting.upsert({
+        where: { key: SHIPPING_FEE_KEY },
+        create: { key: SHIPPING_FEE_KEY, value: String(fee) },
+        update: { value: String(fee) },
+      }),
+      prisma.setting.upsert({
+        where: { key: FREE_SHIPPING_THRESHOLD_KEY },
+        create: { key: FREE_SHIPPING_THRESHOLD_KEY, value: String(threshold) },
+        update: { value: String(threshold) },
+      }),
+      prisma.setting.upsert({
+        where: { key: TAX_RATE_KEY },
+        create: { key: TAX_RATE_KEY, value: String(rate) },
+        update: { value: String(rate) },
+      }),
+    ]);
+
+    revalidatePath('/', 'layout');
+
+    return { success: true, message: await withActionMessage('pricingSaved') };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : await withActionMessage('invalidValue'),
+    };
+  }
+}
 
 // Change the site-wide display language (admin only)
 export async function updateSiteLocale(locale: SiteLocale) {

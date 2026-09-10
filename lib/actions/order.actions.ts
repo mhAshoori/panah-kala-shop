@@ -97,7 +97,7 @@ export async function createOrder() {
         );
       } else {
         // Coupon no longer valid — recalc totals without it
-        const totals = calcPrice(cart.items as CartItem[], 0);
+        const totals = await calcPrice(cart.items as CartItem[], 0);
         itemsPrice = totals.itemsPrice;
         taxPrice = totals.taxPrice;
         shippingPrice = totals.shippingPrice;

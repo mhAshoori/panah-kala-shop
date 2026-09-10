@@ -129,7 +129,7 @@ async function saveCart(params: {
       where: { id: existingCartId },
       data: {
         items: items as unknown as Prisma.InputJsonValue[],
-        ...calcPrice(items, couponDiscountValue),
+        ...(await calcPrice(items, couponDiscountValue)),
         couponCode,
         couponDiscount: couponDiscountValue.toFixed(2),
       },
@@ -139,7 +139,7 @@ async function saveCart(params: {
       userId,
       items,
       sessionCartId,
-      ...calcPrice(items),
+      ...(await calcPrice(items)),
     }) as Prisma.CartUncheckedCreateInput;
     await prisma.cart.create({ data: newCart });
   }
@@ -330,7 +330,7 @@ export async function applyCouponToCart(
     }
 
     const discount = couponDiscount(coupon.type, coupon.value.toString(), itemsPrice);
-    const totals = calcPrice(cart.items as CartItem[], discount);
+    const totals = await calcPrice(cart.items as CartItem[], discount);
 
     await prisma.cart.update({
       where: { id: cart.id },
@@ -362,7 +362,7 @@ export async function removeCouponFromCart(): Promise<ActionState> {
     const cart = await getMyCart();
     if (!cart) throw new Error(await msg('cartNotFound'));
 
-    const totals = calcPrice(cart.items as CartItem[], 0);
+    const totals = await calcPrice(cart.items as CartItem[], 0);
 
     await prisma.cart.update({
       where: { id: cart.id },

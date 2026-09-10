@@ -13,7 +13,6 @@ import {
   removeItemFromCart,
 } from '@/lib/actions/cart.actions';
 import CouponBox from './coupon-box';
-import { FREE_SHIPPING_THRESHOLD } from '@/lib/constants';
 import { formatNumberLocale } from '@/lib/persian';
 import { Link, useRouter } from '@/i18n/navigation';
 import { Cart } from '@/types';
@@ -21,9 +20,11 @@ import { Cart } from '@/types';
 const CartTable = ({
   cart,
   title,
+  freeShippingThreshold,
 }: {
   cart?: Cart | null;
   title: string;
+  freeShippingThreshold: number;
 }) => {
   const router = useRouter();
   const t = useTranslations('cart');
@@ -149,7 +150,7 @@ const CartTable = ({
                       remaining: formatNumberLocale(
                         Math.max(
                           0,
-                          FREE_SHIPPING_THRESHOLD - Number(cart.itemsPrice)
+                          freeShippingThreshold - Number(cart.itemsPrice)
                         ),
                         locale
                       ),
@@ -161,7 +162,7 @@ const CartTable = ({
                       style={{
                         width: `${Math.min(
                           100,
-                          (Number(cart.itemsPrice) / FREE_SHIPPING_THRESHOLD) *
+                          (Number(cart.itemsPrice) / freeShippingThreshold) *
                             100
                         )}%`,
                       }}

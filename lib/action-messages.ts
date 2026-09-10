@@ -88,6 +88,7 @@ const messages = {
     themeUpdated: 'Default theme updated',
     homeSaved: 'Homepage content saved',
     invalidValue: 'Invalid value',
+    pricingSaved: 'Store pricing saved',
   },
   fa: {
     // Session
@@ -170,6 +171,7 @@ const messages = {
     themeUpdated: 'پوسته پیش‌فرض به‌روزرسانی شد',
     homeSaved: 'محتوای صفحه اصلی ذخیره شد',
     invalidValue: 'مقدار نامعتبر است',
+    pricingSaved: 'تنظیمات قیمت‌گذاری ذخیره شد',
   },
 } as const;
 
