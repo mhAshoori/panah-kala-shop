@@ -307,6 +307,7 @@
     "totalProducts": "کل محصولات",
     "totalUsers": "کل کاربران",
     "createProduct": "افزودن محصول",
+    "exportCsv": "خروجی اکسل (CSV)",
     "editProduct": "ویرایش محصول",
     "delete": "حذف",
     "edit": "ویرایش",

@@ -307,6 +307,7 @@
     "totalProducts": "Total Products",
     "totalUsers": "Total Users",
     "createProduct": "Create Product",
+    "exportCsv": "Export CSV",
     "editProduct": "Edit Product",
     "delete": "Delete",
     "edit": "Edit",

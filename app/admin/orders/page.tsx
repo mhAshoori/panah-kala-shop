@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -40,7 +41,14 @@ const AdminOrdersPage = async (props: {
       <h1 className='h2-bold'>{t('orders')}</h1>
       <div className='flex flex-wrap items-center justify-between gap-2'>
         <AdminSearch />
-        <PageSizeSelector current={parsePageSize(size)} />
+        <div className='flex items-center gap-2'>
+          <Button asChild variant='outline' size='sm'>
+            <a href='/api/admin/export/orders' download>
+              {t('exportCsv')}
+            </a>
+          </Button>
+          <PageSizeSelector current={parsePageSize(size)} />
+        </div>
       </div>
 
       <div className='overflow-x-auto rounded-lg border'>
