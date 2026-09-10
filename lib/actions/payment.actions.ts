@@ -119,10 +119,11 @@ export async function verifyZarinpalPayment(params: {
       };
     }
 
-    // The authority in the callback MUST be the one issued for this order.
-    // Without this check a payment authorized for order A could mark order B
-    // paid (both valid at ZarinPal when their amounts happen to match).
-    if (order.paymentAuthority && order.paymentAuthority !== authority) {
+    // The authority in the callback MUST be the one issued for this order,
+    // and an order with no issued authority (payment never requested) must
+    // never verify — otherwise a payment authorized for order A could mark
+    // order B paid when their amounts happen to match.
+    if (!order.paymentAuthority || order.paymentAuthority !== authority) {
       await prisma.order.update({
         where: { id: order.id },
         data: {
