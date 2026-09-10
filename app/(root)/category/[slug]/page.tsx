@@ -123,7 +123,13 @@ const CategoryPage = async (props: {
           href='/search'
           className='text-sm text-muted-foreground hover:text-primary transition-colors'
         >
-          {tHome('viewAll')} →
+          {tHome('viewAll')}{' '}
+          <span aria-hidden='true' className='rtl:hidden'>
+            →
+          </span>
+          <span aria-hidden='true' className='hidden rtl:inline'>
+            ←
+          </span>
         </Link>
       </div>
     </div>

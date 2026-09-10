@@ -136,8 +136,8 @@ const VariantSelector = ({
         <div className='flex items-center justify-between border-t pt-3'>
           <ProductPrice value={price} className='font-bold' />
           {compareAtPrice && compareAtPrice > price && (
-            <span className='text-sm text-muted-foreground line-through'>
-              {compareAtPrice}
+            <span className='text-sm text-muted-foreground line-through tabular-nums'>
+              {formatNumberLocale(compareAtPrice, locale)}
             </span>
           )}
         </div>

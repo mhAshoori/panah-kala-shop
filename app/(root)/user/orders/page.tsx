@@ -45,6 +45,11 @@ const OrdersPage = async (props: {
         <h2 className='h2-bold'>{t('myOrders')}</h2>
         <PageSizeSelector current={parsePageSize(size)} />
       </div>
+      {orders.data.length === 0 ? (
+        <p className='py-10 text-center text-sm text-muted-foreground'>
+          {t('noOrders')}
+        </p>
+      ) : (
       <div className='overflow-x-auto rounded-lg border'>
         <Table>
           <TableHeader>
@@ -90,6 +95,7 @@ const OrdersPage = async (props: {
           </TableBody>
         </Table>
       </div>
+      )}
 
       {orders.totalPages > 1 && (
         <Pagination page={Number(page) || 1} totalPages={orders.totalPages} />

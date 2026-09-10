@@ -224,7 +224,7 @@
   },
   "order": {
     "title": "Order",
-    "myOrders": "My Orders",
+    "myOrders": "My Orders", "noOrders": "You haven't placed any orders yet",
     "orderId": "Order ID",
     "date": "Date",
     "status": "Status",
