@@ -250,10 +250,17 @@ export async function createOrder() {
   }
 }
 
-// Get a single order by ID (with items + user)
+// Get a single order by ID (with items + user). Server actions are public
+// RPC — only the owner or an admin may read an order. (The ZarinPal
+// callback flow calls this internally with the server-resolved order id;
+// the caller there only receives redirect/success, never order data.)
 export async function getOrderById(orderId: string) {
+  const session = await auth();
+  const userId = session?.user?.id;
+  const isAdmin = session?.user?.role === 'admin';
+
   const data = await prisma.order.findFirst({
-    where: { id: orderId },
+    where: isAdmin || !userId ? { id: orderId } : { id: orderId, userId },
     include: {
       orderItems: true,
       user: { select: { name: true, email: true } },

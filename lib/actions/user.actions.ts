@@ -400,10 +400,13 @@ export async function updateUserPaymentMethod(
   data: z.infer<typeof paymentMethodSchema>
 ) {
   try {
-    const session = await auth();
+    // getValidUserId (DB-truth) — an undefined id would make Prisma ignore
+    // the filter entirely and match the first user in the table
+    const userId = await getValidUserId();
+    if (!userId) throw new Error('User not found');
 
     const currentUser = await prisma.user.findFirst({
-      where: { id: session?.user?.id as string },
+      where: { id: userId },
     });
     if (!currentUser) throw new Error('User not found');
 
@@ -420,10 +423,33 @@ export async function updateUserPaymentMethod(
   }
 }
 
-// Get user by ID
+// Get user by ID. Server actions are public RPC — this must never return
+// sensitive fields (incl. passwordHash) to an arbitrary caller. The profile/
+// checkout pages resolve the id server-side; admins may look anyone up.
 export async function getUserById(userId: string) {
+  const session = await auth();
+  const isAdmin = session?.user?.role === 'admin';
+  if (!isAdmin && session?.user?.id !== userId) {
+    throw new Error('Unauthorized');
+  }
+
   const user = await prisma.user.findFirst({
     where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      mobile: true,
+      image: true,
+      role: true,
+      banned: true,
+      paymentMethod: true,
+      nationalId: true,
+      cardNumber: true,
+      sheba: true,
+      birthDate: true,
+      password: isAdmin,
+    },
   });
 
   if (!user) throw new Error('User not found');
