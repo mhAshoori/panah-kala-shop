@@ -32,6 +32,7 @@ import { normalizeIranMobile } from '../phone';
 import { OTP_TTL_MS } from '@/auth';
 import { generateOtpCode } from '@/lib/otp';
 import { isSmsConfigured, sendVerificationSms } from '@/lib/sms/smsir';
+import { consumeSmsOtp } from '@/lib/sms/verify-otp';
 import { issueContactCode, validateContactChange } from '../contact';
 import type { ContactType } from '../contact';
 import { sendEmail } from '@/lib/email/mailer';
@@ -677,7 +678,7 @@ export async function requestPhoneOtp(
     await prisma.verificationToken.create({
       data: {
         identifier: `otp:${phone}`,
-        token: code,
+        token: createHash('sha256').update(code).digest('hex'),
         expires: new Date(Date.now() + OTP_TTL_MS),
       },
     });
@@ -958,18 +959,7 @@ export async function signUpUser(
       // never leave an unverified user row behind (which would then block
       // re-signup with "account exists").
       const phoneE164 = `+98${mobile}`;
-      const otpValid =
-        (!isSmsConfigured() && otpCode === '123456') ||
-        Boolean(
-          await prisma.verificationToken.findFirst({
-            where: {
-              identifier: `otp:${phoneE164}`,
-              token: otpCode,
-              expires: { gt: new Date() },
-            },
-            select: { identifier: true },
-          })
-        );
+      const otpValid = await consumeSmsOtp(phoneE164, otpCode);
       if (!otpValid) {
         return { success: false, message: await withActionMessage('invalidOtp') };
       }

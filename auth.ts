@@ -8,7 +8,7 @@ import { compareSync } from 'bcrypt-ts-edge';
 import { prisma } from '@/db/prisma';
 import { rateLimit } from '@/lib/rate-limit';
 import { normalizeIranMobile } from '@/lib/phone';
-import { isSmsConfigured } from '@/lib/sms/smsir';
+import { consumeSmsOtp } from '@/lib/sms/verify-otp';
 import { signInFormSchema } from '@/lib/validator';
 import { mergeGuestCartOnSignIn } from '@/lib/cart/merge';
 import { cookies } from 'next/headers';
@@ -28,12 +28,7 @@ class SmsRateLimited extends CredentialsSignin {
 // configured (dev/CI only) the fixed master code 123456 keeps the flow
 // testable; with the key set, ONLY the code actually sent is accepted.
 async function verifySmsOtp(phone: string, code: string): Promise<boolean> {
-  if (!isSmsConfigured() && code === '123456') return true;
-
-  const token = await prisma.verificationToken.findFirst({
-    where: { identifier: `otp:${phone}`, token: code, expires: { gt: new Date() } },
-  });
-  return !!token;
+  return consumeSmsOtp(phone, code);
 }
 
 export const config: NextAuthConfig = {
