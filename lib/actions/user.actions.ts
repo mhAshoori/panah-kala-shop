@@ -9,13 +9,18 @@ import { getLocale } from 'next-intl/server';
 import { z } from 'zod';
 
 import { prisma } from '@/db/prisma';
-import { hashSync } from 'bcrypt-ts-edge';
+import { hashSync, compareSync } from 'bcrypt-ts-edge';
+import { createHash, randomBytes } from 'crypto';
+import { headers } from 'next/headers';
 import {
   signInFormSchema,
   signUpFormSchema,
   paymentMethodSchema,
   updateProfileSchema,
   updateUserSchema,
+  changePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '../validator';
 import { formatError } from '../utils';
 import { PAGE_SIZE } from '../constants';
@@ -29,7 +34,15 @@ import { generateOtpCode } from '@/lib/otp';
 import { isSmsConfigured, sendVerificationSms } from '@/lib/sms/smsir';
 import { issueContactCode, validateContactChange } from '../contact';
 import type { ContactType } from '../contact';
+import { sendEmail } from '@/lib/email/mailer';
+import { APP_NAME } from '../constants';
 import type { ActionState } from '@/types';
+
+const RESET_TOKEN_TTL_MS = 15 * 60 * 1000;
+
+function hashResetToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
 
 // Update the signed-in user's profile extras (name + optional fields).
 // Email/mobile are changed exclusively through updateContact (verified).
@@ -104,6 +117,137 @@ export async function clearProfileImage() {
       success: true,
       message: await withActionMessage('userUpdated'),
     };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+/**
+ * Change the signed-in user's password. Accounts with an existing password
+ * must confirm the current one; OAuth/SMS-only accounts set their first
+ * password without it.
+ */
+export async function changePassword(
+  _prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const userId = await getValidUserId();
+    if (!userId) throw new Error(await withActionMessage('sessionExpired'));
+
+    const parsed = changePasswordSchema.safeParse({
+      currentPassword: formData.get('currentPassword'),
+      newPassword: formData.get('newPassword'),
+      confirmPassword: formData.get('confirmPassword'),
+    });
+    if (!parsed.success) {
+      throw new Error(formatError(parsed.error));
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error(await withActionMessage('sessionExpired'));
+
+    if (user.password) {
+      const { currentPassword } = parsed.data;
+      if (!currentPassword || !compareSync(currentPassword, user.password)) {
+        throw new Error(await withActionMessage('wrongCurrentPassword'));
+      }
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashSync(parsed.data.newPassword, 10) },
+    });
+
+    return { success: true, message: await withActionMessage('passwordChanged') };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+/** Request a password-reset email. Always reports success (no user probing). */
+export async function requestPasswordReset(
+  _prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const parsed = forgotPasswordSchema.safeParse({
+      email: formData.get('email'),
+    });
+    if (!parsed.success) {
+      throw new Error(formatError(parsed.error));
+    }
+
+    const ip =
+      (await headers()).get('x-forwarded-for') ?? 'local';
+    const rl = rateLimit(`pwreset:${ip}`, 5, 15 * 60 * 1000);
+    if (!rl.allowed) {
+      throw new Error(await withActionMessage('tooManyAttempts'));
+    }
+
+    const email = parsed.data.email.toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (user) {
+      const token = randomBytes(32).toString('hex');
+      await prisma.verificationToken.create({
+        data: {
+          identifier: `pwreset:${email}`,
+          token: hashResetToken(token),
+          expires: new Date(Date.now() + RESET_TOKEN_TTL_MS),
+        },
+      });
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+      const link = `${siteUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+      await sendEmail({
+        to: email,
+        subject: APP_NAME + ' — ' + (await withActionMessage('resetEmailSubject')),
+        html: resetEmailHtml(link),
+      });
+    }
+
+    return { success: true, message: await withActionMessage('resetEmailSent') };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+/** Complete a password reset with the emailed token. */
+export async function resetPassword(
+  _prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const parsed = resetPasswordSchema.safeParse({
+      token: formData.get('token'),
+      newPassword: formData.get('newPassword'),
+      confirmPassword: formData.get('confirmPassword'),
+    });
+    if (!parsed.success) {
+      throw new Error(formatError(parsed.error));
+    }
+
+    const email = String(formData.get('email') ?? '').toLowerCase();
+    const identifier = `pwreset:${email}`;
+    const hashed = hashResetToken(parsed.data.token);
+
+    const row = await prisma.verificationToken.findUnique({
+      where: { identifier_token: { identifier, token: hashed } },
+    });
+    if (!row || row.expires < new Date()) {
+      throw new Error(await withActionMessage('resetLinkInvalid'));
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { email },
+        data: { password: hashSync(parsed.data.newPassword, 10) },
+      }),
+      prisma.verificationToken.delete({
+        where: { identifier_token: { identifier, token: hashed } },
+      }),
+    ]);
+
+    return { success: true, message: await withActionMessage('passwordReset') };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -745,5 +889,15 @@ export async function signUpUser(
     }
     return { success: false, message: formatError(error) };
   }
-  redirect(callbackUrl);
+  redirect('/user/profile');
+}
+
+function resetEmailHtml(link: string): string {
+  return `<!doctype html><html dir="rtl" lang="fa"><body style="font-family:Tahoma,Arial,sans-serif;background:#f6f6f6;padding:24px">
+<div style="max-width:520px;margin:0 auto;background:#fff;border-radius:12px;padding:32px;text-align:center">
+<h2 style="color:#111">${APP_NAME}</h2>
+<p style="color:#333;line-height:1.8">درخواست بازیابی رمز عبور برای حساب شما ثبت شد. برای انتخاب رمز جدید روی دکمه زیر بزنید:</p>
+<p style="margin:24px 0"><a href="${link}" style="background:#2563eb;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;display:inline-block">بازیابی رمز عبور</a></p>
+<p style="color:#888;font-size:12px;line-height:1.8">این لینک ۱۵ دقیقه اعتبار دارد. اگر شما درخواست نداده‌اید، این ایمیل را نادیده بگیرید.</p>
+</div></body></html>`;
 }

@@ -44,6 +44,7 @@ const ProfilePage = async () => {
         sheba={user.sheba}
         birthDate={user.birthDate}
         defaultAddress={defaultAddressText}
+        hasPassword={!!user.password}
       />
     </div>
   );

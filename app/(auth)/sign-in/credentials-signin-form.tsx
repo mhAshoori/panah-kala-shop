@@ -268,6 +268,15 @@ const CredentialsSignInForm = ({
 
           <div className='mt-6 space-y-4'>
             <SubmitButton label={t('signIn')} />
+            <p className='text-center text-sm'>
+              <Link
+                target='_self'
+                className='link text-muted-foreground hover:text-primary transition-colors'
+                href='/forgot-password'
+              >
+                {t('forgotPassword')}
+              </Link>
+            </p>
             {googleEnabled && (
               <>
                 <div className='flex items-center gap-3' aria-hidden='true'>

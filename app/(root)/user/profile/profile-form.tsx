@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useActionState, useState, useTransition } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SessionProvider, useSession } from 'next-auth/react';
@@ -44,6 +44,7 @@ import {
   updateProfileImage,
   clearProfileImage,
   requestContactChangeCode,
+  changePassword,
 } from '@/lib/actions/user.actions';
 import ImageUploadButton from '@/components/shared/image-upload';
 import { useRouter } from 'next/navigation';
@@ -71,6 +72,7 @@ type ProfileData = {
   sheba?: string | null;
   birthDate?: Date | null;
   defaultAddress?: string | null;
+  hasPassword?: boolean;
 };
 
 // ---------------------------------------------------------------------------
@@ -328,6 +330,68 @@ const SubmitButton = () => {
   );
 };
 
+// ---------------------------------------------------------------------------
+// Password change card
+// ---------------------------------------------------------------------------
+
+const PasswordCard = ({ hasPassword }: { hasPassword: boolean }) => {
+  const t = useTranslations('account');
+  const [state, formAction] = useActionState(changePassword, null);
+  const { pending } = useFormStatus();
+
+  return (
+    <Card>
+      <CardContent className='p-4'>
+        <h3 className='mb-4 font-semibold'>{t('passwordTitle')}</h3>
+        <form action={formAction} className='grid max-w-md gap-4'>
+          {hasPassword && (
+            <Field data-testid='current-password-field'>
+              <FieldLabel htmlFor='currentPassword'>
+                {t('currentPassword')}
+              </FieldLabel>
+              <Input
+                id='currentPassword'
+                name='currentPassword'
+                type='password'
+                autoComplete='current-password'
+                required
+              />
+              {state?.success === false && state?.message && (
+                <p className='text-xs text-destructive'>{state.message}</p>
+              )}
+            </Field>
+          )}
+          <Field>
+            <FieldLabel htmlFor='newPassword'>{t('newPassword')}</FieldLabel>
+            <Input
+              id='newPassword'
+              name='newPassword'
+              type='password'
+              autoComplete='new-password'
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor='confirmPassword'>
+              {t('confirmNewPassword')}
+            </FieldLabel>
+            <Input
+              id='confirmPassword'
+              name='confirmPassword'
+              type='password'
+              autoComplete='new-password'
+              required
+            />
+          </Field>
+          <Button type='submit' disabled={pending} className='w-fit'>
+            {pending ? <Loader className='h-4 w-4 animate-spin' /> : t('changePassword')}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
+
 const ProfileFormInner = ({
   name,
   email,
@@ -338,7 +402,8 @@ const ProfileFormInner = ({
   sheba,
   birthDate,
   defaultAddress,
-}: ProfileData & { image?: string | null }) => {
+  hasPassword,
+}: ProfileData) => {
   const { update } = useSession();
   const t = useTranslations('account');
   const tCommon = useTranslations('common');
@@ -488,6 +553,8 @@ const ProfileFormInner = ({
           <ContactRow type='mobile' value={mobile} />
         </CardContent>
       </Card>
+
+      <PasswordCard hasPassword={!!hasPassword} />
 
       <Card>
         <CardContent className='p-4'>

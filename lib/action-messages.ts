@@ -89,6 +89,14 @@ const messages = {
     homeSaved: 'Homepage content saved',
     invalidValue: 'Invalid value',
     pricingSaved: 'Store pricing saved',
+    // Password flows
+    wrongCurrentPassword: 'Current password is incorrect',
+    passwordChanged: 'Password changed successfully',
+    resetEmailSubject: 'Reset your password',
+    resetEmailSent:
+      'If that email exists, a reset link has been sent. Check your inbox.',
+    resetLinkInvalid: 'This reset link is invalid or has expired',
+    passwordReset: 'Password reset. You can now sign in with the new password.',
   },
   fa: {
     // Session
@@ -172,6 +180,14 @@ const messages = {
     homeSaved: 'محتوای صفحه اصلی ذخیره شد',
     invalidValue: 'مقدار نامعتبر است',
     pricingSaved: 'تنظیمات قیمت‌گذاری ذخیره شد',
+    // Password flows
+    wrongCurrentPassword: 'رمز عبور فعلی نادرست است',
+    passwordChanged: 'رمز عبور با موفقیت تغییر کرد',
+    resetEmailSubject: 'بازیابی رمز عبور',
+    resetEmailSent:
+      'اگر این ایمیل در سیستم موجود باشد، لینک بازیابی ارسال شد. صندوق ورودی خود را بررسی کنید.',
+    resetLinkInvalid: 'این لینک بازیابی نامعتبر است یا منقضی شده',
+    passwordReset: 'رمز عبور تغییر کرد. حالا می‌توانید با رمز جدید وارد شوید.',
   },
 } as const;
 

@@ -184,6 +184,28 @@ export const updateProfileSchema = z.object({
   birthDate: z.string().optional().or(z.literal('')),
 });
 
+// Password change (signed-in user): current password required for
+// email/password accounts; OAuth/SMS-only accounts may set one without it.
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().optional().or(z.literal('')),
+  newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string(),
+}).refine((d) => d.newPassword === d.confirmPassword, {
+  message: "Passwords don't match", path: ['confirmPassword'],
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(10),
+  newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string(),
+}).refine((d) => d.newPassword === d.confirmPassword, {
+  message: "Passwords don't match", path: ['confirmPassword'],
+});
+
 // Update user schema (admin)
 export const updateUserSchema = z.object({
   id: z.string().min(1, 'Id is required'),
