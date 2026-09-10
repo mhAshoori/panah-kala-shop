@@ -15,8 +15,9 @@ export const getValidUserId = cache(async (): Promise<string | undefined> => {
 
   const user = await prisma.user.findUnique({
     where: { id },
-    select: { id: true },
+    select: { id: true, banned: true },
   });
 
-  return user ? id : undefined;
+  // Banned users lose all authenticated capabilities — treated like guests
+  return user && !user.banned ? id : undefined;
 });

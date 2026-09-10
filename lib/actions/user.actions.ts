@@ -781,6 +781,99 @@ export async function deleteUser(id: string) {
   }
 }
 
+// Ban / unban a user (admin; cannot ban yourself or other admins)
+export async function setUserBanned(id: string, banned: boolean) {
+  try {
+    const session = await requireAdmin();
+
+    if (session.user?.id === id) {
+      throw new Error(await withActionMessage('cannotBanSelf'));
+    }
+
+    const target = await prisma.user.findUnique({
+      where: { id },
+      select: { role: true },
+    });
+    if (target?.role === 'admin') {
+      throw new Error(await withActionMessage('cannotBanAdmin'));
+    }
+
+    await prisma.user.update({ where: { id }, data: { banned } });
+
+    revalidatePath('/admin/users');
+    revalidatePath(`/admin/users/${id}`);
+
+    return {
+      success: true,
+      message: await withActionMessage(banned ? 'userBanned' : 'userUnbanned'),
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Customer 360 (admin): profile + order/review/address aggregates
+export async function getCustomerProfile(id: string) {
+  await requireAdmin();
+
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      mobile: true,
+      role: true,
+      banned: true,
+      image: true,
+      createdAt: true,
+      orders: {
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          createdAt: true,
+          totalPrice: true,
+          isPaid: true,
+          isDelivered: true,
+        },
+      },
+      _count: { select: { orders: true, reviews: true, addresses: true } },
+    },
+  });
+  if (!user) return null;
+
+  const totals = await prisma.order.aggregate({
+    where: { userId: id, isPaid: true },
+    _sum: { totalPrice: true },
+  });
+
+  return JSON.parse(
+    JSON.stringify({
+      ...user,
+      totalSpent: totals._sum.totalPrice ?? 0,
+    })
+  ) as {
+    id: string;
+    name: string;
+    email: string | null;
+    mobile: string | null;
+    role: string;
+    banned: boolean;
+    image: string | null;
+    createdAt: Date;
+    orders: {
+      id: string;
+      createdAt: Date;
+      totalPrice: string;
+      isPaid: boolean;
+      isDelivered: boolean;
+    }[];
+    _count: { orders: number; reviews: number; addresses: number };
+    totalSpent: string;
+  };
+}
+
 // Register a new user, then sign them in
 export async function signUpUser(
   prevState: ActionState,

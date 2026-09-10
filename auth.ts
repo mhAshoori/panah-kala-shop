@@ -81,7 +81,7 @@ export const config: NextAuthConfig = {
         const user = await prisma.user.findFirst({
           where: { email: parsed.data.email },
         });
-        if (!user?.password) return null;
+        if (!user?.password || user.banned) return null;
 
         const isMatch = compareSync(parsed.data.password, user.password);
         if (!isMatch) return null;
@@ -119,7 +119,7 @@ export const config: NextAuthConfig = {
         if (!valid) return null;
 
         const user = await prisma.user.findFirst({ where: { mobile: phone } });
-        if (!user) throw new SmsUserNotFound();
+        if (!user || user.banned) throw new SmsUserNotFound();
 
         return {
           id: user.id,
@@ -146,6 +146,15 @@ export const config: NextAuthConfig = {
     },
     async jwt({ token, user, trigger, session }) {
       if (user) {
+        // Banned users never get a session — covers Google OAuth and any
+        // other provider that authenticates without passing through the
+        // credentials authorize() gate above.
+        const banned = await prisma.user.findFirst({
+          where: { id: user.id, banned: true },
+          select: { id: true },
+        });
+        if (banned) throw new Error('banned');
+
         // OAuth users (Google) come from the adapter without a role — look
         // it up in the DB so the JWT always carries the authoritative role.
         const dbRole = (user as { role?: string }).role;

@@ -97,6 +97,11 @@ const messages = {
       'If that email exists, a reset link has been sent. Check your inbox.',
     resetLinkInvalid: 'This reset link is invalid or has expired',
     passwordReset: 'Password reset. You can now sign in with the new password.',
+    // Ban
+    cannotBanSelf: 'You cannot ban your own account',
+    cannotBanAdmin: 'Admin accounts cannot be banned',
+    userBanned: 'User banned',
+    userUnbanned: 'User unbanned',
   },
   fa: {
     // Session
@@ -188,6 +193,11 @@ const messages = {
       'اگر این ایمیل در سیستم موجود باشد، لینک بازیابی ارسال شد. صندوق ورودی خود را بررسی کنید.',
     resetLinkInvalid: 'این لینک بازیابی نامعتبر است یا منقضی شده',
     passwordReset: 'رمز عبور تغییر کرد. حالا می‌توانید با رمز جدید وارد شوید.',
+    // Ban
+    cannotBanSelf: 'نمی‌توانید حساب خودتان را مسدود کنید',
+    cannotBanAdmin: 'حساب‌های مدیر قابل مسدودسازی نیستند',
+    userBanned: 'کاربر مسدود شد',
+    userUnbanned: 'مسدودی کاربر برداشته شد',
   },
 } as const;
 
