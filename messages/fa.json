@@ -32,7 +32,10 @@
     "faq": "پرسش‌های متداول",
     "followUs": "ما را دنبال کنید",
     "paymentMethods": "روش‌های پرداخت",
-    "securePayment": "پرداخت امن از طریق زرین‌پال"
+    "securePayment": "پرداخت امن از طریق زرین‌پال",
+    "newsletter": "خبرنامه",
+    "emailPlaceholder": "ایمیل شما",
+    "subscribe": "عضویت"
   },
   "home": {
     "latestProducts": "جدیدترین محصولات",
@@ -267,6 +270,8 @@
     "passwordTitle": "رمز عبور",
     "currentPassword": "رمز عبور فعلی",
     "changePassword": "تغییر رمز عبور",
+    "newsletterTitle": "خبرنامه",
+    "newsletterSubscribed": "شما عضو خبرنامه هستید و پیشنهادهای ویژه را دریافت می‌کنید.",
     "addAddress": "افزودن نشانی جدید",
     "setDefault": "پیش‌فرض کردن",
     "defaultAddress": "پیش‌فرض",

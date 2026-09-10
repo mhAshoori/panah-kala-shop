@@ -31,6 +31,13 @@ const ProfilePage = async () => {
     ? `${defaultAddress.province}، ${defaultAddress.city}، ${defaultAddress.streetAddress} — ${defaultAddress.phone}`
     : null;
 
+  const subscribed = user.email
+    ? !!(await prisma.subscriber.findUnique({
+        where: { email: user.email.toLowerCase() },
+        select: { email: true },
+      }))
+    : false;
+
   return (
     <div className='mx-auto max-w-md space-y-4 md:max-w-3xl lg:max-w-5xl'>
       <h2 className='h2-bold'>{t('profile')}</h2>
@@ -45,6 +52,7 @@ const ProfilePage = async () => {
         birthDate={user.birthDate}
         defaultAddress={defaultAddressText}
         hasPassword={!!user.password}
+        subscribed={subscribed}
       />
     </div>
   );

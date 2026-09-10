@@ -102,6 +102,9 @@ const messages = {
     cannotBanAdmin: 'Admin accounts cannot be banned',
     userBanned: 'User banned',
     userUnbanned: 'User unbanned',
+    // Newsletter
+    subscribed: 'You are subscribed. Welcome aboard!',
+    unsubscribed: 'You have been unsubscribed',
   },
   fa: {
     // Session
@@ -198,6 +201,9 @@ const messages = {
     cannotBanAdmin: 'حساب‌های مدیر قابل مسدودسازی نیستند',
     userBanned: 'کاربر مسدود شد',
     userUnbanned: 'مسدودی کاربر برداشته شد',
+    // Newsletter
+    subscribed: 'عضویت شما ثبت شد. خوش آمدید!',
+    unsubscribed: 'عضویت شما لغو شد',
   },
 } as const;
 

@@ -46,6 +46,7 @@ import {
   requestContactChangeCode,
   changePassword,
 } from '@/lib/actions/user.actions';
+import { unsubscribeNewsletter } from '@/lib/actions/newsletter.actions';
 import ImageUploadButton from '@/components/shared/image-upload';
 import { useRouter } from 'next/navigation';
 import PhoneField from '@/components/shared/auth/phone-field';
@@ -73,6 +74,7 @@ type ProfileData = {
   birthDate?: Date | null;
   defaultAddress?: string | null;
   hasPassword?: boolean;
+  subscribed?: boolean;
 };
 
 // ---------------------------------------------------------------------------
@@ -392,6 +394,51 @@ const PasswordCard = ({ hasPassword }: { hasPassword: boolean }) => {
   );
 };
 
+// ---------------------------------------------------------------------------
+// Newsletter opt-out card
+// ---------------------------------------------------------------------------
+
+const NewsletterCard = ({ subscribed }: { subscribed: boolean }) => {
+  const t = useTranslations('account');
+  const tCommon = useTranslations('common');
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
+  if (!subscribed) return null;
+
+  return (
+    <Card>
+      <CardContent className='flex flex-wrap items-center justify-between gap-3 p-4'>
+        <div>
+          <h3 className='font-semibold'>{t('newsletterTitle')}</h3>
+          <p className='text-sm text-muted-foreground'>
+            {t('newsletterSubscribed')}
+          </p>
+        </div>
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          disabled={isPending}
+          onClick={() =>
+            startTransition(async () => {
+              const res = await unsubscribeNewsletter();
+              if (res.success) {
+                toast.success(res.message);
+                router.refresh();
+              } else {
+                toast.error(res.message);
+              }
+            })
+          }
+        >
+          {tCommon('cancel')}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
 const ProfileFormInner = ({
   name,
   email,
@@ -403,6 +450,7 @@ const ProfileFormInner = ({
   birthDate,
   defaultAddress,
   hasPassword,
+  subscribed,
 }: ProfileData) => {
   const { update } = useSession();
   const t = useTranslations('account');
@@ -555,6 +603,7 @@ const ProfileFormInner = ({
       </Card>
 
       <PasswordCard hasPassword={!!hasPassword} />
+      <NewsletterCard subscribed={!!subscribed} />
 
       <Card>
         <CardContent className='p-4'>

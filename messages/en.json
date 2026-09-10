@@ -32,7 +32,10 @@
     "faq": "FAQ",
     "followUs": "Follow Us",
     "paymentMethods": "Payment Methods",
-    "securePayment": "Secure payment via ZarinPal"
+    "securePayment": "Secure payment via ZarinPal",
+    "newsletter": "Newsletter",
+    "emailPlaceholder": "Your email",
+    "subscribe": "Subscribe"
   },
   "home": {
     "latestProducts": "Latest Products",
@@ -267,6 +270,8 @@
     "passwordTitle": "Password",
     "currentPassword": "Current password",
     "changePassword": "Change password",
+    "newsletterTitle": "Newsletter",
+    "newsletterSubscribed": "You are subscribed and receive special offers.",
     "addAddress": "Add New Address",
     "setDefault": "Set Default",
     "defaultAddress": "Default",

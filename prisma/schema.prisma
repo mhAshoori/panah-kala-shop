@@ -291,6 +291,12 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
+// Newsletter opt-in list (footer subscribe form; unsubscribe from profile)
+model Subscriber {
+  email     String   @id
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+}
+
 // Admin-editable homepage content blocks (hero, deal, sections, ...)
 model HomeBlock {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid

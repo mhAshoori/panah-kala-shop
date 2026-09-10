@@ -44,13 +44,11 @@ export async function sendSpecialOffer(
       throw new Error(await withActionMessage('invalidValue'));
     }
 
-    const users = await prisma.user.findMany({
-      where: { email: { not: null } },
+    // Only opted-in subscribers receive marketing emails
+    const subscribers = await prisma.subscriber.findMany({
       select: { email: true },
     });
-    const recipients = users
-      .map((u) => u.email)
-      .filter((e): e is string => !!e);
+    const recipients = subscribers.map((s) => s.email);
 
     if (recipients.length === 0) {
       throw new Error(await withActionMessage('noEmailRecipients'));

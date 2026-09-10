@@ -1,11 +1,48 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useActionState } from 'react';
 import Image from 'next/image';
 import { CreditCard, ShieldCheck } from 'lucide-react';
+import { useFormStatus } from 'react-dom';
 
 import { APP_NAME } from '@/lib/constants';
 import { Link } from '@/i18n/navigation';
+import { subscribeNewsletter } from '@/lib/actions/newsletter.actions';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+
+const SubscribeForm = () => {
+  const t = useTranslations('footer');
+  const [state, formAction] = useActionState(subscribeNewsletter, null);
+  const { pending } = useFormStatus();
+
+  return (
+    <form action={formAction} className='space-y-2'>
+      <p className='mb-3 text-sm font-semibold'>{t('newsletter')}</p>
+      <div className='flex gap-2'>
+        <Input
+          type='email'
+          name='email'
+          required
+          dir='ltr'
+          placeholder={t('emailPlaceholder')}
+          className='h-9'
+        />
+        <Button type='submit' size='sm' disabled={pending}>
+          {t('subscribe')}
+        </Button>
+      </div>
+      {state?.message && (
+        <p
+          className={`text-xs ${state.success ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}
+        >
+          {state.message}
+        </p>
+      )}
+    </form>
+  );
+};
 
 const Footer = () => {
   const t = useTranslations('footer');
@@ -21,7 +58,7 @@ const Footer = () => {
 
   return (
     <footer className='mt-16 border-t bg-card'>
-      <div className='wrapper grid gap-8 py-10 md:grid-cols-3'>
+      <div className='wrapper grid gap-8 py-10 md:grid-cols-4'>
         {/* Brand */}
         <div className='space-y-3'>
           <Link href='/' className='flex items-center gap-2'>
@@ -64,6 +101,9 @@ const Footer = () => {
             <span>{th('moneyBackDesc')}</span>
           </div>
         </div>
+
+        {/* Newsletter opt-in */}
+        <SubscribeForm />
       </div>
 
       <div className='border-t py-4'>
