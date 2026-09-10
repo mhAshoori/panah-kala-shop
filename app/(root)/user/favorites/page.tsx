@@ -34,7 +34,13 @@ const FavoritesPage = async () => {
   return (
     <div className='space-y-2'>
       <h1 className='h2-bold'>{t('favorites')}</h1>
-      <ProductList title={undefined} data={products} />
+      {products.length > 0 ? (
+        <ProductList title={undefined} data={products} />
+      ) : (
+        <p className='py-10 text-center text-sm text-muted-foreground'>
+          {t('noFavorites')}
+        </p>
+      )}
     </div>
   );
 };

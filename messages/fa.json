@@ -270,6 +270,8 @@
     "saved": "تغییرات ذخیره شد",
     "passwordTitle": "رمز عبور",
     "currentPassword": "رمز عبور فعلی",
+    "newPassword": "رمز عبور جدید",
+    "confirmNewPassword": "تکرار رمز عبور جدید",
     "changePassword": "تغییر رمز عبور",
     "newsletterTitle": "خبرنامه",
     "newsletterSubscribed": "شما عضو خبرنامه هستید و پیشنهادهای ویژه را دریافت می‌کنید.",
