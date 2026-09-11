@@ -61,10 +61,30 @@ function getPath(obj: BlockData, path: string): unknown {
 function setPath(obj: BlockData, path: string, value: unknown): BlockData {
   const [head, ...rest] = path.split('.');
   if (rest.length === 0) return { ...obj, [head]: value };
-  const child = (typeof obj[head] === 'object' && obj[head] !== null
-    ? (obj[head] as BlockData)
+  const child = obj[head];
+  // Arrays (banners, icon-box items) must stay arrays — object-spreading
+  // an array yields a plain object and the homepage's .map() then crashes
+  if (Array.isArray(child)) {
+    const [idxStr, ...arrRest] = rest;
+    const copy = child.slice();
+    const idx = Number(idxStr);
+    if (arrRest.length === 0) {
+      copy[idx] = value;
+    } else {
+      copy[idx] = setPath(
+        (typeof copy[idx] === 'object' && copy[idx] !== null
+          ? copy[idx]
+          : {}) as BlockData,
+        arrRest.join('.'),
+        value
+      );
+    }
+    return { ...obj, [head]: copy };
+  }
+  const childObj = (typeof child === 'object' && child !== null
+    ? child
     : {}) as BlockData;
-  return { ...obj, [head]: setPath(child, rest.join('.'), value) };
+  return { ...obj, [head]: setPath(childObj, rest.join('.'), value) };
 }
 
 /**

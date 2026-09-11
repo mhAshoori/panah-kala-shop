@@ -291,10 +291,27 @@ export const DEFAULT_HOME_BLOCKS: HomeBlocks = {
   },
 };
 
+// Repair legacy rows saved by an old editor bug: arrays were serialized as
+// plain objects with numeric keys ("0", "1") — revive them so .map() works
+function reviveArrays(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(reviveArrays);
+  if (typeof value !== 'object' || value === null) return value;
+  const entries = Object.entries(value as Record<string, unknown>);
+  const allNumeric = entries.length > 0 && entries.every(([k]) => /^\d+$/.test(k));
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of entries) out[k] = reviveArrays(v);
+  if (allNumeric) {
+    const arr: unknown[] = [];
+    for (const [k, v] of entries) arr[Number(k)] = v;
+    return arr;
+  }
+  return out;
+}
+
 // Shallow-merge stored block data over the defaults (top-level keys)
 function mergeBlock<T>(fallback: T, stored: unknown): T {
   if (typeof stored !== 'object' || stored === null) return fallback;
-  return { ...fallback, ...(stored as object) } as T;
+  return { ...fallback, ...(reviveArrays(stored) as object) } as T;
 }
 
 /** Homepage content for rendering — admin overrides merged onto defaults. */
