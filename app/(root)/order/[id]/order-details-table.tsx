@@ -72,8 +72,9 @@ const OrderDetailsTable = ({
           {t('print')}
         </Button>
       </div>
-      <div className='grid md:grid-cols-3 md:gap-5 print:block'>
-        <div className='overflow-x-auto md:col-span-2 space-y-4'>
+      <div className='grid gap-4 md:grid-cols-3 md:gap-5 print:block'>
+        {/* p-0.5 gives the cards' outer ring (ring-1) room — overflow-x-auto would clip it */}
+        <div className='overflow-x-auto md:col-span-2 space-y-4 p-0.5'>
           {/* Payment method */}
           <Card>
             <CardContent className='p-4 gap-4'>
