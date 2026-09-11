@@ -44,6 +44,24 @@ export type Review = z.infer<typeof insertReviewSchema> & {
   verified?: boolean;
   user: { name: string };
 };
+
+export type Question = {
+  id: string;
+  userId: string;
+  productId: string | null;
+  body: string;
+  createdAt: Date;
+};
+
+export type Answer = {
+  id: string;
+  questionId: string;
+  userId: string;
+  body: string;
+  /** Hidden from other users until an admin approves it */
+  isApproved: boolean;
+  createdAt: Date;
+};
 export type Order = z.infer<typeof insertOrderSchema> & {
   id: string;
   createdAt: Date;

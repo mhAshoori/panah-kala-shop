@@ -79,6 +79,18 @@ const messages = {
     favoriteRemoved: 'Removed from your favorites',
     // Reviews
     reviewSaved: 'Your review has been saved',
+    // Q&A
+    questionSaved: 'Your question has been submitted',
+    questionInvalid: 'Question must be 5-500 characters',
+    questionNotFound: 'Question not found',
+    questionDeleted: 'Question deleted',
+    questionHasAnswers: 'This question has answers and cannot be deleted',
+    answerSaved: 'Your answer has been submitted',
+    answerPending:
+      'Your answer was submitted and will be visible after admin approval',
+    answerInvalid: 'Answer must be 2-1000 characters',
+    answerNotFound: 'Answer not found',
+    answerDeleted: 'Answer deleted',
     // Settings
     languageUpdated: 'Language updated',
     fontUpdated: 'Font updated',
@@ -179,6 +191,17 @@ const messages = {
     favoriteRemoved: 'از علاقه‌مندی‌ها حذف شد',
     // Reviews
     reviewSaved: 'دیدگاه شما با موفقیت ثبت شد',
+    // Q&A
+    questionSaved: 'پرسش شما ثبت شد',
+    questionInvalid: 'متن پرسش باید بین ۵ تا ۵۰۰ کاراکتر باشد',
+    questionNotFound: 'پرسش یافت نشد',
+    questionDeleted: 'پرسش حذف شد',
+    questionHasAnswers: 'این پرسش پاسخ دارد و قابل حذف نیست',
+    answerSaved: 'پاسخ شما ثبت شد',
+    answerPending: 'پاسخ شما ثبت شد و پس از تایید مدیر نمایش داده می‌شود',
+    answerInvalid: 'متن پاسخ باید بین ۲ تا ۱۰۰۰ کاراکتر باشد',
+    answerNotFound: 'پاسخ یافت نشد',
+    answerDeleted: 'پاسخ حذف شد',
     // Settings
     languageUpdated: 'زبان سایت به‌روزرسانی شد',
     fontUpdated: 'فونت سایت به‌روزرسانی شد',

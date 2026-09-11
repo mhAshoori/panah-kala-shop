@@ -52,7 +52,7 @@ const Footer = () => {
   const serviceLinks = [
     { href: '/search', label: th('latestProducts') },
     { href: '/contact-us', label: t('contactUs') },
-    { href: '/user/orders', label: t('faq') },
+    { href: '/faq', label: t('faq') },
     { href: '/cart', label: th('freeShipping') },
   ];
 

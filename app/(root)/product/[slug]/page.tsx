@@ -8,6 +8,7 @@ import VariantSelector from '@/components/shared/product/variant-selector';
 import FavoriteToggle from '@/components/shared/product/favorite-toggle';
 import StarRating from '@/components/shared/product/star-rating';
 import ReviewsSection from '@/components/shared/product/reviews-section';
+import QaSectionServer from '@/components/shared/product/qa-section-server';
 import ProductList from '@/components/shared/product/product-list';
 import Breadcrumbs from '@/components/shared/breadcrumbs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -320,6 +321,9 @@ const ProductDetailsPage = async (props: {
         numReviews={product.numReviews}
         slug={product.slug}
       />
+
+      {/* Product Q&A */}
+      <QaSectionServer productId={product.id} />
 
       {/* Related products (same category) */}
       {relatedProducts.length > 0 && (

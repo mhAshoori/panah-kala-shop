@@ -81,6 +81,11 @@ const UserButton = async () => {
               {t('myReviews')}
             </Link>
           </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/user/questions" className="w-full">
+              {t('myQuestions')}
+            </Link>
+          </DropdownMenuItem>
           {session.user?.role === 'admin' && (
             <DropdownMenuItem asChild>
               <Link href="/admin" className="w-full">

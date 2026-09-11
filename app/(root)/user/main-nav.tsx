@@ -13,6 +13,7 @@ const MainNav = ({ className }: { className?: string }) => {
     { title: t('orders'), href: '/user/orders' as const },
     { title: t('addresses'), href: '/user/addresses' as const },
     { title: t('favorites'), href: '/user/favorites' as const },
+    { title: t('myQuestions'), href: '/user/questions' as const },
   ];
 
   return (
