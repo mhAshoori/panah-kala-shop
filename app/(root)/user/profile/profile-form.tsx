@@ -336,10 +336,20 @@ const SubmitButton = () => {
 // Password change card
 // ---------------------------------------------------------------------------
 
+const PasswordSubmitButton = ({ label }: { label: string }) => {
+  const { pending } = useFormStatus();
+  const t = useTranslations('account');
+
+  return (
+    <Button type='submit' disabled={pending} className='w-fit'>
+      {pending ? <Loader className='h-4 w-4 animate-spin' /> : label}
+    </Button>
+  );
+};
+
 const PasswordCard = ({ hasPassword }: { hasPassword: boolean }) => {
   const t = useTranslations('account');
   const [state, formAction] = useActionState(changePassword, null);
-  const { pending } = useFormStatus();
 
   return (
     <Card>
@@ -385,9 +395,7 @@ const PasswordCard = ({ hasPassword }: { hasPassword: boolean }) => {
               required
             />
           </Field>
-          <Button type='submit' disabled={pending} className='w-fit'>
-            {pending ? <Loader className='h-4 w-4 animate-spin' /> : t('changePassword')}
-          </Button>
+          <PasswordSubmitButton label={t('changePassword')} />
         </form>
       </CardContent>
     </Card>
@@ -492,8 +500,9 @@ const ProfileFormInner = ({
   );
 
   return (
-    <form onSubmit={onSubmit} className='space-y-6'>
-      {/* Avatar: upload, replace or delete (delete needs confirmation) */}
+    <>
+      <form onSubmit={onSubmit} className='space-y-6'>
+        {/* Avatar: upload, replace or delete (delete needs confirmation) */}
       <Card>
         <CardContent className='flex flex-wrap items-center gap-4 p-4'>
           {image ? (
@@ -601,10 +610,12 @@ const ProfileFormInner = ({
           <ContactRow type='mobile' value={mobile} />
         </CardContent>
       </Card>
+      </form>
 
       <PasswordCard hasPassword={!!hasPassword} />
       <NewsletterCard subscribed={!!subscribed} />
 
+      <form onSubmit={onSubmit} className='space-y-6'>
       <Card>
         <CardContent className='p-4'>
           <FieldGroup>
@@ -720,6 +731,7 @@ const ProfileFormInner = ({
         </CardContent>
       </Card>
     </form>
+    </>
   );
 };
 
