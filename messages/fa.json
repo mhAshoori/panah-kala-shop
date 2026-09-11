@@ -220,11 +220,15 @@
     "verifiedPurchase": "خریدار",
     "myReviews": "دیدگاه‌های من",
     "approvedBadge": "منتشر شده",
-    "pendingBadge": "در انتظار تایید"
+    "pendingBadge": "در انتظار تایید",
+    "deletedMine": "دیدگاه شما حذف شد",
+    "deleteConfirmTitle": "حذف دیدگاه؟",
+    "deleteConfirmDesc": "این دیدگاه برای همیشه حذف می‌شود. این کار قابل بازگشت نیست."
   },
   "order": {
     "title": "سفارش",
-    "myOrders": "سفارش‌های من", "noOrders": "هنوز سفارشی ثبت نکرده‌اید",
+    "myOrders": "سفارش‌های من",
+    "noOrders": "هنوز سفارشی ثبت نکرده‌اید",
     "orderId": "شناسه سفارش",
     "date": "تاریخ",
     "status": "وضعیت",
@@ -418,7 +422,6 @@
     "unbanUserTitle": "رفع مسدودی کاربر",
     "banUserConfirm": "با مسدودسازی {name}، امکان ورود و خرید از او گرفته می‌شود. ادامه می‌دهید؟",
     "unbanUserConfirm": "مسدودی {name} برداشته شود و امکان ورود دوباره فعال شود؟",
-    "totalOrders": "کل سفارش‌ها",
     "totalSpent": "مجموع خرید (پرداخت‌شده)",
     "reviewsCount": "تعداد دیدگاه‌ها",
     "recentOrders": "سفارش‌های اخیر",

@@ -81,7 +81,11 @@ const HomePage = async () => {
         <section key='deal'>
           <div className='relative overflow-hidden rounded-2xl border'>
             <Image
-              src={dealProduct.banner ?? '/images/banner-1.webp'}
+              src={
+                dealProduct.images?.[0] ??
+                dealProduct.banner ??
+                '/images/banner-1.webp'
+              }
               alt={locale === 'fa' ? dealProduct.nameFa : dealProduct.name}
               width={1920}
               height={680}

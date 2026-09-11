@@ -39,18 +39,28 @@ const SubmitButton = ({ label }: { label: string }) => {
   );
 };
 
-// Dialog form to create/update the signed-in user's review
+// Dialog form to create/update the signed-in user's review.
+// Uncontrolled by default; pass open/onOpenChange to control it externally.
 const ReviewForm = ({
   productId,
   existingReview,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: {
   productId: string;
   existingReview?: Review | null;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) => {
   const t = useTranslations('review');
   const tCommon = useTranslations('common');
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (v: boolean) => {
+    setUncontrolledOpen(v);
+    controlledOnOpenChange?.(v);
+  };
   // Pre-select 5 stars so a submit without touching the stars is still valid
   const [rating, setRating] = useState(existingReview?.rating ?? 5);
   const [hover, setHover] = useState(0);

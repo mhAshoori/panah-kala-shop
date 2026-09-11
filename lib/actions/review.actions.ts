@@ -251,3 +251,49 @@ export async function getReviewByUserAndProduct(productId: string) {
 
   return data ? (JSON.parse(JSON.stringify(data)) as Review) : null;
 }
+
+// Delete the signed-in user's own review (ownership-checked); keeps the
+// product's aggregate rating in sync
+export async function deleteMyReview(
+  reviewId: string
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const userId = await getValidUserId();
+    if (!userId) {
+      throw new Error(await withActionMessage('sessionExpired'));
+    }
+
+    const review = await prisma.review.findUnique({ where: { id: reviewId } });
+    if (!review || review.userId !== userId) {
+      throw new Error(await withActionMessage('reviewNotFound'));
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.review.delete({ where: { id: reviewId } });
+
+      const averageRating = await tx.review.aggregate({
+        _avg: { rating: true },
+        where: { productId: review.productId, isApproved: true },
+      });
+      const numReviews = await tx.review.count({
+        where: { productId: review.productId, isApproved: true },
+      });
+
+      await tx.product.update({
+        where: { id: review.productId },
+        data: {
+          rating: averageRating._avg.rating || 0,
+          numReviews,
+        },
+      });
+    });
+
+    revalidatePath('/user/reviews');
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Error',
+    };
+  }
+}

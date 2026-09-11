@@ -9,6 +9,7 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import StarRating from '@/components/shared/product/star-rating';
+import MyReviewActions from '@/components/shared/product/my-review-actions';
 import { getMyReviews } from '@/lib/actions/review.actions';
 import { auth } from '@/auth';
 import { formatDateTime } from '@/lib/utils';
@@ -60,6 +61,9 @@ const MyReviewsPage = async () => {
                 <p className='text-xs text-muted-foreground'>
                   {formatDateTime(review.createdAt).dateOnly}
                 </p>
+                <div className='flex justify-end'>
+                  <MyReviewActions review={review} />
+                </div>
               </CardContent>
             </Card>
           ))}
