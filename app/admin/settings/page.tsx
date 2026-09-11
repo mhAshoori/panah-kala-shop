@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 
 import { getAiBaseUrl, getAiEnabled, getAiModel } from '@/lib/ai/settings';
 import { hasAnyAiCredential } from '@/lib/ai/provider';
@@ -13,6 +14,7 @@ import StorePricingForm from './store-pricing-form';
 export const metadata: Metadata = { title: 'تنظیمات | پناه کالا' };
 
 const AdminSettingsPage = async () => {
+  const t = await getTranslations('admin');
   const [model, baseUrl, enabled, shippingFee, freeThreshold, taxRate] =
     await Promise.all([
       getAiModel(),
@@ -25,17 +27,22 @@ const AdminSettingsPage = async () => {
 
   return (
     <div className='space-y-6'>
-      <StorePricingForm
-        initialShippingFee={shippingFee}
-        initialFreeShippingThreshold={freeThreshold}
-        initialTaxRate={taxRate}
-      />
-      <AiSettingsForm
-        initialModel={model}
-        initialBaseUrl={baseUrl}
-        initialEnabled={enabled}
-        hasKey={hasAnyAiCredential()}
-      />
+      <div className='space-y-1'>
+        <h1 className='h2-bold'>{t('settingsTitle')}</h1>
+      </div>
+      <div className='grid items-start gap-6 lg:grid-cols-2'>
+        <StorePricingForm
+          initialShippingFee={shippingFee}
+          initialFreeShippingThreshold={freeThreshold}
+          initialTaxRate={taxRate}
+        />
+        <AiSettingsForm
+          initialModel={model}
+          initialBaseUrl={baseUrl}
+          initialEnabled={enabled}
+          hasKey={hasAnyAiCredential()}
+        />
+      </div>
     </div>
   );
 };

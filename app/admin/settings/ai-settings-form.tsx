@@ -58,11 +58,9 @@ const AiSettingsForm = ({
   };
 
   return (
-    <div className='max-w-2xl space-y-4'>
-      <h1 className='h2-bold'>{t('aiSettingsTitle')}</h1>
-
-      <Card>
-        <CardContent className='p-4'>
+    <Card>
+        <CardContent className='p-4 space-y-4'>
+          <h2 className='text-lg font-semibold'>{t('aiSettingsTitle')}</h2>
           <FieldGroup>
             <Label className='flex items-center gap-2 text-sm font-normal'>
               <Checkbox
@@ -118,7 +116,6 @@ const AiSettingsForm = ({
           </Button>
         </CardContent>
       </Card>
-    </div>
   );
 };
 

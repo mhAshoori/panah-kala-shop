@@ -63,7 +63,7 @@ const AdminChat = () => {
         onClick={() => setOpen((o) => !o)}
         aria-label={t('adminOpen')}
         className={cn(
-          'fixed bottom-5 start-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105',
+          'fixed bottom-6 start-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105',
           open && 'hidden'
         )}
       >
@@ -74,7 +74,7 @@ const AdminChat = () => {
       {open && (
         <div
           dir='rtl'
-          className='fixed inset-x-4 bottom-4 z-50 flex h-[min(560px,80vh)] w-auto flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl sm:left-auto sm:right-auto sm:bottom-5 sm:start-5 sm:w-[380px]'
+          className='fixed inset-x-4 bottom-4 z-50 flex h-[min(560px,80vh)] w-auto flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl sm:left-auto sm:right-auto sm:bottom-6 sm:start-6 sm:w-[380px]'
         >
           {/* Header */}
           <div className='flex items-center justify-between border-b p-3'>

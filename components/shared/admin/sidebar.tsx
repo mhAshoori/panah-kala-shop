@@ -34,7 +34,7 @@ export const ADMIN_MENU_ITEMS: {
   { href: '/admin/reviews', label: 'reviews', icon: MessageSquare },
   { href: '/admin/users', label: 'users', icon: Users },
   { href: '/admin/marketing', label: 'marketing', icon: Mail },
-  { href: '/admin/settings', label: 'aiSettingsTitle', icon: Settings },
+  { href: '/admin/settings', label: 'settingsTitle', icon: Settings },
 ];
 
 const AdminSidebar = () => {
