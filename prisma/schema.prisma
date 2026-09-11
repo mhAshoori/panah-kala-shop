@@ -91,6 +91,7 @@ model Product {
   orderItems       OrderItem[]
   reviews          Review[]
   favorites        Favorite[]
+  questions        Question[]
   options          ProductOption[]
   variants         ProductVariant[]
 
@@ -232,6 +233,8 @@ model User {
   reviews       Review[]
   addresses     Address[]
   favorites     Favorite[]
+  questions     Question[]
+  answers       Answer[]
 }
 
 // Saved shipping addresses; exactly one per user is the default
@@ -323,4 +326,37 @@ model Coupon {
   usedCount   Int       @default(0)
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now()) @db.Timestamp(6)
+}
+
+// Q&A: product questions (productId set) appear on the product page;
+// productId null = a general question to the store, answered on /faq
+model Question {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @db.Uuid
+  productId String?  @db.Uuid
+  body      String
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "questions_userId_user_id_fk")
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "questions_productId_product_id_fk")
+  answers   Answer[]
+
+  @@index([productId], map: "questions_productId_idx")
+  @@index([userId], map: "questions_userId_idx")
+}
+
+// Answers to questions. User answers stay hidden until an admin approves
+// them (the author still sees their own pending one); admin answers are
+// created pre-approved.
+model Answer {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionId String   @db.Uuid
+  userId     String   @db.Uuid
+  body       String
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "answers_questionId_question_id_fk")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "answers_userId_user_id_fk")
+
+  @@index([questionId], map: "answers_questionId_idx")
+  @@index([userId], map: "answers_userId_idx")
 }
