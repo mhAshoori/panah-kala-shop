@@ -6,6 +6,7 @@ import {
   ExternalLink,
   Home,
   LayoutDashboard,
+  LogOut,
   Mail,
   MessageSquare,
   Package,
@@ -16,6 +17,7 @@ import {
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SignOutUser } from '@/lib/actions/user.actions';
 
 export const ADMIN_MENU_ITEMS: {
   href: string;
@@ -37,6 +39,7 @@ export const ADMIN_MENU_ITEMS: {
 
 const AdminSidebar = () => {
   const t = useTranslations('admin');
+  const tHeader = useTranslations('header');
   const pathname = usePathname();
 
   return (
@@ -69,6 +72,17 @@ const AdminSidebar = () => {
           </Link>
         );
       })}
+
+      {/* Sign out — back to the storefront */}
+      <form action={SignOutUser} className='mt-4 border-t pt-2'>
+        <button
+          type='submit'
+          className='flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-destructive'
+        >
+          <LogOut className='h-4 w-4 rtl:-scale-x-100' aria-hidden='true' />
+          <span className='whitespace-nowrap'>{tHeader('signOut')}</span>
+        </button>
+      </form>
     </nav>
   );
 };
