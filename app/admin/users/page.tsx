@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 
 import {
@@ -26,6 +26,7 @@ const AdminUsersPage = async (props: {
 
   const t = await getTranslations('admin');
   const tCommon = await getTranslations('common');
+  const locale = await getLocale();
 
   const users = await getAllUsers({
     page: Number(page) || 1,
@@ -74,7 +75,7 @@ const AdminUsersPage = async (props: {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {formatDateTime(user.createdAt).dateOnly}
+                    {formatDateTime(user.createdAt, locale as 'fa' | 'en').dateOnly}
                   </TableCell>
                   <TableCell className='flex justify-end gap-1'>
                     <Button asChild size='sm' variant='outline'>

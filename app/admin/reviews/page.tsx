@@ -69,7 +69,7 @@ const AdminReviewsPage = async () => {
                     {review.title}
                   </TableCell>
                   <TableCell>
-                    {formatDateTime(review.createdAt).dateOnly}
+                    {formatDateTime(review.createdAt, locale as 'fa' | 'en').dateOnly}
                   </TableCell>
                   <TableCell>
                     <div className='flex flex-wrap items-center gap-1'>

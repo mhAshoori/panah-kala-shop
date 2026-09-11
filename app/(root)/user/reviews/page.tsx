@@ -59,7 +59,7 @@ const MyReviewsPage = async () => {
                   {review.description}
                 </p>
                 <p className='text-xs text-muted-foreground'>
-                  {formatDateTime(review.createdAt).dateOnly}
+                  {formatDateTime(review.createdAt, locale as 'fa' | 'en').dateOnly}
                 </p>
                 <div className='flex justify-end'>
                   <MyReviewActions review={review} />

@@ -90,7 +90,7 @@ const AdminOrdersPage = async (props: {
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell>{formatDateTime(order.createdAt).dateOnly}</TableCell>
+                  <TableCell>{formatDateTime(order.createdAt, locale as 'fa' | 'en').dateOnly}</TableCell>
                   <TableCell>{formatCurrencyLocale(order.totalPrice, locale)}</TableCell>
                   <TableCell>
                     {order.isPaid ? (

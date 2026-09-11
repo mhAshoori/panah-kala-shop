@@ -131,7 +131,7 @@ const AdminUserDetailPage = async (props: {
                         </Link>
                       </TableCell>
                       <TableCell>
-                        {formatDateTime(o.createdAt).dateTime}
+                        {formatDateTime(o.createdAt, locale as 'fa' | 'en').dateTime}
                       </TableCell>
                       <TableCell>
                         {formatCurrencyLocale(o.totalPrice, locale)}

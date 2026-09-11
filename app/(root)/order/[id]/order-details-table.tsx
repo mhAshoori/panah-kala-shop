@@ -86,7 +86,7 @@ const OrderDetailsTable = ({
               </p>
               {isPaid ? (
                 <Badge variant='secondary' className='mt-2'>
-                  {t('paidAt')}: {formatDateTime(paidAt!).dateTime} ·{' '}
+                  {t('paidAt')}: {formatDateTime(paidAt!, locale as 'fa' | 'en').dateTime} ·{' '}
                   {t('refId')}: {paymentResult?.refId ?? '—'}
                 </Badge>
               ) : (
@@ -109,11 +109,11 @@ const OrderDetailsTable = ({
               </p>
               {isDelivered ? (
                 <Badge variant='secondary' className='mt-2'>
-                  {t('deliveredAt')}: {formatDateTime(deliveredAt!).dateTime}
+                  {t('deliveredAt')}: {formatDateTime(deliveredAt!, locale as 'fa' | 'en').dateTime}
                 </Badge>
               ) : order.shippedAt ? (
                 <Badge className='mt-2'>
-                  {t('shippedAt')}: {formatDateTime(order.shippedAt).dateTime}
+                  {t('shippedAt')}: {formatDateTime(order.shippedAt, locale as 'fa' | 'en').dateTime}
                 </Badge>
               ) : (
                 <Badge variant='outline' className='mt-2'>

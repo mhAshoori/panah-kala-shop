@@ -85,8 +85,10 @@ export function slugifyCategory(name: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-// Format a date in 3 useful ways (date-time, date-only, time-only)
-export function formatDateTime(dateString: Date | string) {
+// Format a date in 3 useful ways (date-time, date-only, time-only).
+// fa renders the Jalali (Shamsi) calendar via Intl's Persian calendar.
+export function formatDateTime(dateString: Date | string, locale: 'fa' | 'en' = 'en') {
+  const tag = locale === 'fa' ? 'fa-IR-u-ca-persian' : 'en-US';
   const dateTimeOptions: Intl.DateTimeFormatOptions = {
     month: 'short',
     year: 'numeric',
@@ -108,8 +110,8 @@ export function formatDateTime(dateString: Date | string) {
   };
   const d = new Date(dateString);
   return {
-    dateTime: d.toLocaleString('en-US', dateTimeOptions),
-    dateOnly: d.toLocaleString('en-US', dateOptions),
-    timeOnly: d.toLocaleString('en-US', timeOptions),
+    dateTime: d.toLocaleString(tag, dateTimeOptions),
+    dateOnly: d.toLocaleString(tag, dateOptions),
+    timeOnly: d.toLocaleString(tag, timeOptions),
   };
 }

@@ -1,4 +1,4 @@
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 import StarRating from './star-rating';
 import { formatDateTime } from '@/lib/utils';
@@ -6,6 +6,7 @@ import { Review } from '@/types';
 
 const ReviewList = ({ reviews }: { reviews: Review[] }) => {
   const t = useTranslations('review');
+  const locale = useLocale();
 
   if (reviews.length === 0) {
     return <p className='py-4 text-sm text-muted-foreground'>{t('empty')}</p>;
@@ -30,7 +31,7 @@ const ReviewList = ({ reviews }: { reviews: Review[] }) => {
                   )}
                 </p>
                 <p className='text-xs text-muted-foreground'>
-                  {formatDateTime(review.createdAt).dateOnly}
+                  {formatDateTime(review.createdAt, locale as 'fa' | 'en').dateOnly}
                 </p>
               </div>
             </div>

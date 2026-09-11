@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 
 import {
   Table,
@@ -33,6 +33,7 @@ const OrdersPage = async (props: {
   if (!session) redirect('/sign-in');
 
   const t = await getTranslations('order');
+  const locale = await getLocale();
 
   const orders = await getMyOrders({
     page: Number(page) || 1,
@@ -68,11 +69,11 @@ const OrdersPage = async (props: {
                 <TableCell className='font-mono text-xs'>
                   {formatId(order.id)}
                 </TableCell>
-                <TableCell>{formatDateTime(order.createdAt).dateOnly}</TableCell>
+                <TableCell>{formatDateTime(order.createdAt, locale as 'fa' | 'en').dateOnly}</TableCell>
                 <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
                 <TableCell>
                   {order.isPaid && order.paidAt
-                    ? formatDateTime(order.paidAt).dateTime
+                    ? formatDateTime(order.paidAt, locale as 'fa' | 'en').dateTime
                     : t('notPaid')}
                 </TableCell>
                 <TableCell>
