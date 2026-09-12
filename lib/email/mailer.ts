@@ -59,6 +59,8 @@ export async function sendEmail(input: {
   to: string;
   subject: string;
   html: string;
+  /** Marketing mail must set this or providers spam-flag the sender */
+  listUnsubscribe?: string;
 }): Promise<EmailSendResult> {
   const tx = getTransporter();
   if (!tx) {
@@ -73,6 +75,10 @@ export async function sendEmail(input: {
       to: input.to,
       subject: input.subject,
       html: input.html,
+      text: input.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+      ...(input.listUnsubscribe
+        ? { headers: { 'List-Unsubscribe': `<${input.listUnsubscribe}>` } }
+        : {}),
     });
     return { ok: true };
   } catch (error) {

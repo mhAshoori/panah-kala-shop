@@ -23,6 +23,11 @@ export type OfferEmailInput = {
 
 export const OFFER_FOOTER = `اگر مایل به دریافت این ایمیل‌ها نیستید، از تنظیمات حساب خود انصراف دهید. — ${APP_NAME}`;
 
+/** One-click unsubscribe URL (GET, no login needed — tokenless; changes require the account) */
+export function unsubscribeUrl(): string {
+  return `${process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'}/user/profile#newsletter`;
+}
+
 export function renderOfferHtml(input: OfferEmailInput): string {
   const couponBlock = input.couponCode
     ? `<div style="margin:16px 0;padding:12px;border:2px dashed #d97706;border-radius:8px;font-size:20px;font-weight:700;letter-spacing:2px;">${input.couponCode}</div>`
@@ -63,7 +68,7 @@ export async function sendOfferBroadcast(
     const chunk = recipients.slice(i, i + chunkSize);
     const results = await Promise.all(
       chunk.map((to) =>
-        sendEmail({ to, subject: offer.subject, html }).then((r) =>
+        sendEmail({ to, subject: offer.subject, html, listUnsubscribe: unsubscribeUrl() }).then((r) =>
           r.ok ? 'ok' : 'fail'
         )
       )
