@@ -178,6 +178,7 @@ model Order {
   isPaid           Boolean     @default(false)
   paidAt           DateTime?   @db.Timestamp(6)
   shippedAt        DateTime?   @db.Timestamp(6)
+  trackCode        String?
   isDelivered      Boolean     @default(false)
   deliveredAt      DateTime?   @db.Timestamp(6)
   createdAt        DateTime    @default(now()) @db.Timestamp(6)

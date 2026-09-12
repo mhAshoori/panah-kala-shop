@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 
 import { getOrderById } from '@/lib/actions/order.actions';
 import OrderDetailsTable from '@/app/(root)/order/[id]/order-details-table';
+import TrackCodeForm from '@/components/shared/admin/track-code-form';
 import type { ShippingAddress } from '@/types';
 import { APP_NAME } from '@/lib/constants';
 
@@ -28,6 +29,7 @@ const AdminOrderDetailsPage = async (props: {
       <h1 className='h2-bold'>
         {t('orderDetails')} — {order.id.slice(-6)}
       </h1>
+      <TrackCodeForm orderId={order.id} trackCode={order.trackCode} />
       <OrderDetailsTable
         order={{
           ...order,

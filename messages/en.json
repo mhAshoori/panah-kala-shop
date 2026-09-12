@@ -305,7 +305,11 @@
     "reorder": "Reorder",
     "reordered": "Items added back to your cart",
     "nothingToReorder": "None of these items are currently available",
-    "print": "Print Order"
+    "print": "Print Order",
+    "trackCode": "Postal tracking code",
+    "trackCodeHint": "20-24 digit postal tracking code",
+    "save": "Save",
+    "trackCodeSaved": "Tracking code saved"
   },
   "account": {
     "profile": "Profile Details",
@@ -358,7 +362,8 @@
     "changeAvatar": "Change photo",
     "deleteAvatar": "Delete photo",
     "deleteAvatarConfirmTitle": "Delete profile picture",
-    "deleteAvatarConfirmDesc": "Your profile picture will be removed. This action cannot be undone."
+    "deleteAvatarConfirmDesc": "Your profile picture will be removed. This action cannot be undone.",
+    "passwordsNoMatch": "New password and confirmation don't match"
   },
   "admin": {
     "overview": "Overview",
@@ -632,4 +637,4 @@
     "brand": "Brand",
     "delete": "Delete"
   }
-}
+}

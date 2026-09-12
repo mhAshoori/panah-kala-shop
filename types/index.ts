@@ -70,6 +70,8 @@ export type Order = z.infer<typeof insertOrderSchema> & {
   isDelivered: boolean;
   deliveredAt: Date | null;
   shippedAt?: Date | null;
+  /** Postal tracking code ("کد رهگیری", 20–24 digits) set after shipping */
+  trackCode?: string | null;
   paymentAuthority?: string | null;
   /** Applied coupon (normalized code) and its computed Toman discount */
   couponCode?: string | null;

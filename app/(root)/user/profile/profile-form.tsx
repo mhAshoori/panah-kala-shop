@@ -35,6 +35,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
+import type { ActionState } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { updateProfileSchema } from '@/lib/validator';
@@ -336,12 +337,17 @@ const SubmitButton = () => {
 // Password change card
 // ---------------------------------------------------------------------------
 
-const PasswordSubmitButton = ({ label }: { label: string }) => {
+const PasswordSubmitButton = ({
+  label,
+  disabled,
+}: {
+  label: string;
+  disabled?: boolean;
+}) => {
   const { pending } = useFormStatus();
-  const t = useTranslations('account');
 
   return (
-    <Button type='submit' disabled={pending} className='w-fit'>
+    <Button type='submit' disabled={pending || disabled} className='w-fit'>
       {pending ? <Loader className='h-4 w-4 animate-spin' /> : label}
     </Button>
   );
@@ -349,7 +355,28 @@ const PasswordSubmitButton = ({ label }: { label: string }) => {
 
 const PasswordCard = ({ hasPassword }: { hasPassword: boolean }) => {
   const t = useTranslations('account');
-  const [state, formAction] = useActionState(changePassword, null);
+  const router = useRouter();
+  const [state, formAction] = useActionState(
+    async (
+      prev: ActionState | null,
+      fd: FormData
+    ): Promise<ActionState> => {
+      const res = await changePassword(prev, fd);
+      if (res.success) {
+        toast.success(res.message);
+        router.refresh();
+      } else {
+        toast.error(res.message);
+      }
+      return res;
+    },
+    null
+  );
+
+  // Client-side pre-check so a mismatch surfaces before any server round-trip
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const mismatch = confirmPassword.length > 0 && confirmPassword !== newPassword;
 
   return (
     <Card>
@@ -368,12 +395,9 @@ const PasswordCard = ({ hasPassword }: { hasPassword: boolean }) => {
                 autoComplete='current-password'
                 required
               />
-              {state?.success === false && state?.message && (
-                <p className='text-xs text-destructive'>{state.message}</p>
-              )}
             </Field>
           )}
-          <Field>
+          <Field data-invalid={mismatch}>
             <FieldLabel htmlFor='newPassword'>{t('newPassword')}</FieldLabel>
             <Input
               id='newPassword'
@@ -381,9 +405,11 @@ const PasswordCard = ({ hasPassword }: { hasPassword: boolean }) => {
               type='password'
               autoComplete='new-password'
               required
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
             />
           </Field>
-          <Field>
+          <Field data-invalid={mismatch}>
             <FieldLabel htmlFor='confirmPassword'>
               {t('confirmNewPassword')}
             </FieldLabel>
@@ -393,9 +419,17 @@ const PasswordCard = ({ hasPassword }: { hasPassword: boolean }) => {
               type='password'
               autoComplete='new-password'
               required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
             />
+            {mismatch && (
+              <FieldError>{t('passwordsNoMatch')}</FieldError>
+            )}
           </Field>
-          <PasswordSubmitButton label={t('changePassword')} />
+          {state?.success === false && state?.message && (
+            <p className='text-xs text-destructive' data-testid='password-error'>{state.message}</p>
+          )}
+          <PasswordSubmitButton label={t('changePassword')} disabled={mismatch} />
         </form>
       </CardContent>
     </Card>

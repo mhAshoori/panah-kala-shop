@@ -305,7 +305,11 @@
     "reorder": "سفارش مجدد",
     "reordered": "اقلام سفارش به سبد خرید اضافه شد",
     "nothingToReorder": "هیچ کالایی از این سفارش اکنون موجود نیست",
-    "print": "چاپ سفارش"
+    "print": "چاپ سفارش",
+    "trackCode": "کد رهگیری",
+    "trackCodeHint": "کد رهگیری پستی ۲۰ تا ۲۴ رقم",
+    "save": "ذخیره",
+    "trackCodeSaved": "کد رهگیری ذخیره شد"
   },
   "account": {
     "profile": "اطلاعات حساب",
@@ -358,7 +362,8 @@
     "changeAvatar": "تغییر عکس",
     "deleteAvatar": "حذف عکس",
     "deleteAvatarConfirmTitle": "حذف تصویر پروفایل",
-    "deleteAvatarConfirmDesc": "تصویر پروفایل شما حذف می‌شود. این عمل قابل بازگشت نیست."
+    "deleteAvatarConfirmDesc": "تصویر پروفایل شما حذف می‌شود. این عمل قابل بازگشت نیست.",
+    "passwordsNoMatch": "رمز عبور جدید و تکرار آن یکسان نیستند"
   },
   "admin": {
     "overview": "نمای کلی",

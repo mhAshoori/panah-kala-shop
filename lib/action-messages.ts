@@ -115,6 +115,8 @@ const messages = {
     userBanned: 'User banned',
     userUnbanned: 'User unbanned',
     orderAlreadyShipped: 'Order is already marked as shipped',
+    // Tracking code
+    trackCodeInvalid: 'Tracking code must be 20–24 digits',
     // Newsletter
     subscribed: 'You are subscribed. Welcome aboard!',
     unsubscribed: 'You have been unsubscribed',
@@ -226,6 +228,7 @@ const messages = {
     userBanned: 'کاربر مسدود شد',
     userUnbanned: 'مسدودی کاربر برداشته شد',
     orderAlreadyShipped: 'سفارش قبلاً ارسال شده است',
+    trackCodeInvalid: 'کد رهگیری باید ۲۰ تا ۲۴ رقم باشد',
     // Newsletter
     subscribed: 'عضویت شما ثبت شد. خوش آمدید!',
     unsubscribed: 'عضویت شما لغو شد',

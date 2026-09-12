@@ -44,7 +44,7 @@ const OrderDetailsTable = ({
     if (paid === 'failed') toast.error(t('paymentFailed'));
   }, [searchParams, t]);
 
-  const { shippingAddress, orderItems, itemsPrice, taxPrice, shippingPrice, totalPrice, paymentMethod, isPaid, paidAt, isDelivered, deliveredAt, paymentResult, id, couponCode, couponDiscount } = order;
+  const { shippingAddress, orderItems, itemsPrice, taxPrice, shippingPrice, totalPrice, paymentMethod, isPaid, paidAt, isDelivered, deliveredAt, paymentResult, id, couponCode, couponDiscount, trackCode } = order;
 
   // Coupon percent is derivable when both the discount and the discounted
   // subtotal are present (itemsPrice is stored after the coupon).
@@ -119,6 +119,14 @@ const OrderDetailsTable = ({
                 <Badge variant='outline' className='mt-2'>
                   {t('notDelivered')}
                 </Badge>
+              )}
+              {trackCode && (
+                <p className='mt-2 text-sm'>
+                  {t('trackCode')}:{' '}
+                  <span dir='ltr' className='font-mono'>
+                    {trackCode}
+                  </span>
+                </p>
               )}
             </CardContent>
           </Card>

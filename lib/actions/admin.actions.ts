@@ -180,6 +180,31 @@ export async function updateOrderToDelivered(orderId: string) {
   return { success: true as const };
 }
 
+// Set/update the postal tracking code ("کد رهگیری", 20–24 digits)
+export async function setOrderTrackCode(orderId: string, trackCode: string) {
+  await requireAdmin();
+
+  const code = trackCode
+    .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d).toString())
+    .replace(/\D/g, '');
+  if (code.length < 20 || code.length > 24) {
+    throw new Error(await withActionMessage('trackCodeInvalid'));
+  }
+
+  const order = await prisma.order.findFirst({ where: { id: orderId } });
+  if (!order) throw new Error(await withActionMessage('orderNotFound'));
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { trackCode: code },
+  });
+  revalidatePath('/admin/orders');
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath(`/order/${orderId}`);
+  revalidatePath('/user/orders');
+  return { success: true as const };
+}
+
 // Delete an order by ID (order items cascade)
 export async function deleteOrder(orderId: string) {
   await requireAdmin();
