@@ -8,6 +8,7 @@ import {
   zarinpalRequestPayment,
   zarinpalVerifyPayment,
 } from '../pay/zarinpal';
+import { bumpProductSales } from '../sales';
 
 /**
  * Start a ZarinPal payment for a pending order (paymentMethod === 'zarinpal').
@@ -152,6 +153,10 @@ export async function verifyZarinpalPayment(params: {
           },
         },
       });
+      // Fire-and-forget bestseller counter
+      bumpProductSales(order.id).catch((e) =>
+        console.error('[sales] bump failed:', e)
+      );
       return { ...base, success: true as const, refId: verification.refId };
     }
 

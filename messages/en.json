@@ -309,7 +309,11 @@
     "trackCode": "Postal tracking code",
     "trackCodeHint": "20-24 digit postal tracking code",
     "save": "Save",
-    "trackCodeSaved": "Tracking code saved"
+    "trackCodeSaved": "Tracking code saved",
+    "timelinePlaced": "Order placed",
+    "timelinePaid": "Paid",
+    "timelineShipped": "Shipped",
+    "timelineDelivered": "Delivered"
   },
   "account": {
     "profile": "Profile Details",
@@ -635,6 +639,8 @@
     "storageInvalidType": "Image format is not supported",
     "changesDiscarded": "Changes discarded",
     "brand": "Brand",
-    "delete": "Delete"
+    "delete": "Delete",
+    "skipToContent": "Skip to content",
+    "backToTop": "Back to top"
   }
 }

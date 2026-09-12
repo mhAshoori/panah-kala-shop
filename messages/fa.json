@@ -309,7 +309,11 @@
     "trackCode": "کد رهگیری",
     "trackCodeHint": "کد رهگیری پستی ۲۰ تا ۲۴ رقم",
     "save": "ذخیره",
-    "trackCodeSaved": "کد رهگیری ذخیره شد"
+    "trackCodeSaved": "کد رهگیری ذخیره شد",
+    "timelinePlaced": "ثبت سفارش",
+    "timelinePaid": "پرداخت",
+    "timelineShipped": "ارسال",
+    "timelineDelivered": "تحویل"
   },
   "account": {
     "profile": "اطلاعات حساب",
@@ -635,6 +639,8 @@
     "storageInvalidType": "فرمت تصویر پشتیبانی نمی‌شود",
     "changesDiscarded": "تغییرات بازگردانی شد",
     "brand": "برند",
-    "delete": "حذف"
+    "delete": "حذف",
+    "skipToContent": "رفتن به محتوا",
+    "backToTop": "بازگشت به بالا"
   }
-}
+}

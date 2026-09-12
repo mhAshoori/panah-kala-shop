@@ -22,6 +22,7 @@ import {
 import { formatDateTime, formatId } from '@/lib/utils';
 import { formatNumberLocale } from '@/lib/persian';
 import ZarinpalButton from './zarinpal-button';
+import OrderTimeline from '@/components/shared/order-timeline';
 import type { Order } from '@/types';
 
 const OrderDetailsTable = ({
@@ -75,6 +76,12 @@ const OrderDetailsTable = ({
       <div className='grid gap-4 md:grid-cols-3 md:gap-5 print:block'>
         {/* p-0.5 gives the cards' outer ring (ring-1) room — overflow-x-auto would clip it */}
         <div className='overflow-x-auto md:col-span-2 space-y-4 p-0.5'>
+          {/* Status timeline: placed → paid → shipped → delivered */}
+          <Card>
+            <CardContent className='p-4 pt-6'>
+              <OrderTimeline order={order} />
+            </CardContent>
+          </Card>
           {/* Payment method */}
           <Card>
             <CardContent className='p-4 gap-4'>

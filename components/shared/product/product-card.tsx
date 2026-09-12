@@ -29,7 +29,9 @@ const ProductCard = async ({ product }: { product: Product }) => {
         className='relative block aspect-square overflow-hidden rounded-t-xl bg-muted'
       >
         <Image
-          priority
+          // Not priority: cards sit mid-page in grids; eager-loading every
+          // image delayed the real LCP. Hero images opt in at their site.
+          loading='lazy'
           src={product.images[0]}
           alt={name}
           fill

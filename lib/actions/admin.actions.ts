@@ -8,6 +8,7 @@ import { requireAdmin } from '../auth-guard';
 import { withActionMessage } from '../action-messages';
 import { Order } from '@/types';
 import { sendOrderShippedEmail } from '../email/order-shipped';
+import { bumpProductSales } from '../sales';
 
 // Get dashboard summary: counts, total sales, monthly sales and latest sales
 export async function getOrderSummary() {
@@ -124,6 +125,10 @@ export async function updateOrderToPaid(orderId: string) {
     where: { id: orderId },
     data: { isPaid: true, paidAt: new Date() },
   });
+  // Fire-and-forget bestseller counter (COD cash collected)
+  bumpProductSales(orderId).catch((e) =>
+    console.error('[sales] bump failed:', e)
+  );
   revalidatePath('/admin/orders');
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath(`/order/${orderId}`);

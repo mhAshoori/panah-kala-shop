@@ -61,16 +61,23 @@ export async function getFeaturedProducts() {
   return convertToPlainObject(data);
 }
 
-// Best sellers proxy until real sales tracking lands: highest-rated first,
-// most-reviewed as tiebreak (products with no reviews fall to the end).
+// Best sellers by real paid sales; fall back to rating when nobody has sold yet
 export async function getBestSellers(limit: number) {
+  const take = Math.min(Math.max(limit, 1), 12);
   const data = await prisma.product.findMany({
-    where: { numReviews: { gt: 0 } },
-    take: Math.min(Math.max(limit, 1), 12),
-    orderBy: [{ rating: 'desc' }, { numReviews: 'desc' }],
+    where: { numSales: { gt: 0 } },
+    orderBy: [{ numSales: 'desc' }, { rating: 'desc' }],
+    take,
   });
+  if (data.length >= take) return convertToPlainObject(data);
 
-  return convertToPlainObject(data);
+  // Backfill with highest-rated (old proxy) so the block is never short
+  const fill = await prisma.product.findMany({
+    where: { numSales: 0 },
+    orderBy: [{ rating: 'desc' }, { numReviews: 'desc' }],
+    take: take - data.length,
+  });
+  return convertToPlainObject([...data, ...fill]);
 }
 
 // Get distinct brands for the homepage marquee

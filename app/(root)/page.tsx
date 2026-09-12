@@ -81,6 +81,7 @@ const HomePage = async () => {
         <section key='deal'>
           <div className='relative overflow-hidden rounded-2xl border'>
             <Image
+              priority
               src={
                 dealProduct.images?.[0] ??
                 dealProduct.banner ??
