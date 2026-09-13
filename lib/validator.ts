@@ -69,7 +69,14 @@ export const variantInputSchema = z.object({
   key: z.string(),
   // Optional explicit membership: value index per option. Omitted on
   // full-cartesian products (each row maps to combos[i] positionally).
-  combo: z.array(z.number().int().min(0)).nullish(),
+  combo: z
+    .union([
+      z.array(z.number().int().min(0)),
+      // Preloaded rows carry a 'optIdx:valIdx;...' signature string — the
+      // editor resolves it back to indexes before sending numbers only.
+      z.string().regex(/^(\d+:\d+)(;\d+:\d+)*$/),
+    ])
+    .nullish(),
   price: currency,
   compareAtPrice: z
     .union([currency, z.literal('')])

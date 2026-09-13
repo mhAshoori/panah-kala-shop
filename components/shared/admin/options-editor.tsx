@@ -18,12 +18,23 @@ export type AdminOption = {
 };
 export type AdminVariant = {
   key: string;
-  // Explicit combo membership (value index per option). Present when the
-  // admin excludes some cartesian rows (sparse combos); absent = full grid.
-  combo?: number[];
+  // Explicit combo membership. number[] = value index per option (fresh
+  // client-side rows in the create flow). Preloaded DB rows instead carry a
+  // 'optIdx:valIdx;...' signature string so they can be re-attached to the
+  // right cartesian row even when values were re-ordered.
+  combo?: number[] | string;
   price: string;
   compareAtPrice: string;
   stock: string;
+};
+
+// 'optIdx:valIdx;...' signature → value-index-per-option number[] for
+// submission; passthrough for number[] / undefined.
+const normalizeCombo = (
+  combo: number[] | string | undefined
+): number[] | undefined => {
+  if (typeof combo !== 'string') return combo;
+  return combo.split(';').map((part) => Number(part.split(':')[1]));
 };
 
 /**
@@ -76,31 +87,74 @@ const OptionsEditor = ({
 
   const hasDiversity = options.length > 0 && options.every((o) => o.values.length > 0);
 
-  // Sparse combos (multi-option products with missing combos): a checkbox
-  // per cartesian row lets the admin leave only the sold combinations on.
-  // With explicit membership stamped in every row, disabled rows are simply
-  // dropped from the payload — sparse listings are safe server-side.
-  const sparseMode = options.length > 1;
+  // Variants may carry a pre-computed combo signature string
+  // 'optIdx:valIdx;optIdx:valIdx...' (snapshot from the DB row) — use it to
+  // place each saved variant on the right cartesian row, in any option
+  // order. Rows without a signature keep positional placement (create mode).
+  const rowBySignature = useMemo(() => {
+    const map = new Map<string, AdminVariant>();
+    for (const v of variants) {
+      if (!v.combo) continue;
+      const sig = Array.isArray(v.combo)
+        ? '' // fresh client-side combo (number[] — create flow)
+        : String(v.combo);
+      if (sig) map.set(sig, v);
+    }
+    return map;
+  }, [variants]);
+
+  const signatureFor = (combo: number[]) =>
+    combo.map((valIdx, optIdx) => `${optIdx}:${valIdx}`).join(';');
+
   const [enabledRows, setEnabledRows] = useState<boolean[]>([]);
+  const preloadedKeys = useMemo(
+    () =>
+      variants.length
+        ? new Set(
+            variants
+              .map((v) => (typeof v.combo === 'string' ? v.combo : ''))
+              .filter(Boolean)
+          )
+        : null,
+    [variants]
+  );
   if (enabledRows.length !== combos.length) {
-    // render-time resize (no effect): missing entries default to enabled
-    setEnabledRows(combos.map((_, i) => enabledRows[i] ?? true));
+    // render-time resize (no effect).
+    // First render with preloaded signature rows: enable only saved combos.
+    // Otherwise default every row on and keep any admin toggles made.
+    setEnabledRows(
+      combos.map((combo, i) =>
+        preloadedKeys && enabledRows.length === 0
+          ? preloadedKeys.has(signatureFor(combo))
+          : (enabledRows[i] ?? true)
+      )
+    );
   }
 
-  // Keep variants aligned with the combo count (positional mapping)
-  const alignedVariants: AdminVariant[] = useMemo(() => {
-    return combos.map(
-      (combo, i) => ({
-        ...(variants[i] ?? { key: '', price: '', compareAtPrice: '', stock: '0' }),
-        // Stamp explicit membership into every row — the server treats any
-        // combo-carrying row as a sparse listing and skips the cartesian map
-        combo,
-      })
-    );
-  }, [combos, variants]);
+  // Sparse combos (multi-option products): a checkbox per cartesian row lets
+  // the admin leave only the sold combinations on. Disabled rows are dropped
+  // from the payload — sparse listings are safe server-side.
+  const sparseMode = options.length > 1;
 
-  // Disabled rows are dropped from the submitted payload.
-  const activeVariants = alignedVariants.filter((_, i) => enabledRows[i] ?? true);
+  // Align variants against combos: preloaded rows are matched by signature,
+  // otherwise fall back to the old positional mapping.
+  const alignedVariants: AdminVariant[] = useMemo(() => {
+    return combos.map((combo, i) => {
+      const sig = signatureFor(combo);
+      const preloaded = rowBySignature.get(sig);
+      if (preloaded) return { ...preloaded, combo };
+      return {
+        ...(variants[i] ?? { key: '', price: '', compareAtPrice: '', stock: '0' }),
+        combo,
+      };
+    });
+  }, [combos, variants, rowBySignature]);
+
+  // Disabled rows are dropped from the submitted payload. Preloaded string
+  // signatures resolve back to number[] (server action only accepts indexes).
+  const activeVariants = alignedVariants
+    .map((v, i) => ({ ...v, combo: normalizeCombo(v.combo) }))
+    .filter((_, i) => enabledRows[i] ?? true);
 
   const setVariant = (idx: number, patch: Partial<AdminVariant>) =>
     setVariants((prev) => {

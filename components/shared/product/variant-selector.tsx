@@ -102,12 +102,15 @@ const VariantSelector = ({
                 {option.values.map((v) => {
                   const isSelected = selection[option.id] === v.id;
                   const available = valueAvailable(variants, selection, option.id, v.id);
+                  // Sparse products (e.g. 5 designs in brown, 1 in yellow):
+                  // hide values that can't combine with the rest of the
+                  // selection instead of graying them out.
+                  if (!available && !isSelected) return null;
                   return (
                     <button
                       key={v.id}
                       type='button'
                       onClick={() => available && choose(option.id, v.id)}
-                      disabled={!available}
                       aria-pressed={isSelected}
                       aria-label={v.valueFa}
                       title={v.valueFa}
@@ -115,9 +118,7 @@ const VariantSelector = ({
                         'rounded-full border transition-all',
                         isSelected
                           ? 'border-primary ring-2 ring-primary/30'
-                          : available
-                            ? 'border-border hover:border-primary/50'
-                            : 'border-border opacity-30'
+                          : 'border-border hover:border-primary/50'
                       )}
                     >
                       {isColor ? (

@@ -17,28 +17,53 @@ const UpdateProductPage = async (props: {
 
   if (!product) return notFound();
 
-  const options = (product.options ?? []).map((o: {
-    name: string;
-    nameFa: string;
-    values: { value: string; valueFa: string; hex: string | null }[];
-  }) => ({
+  // Each variant row carries its option-snapshot valueIds; convert them into
+  // a '<optIdx>:<valIdx>;...' signature so the editor can re-attach each row
+  // to the right cartesian grid cell regardless of row/value ordering.
+  type RawProduct = (typeof product) & {
+    options?: {
+      id: string;
+      name: string;
+      nameFa: string;
+      values: { id: string; value: string; valueFa: string; hex: string | null }[];
+    }[];
+    variants?: {
+      options: unknown;
+      price: string;
+      compareAtPrice: string | null;
+      stock: number;
+    }[];
+  };
+  const raw = product as RawProduct;
+  const options = (raw.options ?? []).map((o) => ({
+    id: o.id,
     name: o.name,
     nameFa: o.nameFa,
-    values: o.values.map((v) => ({
+    values: (o.values ?? []).map((v) => ({
+      id: v.id,
       value: v.value,
       valueFa: v.valueFa,
       hex: v.hex ?? '#888888',
     })),
   }));
-  const variants = (product.variants ?? []).map((v: {
-    price: string;
-    compareAtPrice: string | null;
-    stock: number;
-  }) => ({
+  const variants = (raw.variants ?? []).map((v) => ({
     key: '',
     price: v.price,
     compareAtPrice: v.compareAtPrice ?? '',
     stock: String(v.stock),
+    combo: ((Array.isArray(v.options) ? v.options : []) as { valueId: string }[])
+      .map((snap) => {
+        const optIdx = options.findIndex((o) =>
+          o.values.some((val) => val.id === snap.valueId)
+        );
+        const valIdx =
+          options[optIdx]?.values.findIndex(
+            (val) => val.id === snap.valueId
+          ) ?? -1;
+        return `${optIdx}:${valIdx}`;
+      })
+      .filter((sig: string) => sig !== '-1:-1')
+      .join(';'),
   }));
 
   return (

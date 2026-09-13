@@ -627,7 +627,9 @@ async function replaceProductDiversity(
   // (sparse combos — e.g. brown×5 designs + yellow×1 design), otherwise a
   // positional walk of the full cartesian product.
   const combos = cartesian(createdOptions.map((o) => o.values));
-  const explicitRows = diversity.variants.filter((v) => v.combo);
+  const explicitRows = diversity.variants.filter(
+    (v) => v.combo != null && typeof v.combo !== 'string'
+  );
   const useExplicit = explicitRows.length > 0;
   if (useExplicit && explicitRows.length !== diversity.variants.length) {
     throw new Error('Variant rows must all use explicit combos or none');
@@ -641,8 +643,14 @@ async function replaceProductDiversity(
   const seenKeys = new Set<string>();
   const variantRows: { price: string; compareAtPrice: string | null; stock: number }[] = [];
   for (const [comboIdx, input] of diversity.variants.entries()) {
-    const combo = useExplicit
-      ? input.combo!.map((valIdx, optIdx) => createdOptions[optIdx].values[valIdx])
+    const explicitIndexes = useExplicit
+      ? (input.combo as number[] | undefined)
+      : undefined;
+    if (useExplicit && !explicitIndexes) {
+      throw new Error('Variant rows must all use explicit combos or none');
+    }
+    const combo = explicitIndexes
+      ? explicitIndexes.map((valIdx, optIdx) => createdOptions[optIdx].values[valIdx])
       : combos[comboIdx];
     if (combo.some((v) => !v)) throw new Error('Invalid combo index in variant row');
 
