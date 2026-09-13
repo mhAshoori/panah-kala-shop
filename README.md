@@ -49,12 +49,9 @@ Open http://localhost:3000 (redirects to `/fa`).
 
 ### Seeded accounts
 
-| Role  | Email             | Mobile           | Password |
-| ----- | ----------------- | ---------------- | -------- |
-| Admin | admin@example.com | +989120000001    | 123456   |
-| User  | jane@example.com  | +989120000002    | 123456   |
+Credentials are **not** published here — ask the developer (or check the seed script locally at `db/seed.ts`, dev only). In production, create the admin account manually and delete the seeded ones.
 
-**SMS one-time-code sign-in (mock):** the phone tab on the sign-in page accepts the fixed mock code **`123456`** for any phone number that belongs to a seeded account. Codes are "sent" to the server console (`[SMS:mock]`) and are valid for 5 minutes. Wire a real provider (Kavenegar/Ghasedak) in `requestPhoneOtp` for production.
+**SMS one-time-code sign-in (mock):** the phone tab uses a fixed dev-only mock code (see the seed script / server console). Codes are "sent" to the server console (`[SMS:mock]`). Wire a real provider (Kavenegar/Ghasedak) in `requestPhoneOtp` for production.
 
 ## Scripts
 
