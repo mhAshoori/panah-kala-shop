@@ -67,6 +67,9 @@ export const variantInputSchema = z.object({
   // Combo signature — recomputed server-side from created value ids;
   // the client only sends combo order, so the key may be empty
   key: z.string(),
+  // Optional explicit membership: value index per option. Omitted on
+  // full-cartesian products (each row maps to combos[i] positionally).
+  combo: z.array(z.number().int().min(0)).nullish(),
   price: currency,
   compareAtPrice: z
     .union([currency, z.literal('')])

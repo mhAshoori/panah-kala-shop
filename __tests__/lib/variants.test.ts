@@ -5,6 +5,7 @@ import {
   variantSnapshot,
   cartesian,
   recomputeParent,
+  valueAvailable,
   type OptionLite,
   type VariantLite,
 } from '@/lib/variants';
@@ -160,5 +161,30 @@ describe('filterVisibleCategories (via product.actions)', () => {
     ];
     const out = filterVisibleCategories(cats);
     expect(out.map((c) => c.id).sort()).toEqual(['a', 'c', 'd']);
+  });
+});
+
+describe('valueAvailable', () => {
+  const snap = (valueId: string) => ({
+    optionId: valueId + '-opt', optionFa: 'x', valueId, valueFa: 'x', hex: null,
+  });
+  const variants: VariantLite[] = [
+    { id: 'v1', key: 'k1', price: '1', stock: 1, options: [snap('c-brown'), snap('d-1')] },
+    { id: 'v2', key: 'k2', price: '1', stock: 1, options: [snap('c-brown'), snap('d-2')] },
+    { id: 'v3', key: 'k3', price: '1', stock: 1, options: [snap('c-yellow'), snap('d-1')] },
+  ];
+
+  it('disables values with no compatible variant given the rest of the selection', () => {
+    // nothing picked: everything reachable
+    expect(valueAvailable(variants, {}, 'opt-color', 'c-yellow')).toBe(true);
+    expect(valueAvailable(variants, {}, 'opt-design', 'd-2')).toBe(true);
+    // yellow picked: design 2 unreachable
+    const afterYellow = { 'opt-color': 'c-yellow' };
+    expect(valueAvailable(variants, afterYellow, 'opt-design', 'd-1')).toBe(true);
+    expect(valueAvailable(variants, afterYellow, 'opt-design', 'd-2')).toBe(false);
+    // design 2 picked: yellow unreachable
+    const afterD2 = { 'opt-design': 'd-2' };
+    expect(valueAvailable(variants, afterD2, 'opt-color', 'c-brown')).toBe(true);
+    expect(valueAvailable(variants, afterD2, 'opt-color', 'c-yellow')).toBe(false);
   });
 });

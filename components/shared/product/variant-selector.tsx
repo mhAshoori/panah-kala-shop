@@ -11,7 +11,7 @@ import ProductPrice from '@/components/product/product-price';
 import { cn } from '@/lib/utils';
 import { LOW_STOCK_THRESHOLD } from '@/lib/constants';
 import { formatNumberLocale } from '@/lib/persian';
-import { resolveVariant } from '@/lib/variants';
+import { resolveVariant, valueAvailable } from '@/lib/variants';
 import type { OptionLite, VariantLite } from '@/lib/variants';
 import type { Cart } from '@/types';
 
@@ -101,18 +101,23 @@ const VariantSelector = ({
               <div className='flex flex-wrap gap-2'>
                 {option.values.map((v) => {
                   const isSelected = selection[option.id] === v.id;
+                  const available = valueAvailable(variants, selection, option.id, v.id);
                   return (
                     <button
                       key={v.id}
                       type='button'
-                      onClick={() => choose(option.id, v.id)}
+                      onClick={() => available && choose(option.id, v.id)}
+                      disabled={!available}
                       aria-pressed={isSelected}
                       aria-label={v.valueFa}
+                      title={v.valueFa}
                       className={cn(
                         'rounded-full border transition-all',
                         isSelected
                           ? 'border-primary ring-2 ring-primary/30'
-                          : 'border-border hover:border-primary/50'
+                          : available
+                            ? 'border-border hover:border-primary/50'
+                            : 'border-border opacity-30'
                       )}
                     >
                       {isColor ? (

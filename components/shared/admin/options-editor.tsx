@@ -18,6 +18,9 @@ export type AdminOption = {
 };
 export type AdminVariant = {
   key: string;
+  // Explicit combo membership (value index per option). Present when the
+  // admin excludes some cartesian rows (sparse combos); absent = full grid.
+  combo?: number[];
   price: string;
   compareAtPrice: string;
   stock: string;
@@ -71,13 +74,33 @@ const OptionsEditor = ({
     [options]
   );
 
+  const hasDiversity = options.length > 0 && options.every((o) => o.values.length > 0);
+
+  // Sparse combos (multi-option products with missing combos): a checkbox
+  // per cartesian row lets the admin leave only the sold combinations on.
+  // With explicit membership stamped in every row, disabled rows are simply
+  // dropped from the payload — sparse listings are safe server-side.
+  const sparseMode = options.length > 1;
+  const [enabledRows, setEnabledRows] = useState<boolean[]>([]);
+  if (enabledRows.length !== combos.length) {
+    // render-time resize (no effect): missing entries default to enabled
+    setEnabledRows(combos.map((_, i) => enabledRows[i] ?? true));
+  }
+
   // Keep variants aligned with the combo count (positional mapping)
   const alignedVariants: AdminVariant[] = useMemo(() => {
     return combos.map(
-      (_, i) =>
-        variants[i] ?? { key: '', price: '', compareAtPrice: '', stock: '0' }
+      (combo, i) => ({
+        ...(variants[i] ?? { key: '', price: '', compareAtPrice: '', stock: '0' }),
+        // Stamp explicit membership into every row — the server treats any
+        // combo-carrying row as a sparse listing and skips the cartesian map
+        combo,
+      })
     );
   }, [combos, variants]);
+
+  // Disabled rows are dropped from the submitted payload.
+  const activeVariants = alignedVariants.filter((_, i) => enabledRows[i] ?? true);
 
   const setVariant = (idx: number, patch: Partial<AdminVariant>) =>
     setVariants((prev) => {
@@ -85,8 +108,6 @@ const OptionsEditor = ({
       next[idx] = { ...(next[idx] ?? { key: '', price: '', compareAtPrice: '', stock: '0' }), ...patch };
       return next;
     });
-
-  const hasDiversity = options.length > 0 && options.every((o) => o.values.length > 0);
 
   return (
     <div className='space-y-4'>
@@ -98,7 +119,7 @@ const OptionsEditor = ({
       <input
         type='hidden'
         name='variantsJson'
-        value={JSON.stringify(hasDiversity ? alignedVariants : [])}
+        value={JSON.stringify(hasDiversity ? activeVariants : [])}
       />
 
       <div className='flex items-center justify-between'>
@@ -225,6 +246,11 @@ const OptionsEditor = ({
                 <thead>
                   <tr className='text-start text-muted-foreground'>
                     <th className='p-2 text-start'>{t('optionCombo')}</th>
+                    {sparseMode && (
+                      <th className='p-2 text-start w-10' title='فروش می‌شود / Sold'>
+                        ف
+                      </th>
+                    )}
                     <th className='p-2 text-start'>
                       {t('price')}
                     </th>
@@ -234,7 +260,14 @@ const OptionsEditor = ({
                 </thead>
                 <tbody>
                   {combos.map((combo, i) => (
-                    <tr key={i} className='border-t'>
+                    <tr
+                      key={i}
+                      className={
+                        sparseMode && !enabledRows[i]
+                          ? 'border-t opacity-40'
+                          : 'border-t'
+                      }
+                    >
                       <td className='p-2'>
                         <div className='flex items-center gap-1.5'>
                           {combo.map((valIdx, optIdx) => {
@@ -254,6 +287,24 @@ const OptionsEditor = ({
                           })}
                         </div>
                       </td>
+                      {sparseMode && (
+                        <td className='p-2'>
+                          <input
+                            type='checkbox'
+                            aria-label='این ترکیب فروخته می‌شود'
+                            title='این ترکیب فروخته می‌شود'
+                            checked={enabledRows[i] ?? true}
+                            onChange={(e) =>
+                              setEnabledRows((prev) => {
+                                const next = [...prev];
+                                while (next.length < combos.length) next.push(true);
+                                next[i] = e.target.checked;
+                                return next;
+                              })
+                            }
+                          />
+                        </td>
+                      )}
                       <td className='p-2'>
                         <Input
                           type='number'

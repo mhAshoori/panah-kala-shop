@@ -63,6 +63,16 @@ export type SampleOption = {
   variants: SampleVariant[]; // one row per value, same order
 };
 
+// Multi-option product: explicit combos instead of 1 variant per value.
+// options = [optionIdx, valueIdx] pairs in order. Missing combos ≠ sold.
+export type SampleCombo = {
+  options: number[]; // value index per option, same order as product.options
+  price: string;
+  compareAtPrice?: string;
+  stock: number;
+  image?: string;
+};
+
 export type SampleProduct = {
   name: string;
   nameFa: string;
@@ -84,6 +94,7 @@ export type SampleProduct = {
   heightCm: string;
   weightG: string;
   options: SampleOption[];
+  combos?: SampleCombo[]; // multi-option products: explicit variant combos
 };
 
 // Shared color swatches (fa name → hex)
@@ -543,8 +554,8 @@ const products: SampleProduct[] = [
     category: 'Bags',
     categoryFa: 'کیف',
     subCategory: 'Backpacks',
-    description: 'Fantasy-print backpack in four different patterns.',
-    descriptionFa: 'کوله پشتی با چاپ فانتزی در چهار طرح متفاوت؛ دوخت مقاوم و زیپ روان.',
+    description: 'Fantasy-print backpack in two colors: light brown with 5 designs, yellow with 1.',
+    descriptionFa: 'کوله پشتی با چاپ فانتزی در دو رنگ: قهوه‌ای (۵ طرح) و زرد (۱ طرح)؛ دوخت مقاوم و زیپ روان.',
     images: [
       asset('products/initial-products/imgs/kif-aroosak-dar-2-1.jpg'),
       asset('products/initial-products/imgs/kif-aroosak-dar-3-1.jpg'),
@@ -563,17 +574,35 @@ const products: SampleProduct[] = [
     heightCm: '38.00',
     weightG: '480.00',
     options: [
+      // رنگ: قهوه‌ای ۵ طرح، زرد طرح ۱ — explicit combos, not a full cartesian
+      {
+        name: 'color',
+        nameFa: 'رنگ',
+        values: [C.brown, C.yellow],
+        variants: [],
+      },
       {
         name: 'design',
         nameFa: 'طرح',
-        values: [design('Design 1', 'طرح ۱'), design('Design 2', 'طرح ۲'), design('Design 3', 'طرح ۳'), design('Design 4', 'طرح ۴')],
-        variants: [
-          { price: '2199000.00', stock: 1, image: asset('products/initial-products/imgs/kif-aroosak-dar-2-1.jpg') },
-          { price: '2199000.00', stock: 1, image: asset('products/initial-products/imgs/kif-aroosak-dar-3-1.jpg') },
-          { price: '2199000.00', stock: 1, image: asset('products/initial-products/imgs/kif-aroosak-dar-3-2.jpg') },
-          { price: '2199000.00', stock: 1, image: asset('products/initial-products/imgs/kif-aroosak-dar-3-3.jpg') },
+        values: [
+          design('Design 1', 'طرح ۱'),
+          design('Design 2', 'طرح ۲'),
+          design('Design 3', 'طرح ۳'),
+          design('Design 4', 'طرح ۴'),
+          design('Design 5', 'طرح ۵'),
         ],
+        variants: [],
       },
+    ],
+    combos: [
+      // قهوه‌ای — 5 designs
+      { options: [0, 0], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-1.jpg') },
+      { options: [0, 1], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-2-1.jpg') },
+      { options: [0, 2], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-3-1.jpg') },
+      { options: [0, 3], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-4-1.jpg') },
+      { options: [0, 4], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-5-1.jpg') },
+      // زرد — 1 design
+      { options: [1, 0], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-1.jpg') },
     ],
   },
 ];

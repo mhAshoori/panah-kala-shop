@@ -87,6 +87,27 @@ export function variantSnapshot(
   });
 }
 
+/**
+ * Is (optionId, valueId) still reachable given the rest of `selection`?
+ * True if some variant contains that valueId together with every already-
+ * picked value of OTHER options — powers progressive-disable in the selector.
+ */
+export function valueAvailable(
+  variants: VariantLite[],
+  selection: Record<string, string>,
+  optionId: string,
+  valueId: string
+): boolean {
+  return variants.some((v) => {
+    const ids = new Set(v.options.map((o) => o.valueId));
+    if (!ids.has(valueId)) return false;
+    for (const [oid, vid] of Object.entries(selection)) {
+      if (oid !== optionId && !ids.has(vid)) return false;
+    }
+    return true;
+  });
+}
+
 /** All combinations (cartesian product) — used by the admin combos table. */
 export function cartesian<T>(valuesByOption: T[][]): T[][] {
   return valuesByOption.reduce<T[][]>(

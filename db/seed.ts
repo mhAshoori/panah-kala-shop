@@ -163,7 +163,7 @@ async function main() {
     // created per product, then the parent price/stock are derived.
     for (const [index, p] of sampleData.products.entries()) {
       // subCategory is seed-only routing info, not a Product column
-      const { subCategory: _subCategory, ...productData } = p;
+      const { subCategory: _subCategory, combos: _combos, ...productData } = p;
       const product = await prisma.product.create({
         data: {
           ...productData,
@@ -181,7 +181,13 @@ async function main() {
       });
 
       const variantRows: { price: string; compareAtPrice: string | null; stock: number }[] = [];
-      for (const [optIdx, option] of (p.options ?? []).entries()) {
+      const optionData = p.options ?? [];
+      const comboMode = !!p.combos;
+      const createdOptions: {
+        id: string; nameFa: string;
+        values: { id: string; valueFa: string; hex: string | null }[];
+      }[] = [];
+      for (const [optIdx, option] of optionData.entries()) {
         const createdOption = await prisma.productOption.create({
           data: {
             productId: product.id,
@@ -203,16 +209,22 @@ async function main() {
           });
           createdValues.push({ id: createdValue.id, valueFa: v.valueFa, hex: v.hex ?? null });
         }
+        createdOptions.push({
+          id: createdOption.id,
+          nameFa: option.nameFa,
+          values: createdValues,
+        });
 
-        // One variant row per value (single-option products in this catalog)
-        const variantInputs = option.variants;
-        if (variantInputs.length !== createdValues.length) {
+        if (comboMode) continue; // variants come from p.combos below
+
+        // Single-option products: one variant row per value
+        if (option.variants.length !== createdValues.length) {
           throw new Error(
-            `Seed variant mismatch for ${p.slug}: ${variantInputs.length} inputs vs ${createdValues.length} values`
+            `Seed variant mismatch for ${p.slug}: ${option.variants.length} inputs vs ${createdValues.length} values`
           );
         }
         for (const [i, v] of createdValues.entries()) {
-          const input = variantInputs[i];
+          const input = option.variants[i];
           await prisma.productVariant.create({
             data: {
               productId: product.id,
@@ -238,6 +250,40 @@ async function main() {
             stock: input.stock,
           });
         }
+      }
+
+      // Multi-option products: one variant per explicit combo
+      for (const combo of p.combos ?? []) {
+        if (combo.options.length !== optionData.length) {
+          throw new Error(`Seed combo arity mismatch for ${p.slug}`);
+        }
+        const snapshot = combo.options.map((valIdx, optIdx) => {
+          const value = createdOptions[optIdx].values[valIdx];
+          if (!value) throw new Error(`Seed combo index out of range for ${p.slug}`);
+          return {
+            optionId: createdOptions[optIdx].id,
+            optionFa: createdOptions[optIdx].nameFa,
+            valueId: value.id,
+            valueFa: value.valueFa,
+            hex: value.hex,
+          };
+        });
+        await prisma.productVariant.create({
+          data: {
+            productId: product.id,
+            key: buildVariantKey(snapshot.map((s) => s.valueId)),
+            price: combo.price,
+            compareAtPrice: combo.compareAtPrice ?? null,
+            stock: combo.stock,
+            image: combo.image ?? null,
+            options: snapshot,
+          },
+        });
+        variantRows.push({
+          price: combo.price,
+          compareAtPrice: combo.compareAtPrice ?? null,
+          stock: combo.stock,
+        });
       }
 
       if (variantRows.length > 0) {

@@ -623,9 +623,16 @@ async function replaceProductDiversity(
     createdOptions.push({ optionId: createdOption.id, nameFa: option.nameFa, values: createdValues });
   }
 
-  // Recompute the combo keys from real value ids and build variant rows
+  // Resolve each variant row's combo: explicit membership indexes when sent
+  // (sparse combos — e.g. brown×5 designs + yellow×1 design), otherwise a
+  // positional walk of the full cartesian product.
   const combos = cartesian(createdOptions.map((o) => o.values));
-  if (diversity.variants.length !== combos.length) {
+  const explicitRows = diversity.variants.filter((v) => v.combo);
+  const useExplicit = explicitRows.length > 0;
+  if (useExplicit && explicitRows.length !== diversity.variants.length) {
+    throw new Error('Variant rows must all use explicit combos or none');
+  }
+  if (!useExplicit && diversity.variants.length !== combos.length) {
     throw new Error(
       `Expected ${combos.length} variant rows, received ${diversity.variants.length}`
     );
@@ -633,7 +640,12 @@ async function replaceProductDiversity(
 
   const seenKeys = new Set<string>();
   const variantRows: { price: string; compareAtPrice: string | null; stock: number }[] = [];
-  for (const [comboIdx, combo] of combos.entries()) {
+  for (const [comboIdx, input] of diversity.variants.entries()) {
+    const combo = useExplicit
+      ? input.combo!.map((valIdx, optIdx) => createdOptions[optIdx].values[valIdx])
+      : combos[comboIdx];
+    if (combo.some((v) => !v)) throw new Error('Invalid combo index in variant row');
+
     const key = buildVariantKey(combo.map((v) => v.id));
     if (seenKeys.has(key)) throw new Error('Duplicate variant combination');
     seenKeys.add(key);
@@ -646,7 +658,6 @@ async function replaceProductDiversity(
       hex: v.hex,
     }));
 
-    const input = diversity.variants[comboIdx];
     await tx.productVariant.create({
       data: {
         productId,
