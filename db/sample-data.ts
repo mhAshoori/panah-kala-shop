@@ -56,21 +56,22 @@ export type SampleVariant = {
   image?: string; // per-variant photo override (ArvanCloud bucket URL)
 };
 
-export type SampleOption = {
-  name: string; // 'color' | 'design'
-  nameFa: string; // 'رنگ' | 'طرح'
-  values: SampleOptionValue[];
-  variants: SampleVariant[]; // one row per value, same order
-};
-
-// Multi-option product: explicit combos instead of 1 variant per value.
-// options = [optionIdx, valueIdx] pairs in order. Missing combos ≠ sold.
+// Explicit variant combos for multi-option products instead of the full
+// cartesian product. options = value index per option, same order as
+// product.options. A missing combination simply isn't sold.
 export type SampleCombo = {
-  options: number[]; // value index per option, same order as product.options
+  options: number[];
   price: string;
   compareAtPrice?: string;
   stock: number;
   image?: string;
+};
+
+export type SampleOption = {
+  name: string; // 'color' | 'design'
+  nameFa: string; // 'رنگ' | 'طرح'
+  values: SampleOptionValue[];
+  variants: SampleVariant[]; // one row per value, same order (single-option use)
 };
 
 export type SampleProduct = {
@@ -101,18 +102,19 @@ export type SampleProduct = {
 const C = {
   blue: { value: 'Blue', valueFa: 'آبی', hex: '#2255A4' },
   red: { value: 'Red', valueFa: 'قرمز', hex: '#D32F2F' },
+  jigari: { value: 'jigari', valueFa: 'جیگری', hex: '#6a0f0f' },
   black: { value: 'Black', valueFa: 'مشکی', hex: '#000000' },
-  jade: { value: 'Jade Green', valueFa: 'سبز یشمی', hex: '#00A86B' },
+  jade: { value: 'Jade Green', valueFa: 'سبز یشمی', hex: '#07bb2b' },
   purple: { value: 'Purple', valueFa: 'بنفش', hex: '#7B1FA2' },
   orange: { value: 'Orange', valueFa: 'نارنجی', hex: '#EF6C00' },
   lightYellow: { value: 'Light Yellow', valueFa: 'زرد روشن', hex: '#FBC02D' },
   skyBlue: { value: 'Sky Blue', valueFa: 'آبی آسمانی', hex: '#87CEEB' },
-  green: { value: 'Green', valueFa: 'سبز', hex: '#2E7D32' },
-  pink: { value: 'Pink', valueFa: 'صورتی', hex: '#F06292' },
+  green: { value: 'Green', valueFa: 'سبز', hex: '#0a6135' },
+  pink: { value: 'Pink', valueFa: 'صورتی', hex: '#dc8ba6' },
   white: { value: 'White', valueFa: 'سفید', hex: '#FFFFFF' },
   gray: { value: 'Gray', valueFa: 'طوسی', hex: '#9E9E9E' },
   yellow: { value: 'Yellow', valueFa: 'زرد', hex: '#FDD835' },
-  brown: { value: 'Brown', valueFa: 'قهوه‌ای', hex: '#795548' },
+  lightBrown: { value: 'Light Brown', valueFa: 'قهوه‌ای', hex: '#8c7f7b' },
   cream: { value: 'Cream', valueFa: 'کرمی', hex: '#EFEBE0' },
 };
 
@@ -125,9 +127,9 @@ const design = (value: string, valueFa: string): SampleOptionValue => ({
 const products: SampleProduct[] = [
   // 1 — نوشت‌افزار > خودکار
   {
-    name: 'Good Test Pen G-2501',
+    name: 'Test Good Pen G-2501',
     nameFa: 'خودکار تست گود مدل G-2501',
-    slug: 'good-test-pen-g-2501',
+    slug: 'test-good-pen-g-2501',
     category: 'Stationery',
     categoryFa: 'نوشت‌افزار',
     subCategory: 'Pens',
@@ -139,7 +141,7 @@ const products: SampleProduct[] = [
       asset('products/initial-products/imgs/khodkar-testgood-1-1-meshki.webp'),
       asset('products/initial-products/imgs/khodkar-testgood-1-1-ghermez.webp'),
     ],
-    brand: 'Good Test',
+    brand: 'Test Good',
     rating: '0',
     numReviews: 0,
     isFeatured: false,
@@ -153,29 +155,32 @@ const products: SampleProduct[] = [
         nameFa: 'رنگ',
         values: [C.blue, C.red, C.black],
         variants: [
-          { price: '49000.00', stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-abi.webp') },
-          { price: '49000.00', stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-ghermez.webp') },
-          { price: '49000.00', stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-meshki.webp') },
+          { price: '59000.00', stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-abi.webp') },
+          { price: '59000.00', stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-ghermez.webp') },
+          { price: '59000.00', stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-meshki.webp') },
         ],
       },
     ],
   },
   // 2 — نوشت‌افزار > دفتر
   {
-    name: 'Golberg Notebook 80 Sheets',
+    name: 'Golbarg Notebook 80 Sheets',
     nameFa: 'دفتر ۸۰ برگ مدل گلبرگ',
-    slug: 'golberg-notebook-80',
+    slug: 'golbarg-notebook-80',
     category: 'Stationery',
     categoryFa: 'نوشت‌افزار',
     subCategory: 'Notebooks',
-    description: '80-sheet notebook with the Golberg cover design.',
+    description: '80-sheet notebook with the Golbarg cover design.',
     descriptionFa: 'دفتر ۸۰ برگ با طرح گلبرگ روی جلد؛ کاغذ باکیفیت و صحافی محکم.',
     images: [
-      asset('products/initial-products/imgs/daftar-fantesi-1.jpg'),
-      asset('products/initial-products/imgs/daftar-fantesi-2.jpg'),
-      asset('products/initial-products/imgs/daftar-fantesi-3.jpg'),
+      asset('products/initial-products/seed-datadaftar-golbarg-abi-nafti-1.jpg'),
+      asset('products/initial-products/seed-datadaftar-golbarg-yashmi-1.jpg'),
+      asset('products/initial-products/seed-datadaftar-golbarg-banafsh-1.jpg'),
+      asset('products/initial-products/seed-datadaftar-golbarg-narenji-1.jpg'),
+      asset('products/initial-products/seed-datadaftar-golbarg-abi-1.jpg'),
+      asset('products/initial-products/seed-datadaftar-golbarg-sabz-1.jpg'),
     ],
-    brand: 'Golberg',
+    brand: 'Golbarg',
     rating: '0',
     numReviews: 0,
     isFeatured: false,
@@ -187,8 +192,10 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.blue, C.jade, C.purple, C.orange],
+        values: [C.blue, C.jade, C.purple, C.orange,C.skyBlue,C.green],
         variants: [
+          { price: '199000.00', stock: 2 },
+          { price: '199000.00', stock: 2 },
           { price: '199000.00', stock: 2 },
           { price: '199000.00', stock: 2 },
           { price: '199000.00', stock: 2 },
@@ -208,6 +215,7 @@ const products: SampleProduct[] = [
     description: 'HB pencil with three different printed patterns.',
     descriptionFa: 'مداد HB با سه طرح متفاوت روی بدنه؛ مغز تراش‌خور استاندارد.',
     images: [
+      asset('products/initial-products/initial-products/seed-data/medad-hb-1.jpg'),
       asset('products/initial-products/imgs/medad-1-1-kaleh-ghermez.jpg'),
       asset('products/initial-products/imgs/medad-1-2-kaleh-ghermez.jpg'),
       asset('products/initial-products/imgs/medad-2-1-kaleh-siah.jpg'),
@@ -228,8 +236,9 @@ const products: SampleProduct[] = [
       {
         name: 'design',
         nameFa: 'طرح',
-        values: [design('Design 1', 'طرح ۱'), design('Design 2', 'طرح ۲'), design('Design 3', 'طرح ۳')],
+        values: [design('Design 1', 'طرح آدمک'), design('Design 2', 'طرح کودک'), design('Design 3', 'طرح گربه'), design('Design 4', 'طرح ایموجی')],
         variants: [
+          { price: '49000.00', stock: 10, image: asset('products/initial-products/seed-data/medad-hb-1.jpg') },
           { price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-1-1-kaleh-ghermez.jpg') },
           { price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-2-1-kaleh-siah.jpg') },
           { price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-2-3-kaleh-siah.jpg') },
@@ -276,7 +285,7 @@ const products: SampleProduct[] = [
   // 5 — نوشت‌افزار > مداد نوکی
   {
     name: 'Bare Naghala Mechanical Pencil 0.7',
-    nameFa: 'مداد نوکی بره ناقلا 0.7',
+    nameFa: 'مداد نوکی 0.7 بره ناقلا',
     slug: 'bare-naghala-pencil-07',
     category: 'Stationery',
     categoryFa: 'نوشت‌افزار',
@@ -296,7 +305,7 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.blue, C.pink, C.green, C.yellow],
+        values: [C.purple, C.skyBlue, C.pink, C.white],
         variants: [
           { price: '99000.00', stock: 10 },
           { price: '99000.00', stock: 10 },
@@ -329,7 +338,7 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.purple, C.skyBlue, C.pink, C.white],
+        values: [C.blue, C.pink, C.green, C.yellow],
         variants: [
           { price: '99000.00', stock: 5 },
           { price: '99000.00', stock: 5 },
@@ -350,6 +359,11 @@ const products: SampleProduct[] = [
     description: 'Fluffy bunny pencil case, three colors.',
     descriptionFa: 'جامدادی پشمالو با طرح خرگوش در سه رنگ؛ جادار و نرم.',
     images: [
+      asset('products/initial-products/seed-data/jamedadi-abi-1.jpg'),
+      asset('products/initial-products/seed-data/jamedadi-banafsh-1.jpg'),
+      asset('products/initial-products/seed-data/jamedadi-soorati-1.jpg'),
+      asset('products/initial-products/seed-data/jamedadi-posht1.jpg'),
+      
       asset('products/initial-products/imgs/jamedadi-all-1.jpg'),
       asset('products/initial-products/imgs/jamedadi-all-2.jpg'),
       asset('products/initial-products/imgs/jamedadi-all-3.jpg'),
@@ -368,11 +382,11 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.pink, C.skyBlue, C.gray],
+        values: [C.pink, C.skyBlue, C.purple],
         variants: [
-          { price: '699000.00', stock: 4, image: asset('products/initial-products/imgs/jamedadi-1-1.jpg') },
-          { price: '699000.00', stock: 4, image: asset('products/initial-products/imgs/jamedadi-2-1.jpg') },
-          { price: '699000.00', stock: 4, image: asset('products/initial-products/imgs/jamedadi-3-1.jpg') },
+          { price: '699000.00', stock: 4, image: asset('products/initial-products/seed-data/jamedadi-soorati-1.jpg') },
+          { price: '699000.00', stock: 4, image: asset('products/initial-products/seed-data/jamedadi-abi-1.jpg') },
+          { price: '699000.00', stock: 4, image: asset('products/initial-products/seed-data/jamedadi-banafsh1.jpg') },
         ],
       },
     ],
@@ -387,7 +401,10 @@ const products: SampleProduct[] = [
     subCategory: 'Sharpeners',
     description: 'Pastel-colored pencil sharpener, three colors.',
     descriptionFa: 'مداد تراش پاستیلی در سه رنگ؛ تیغه فولادی با ظرف جمع‌آوری تراشه.',
-    images: [asset('products/initial-products/imgs/medad-tarash-1.jpg')],
+    images: [
+      asset('products/initial-products/seed-data/medad-tarash-1.jpg'),
+      asset('products/initial-products/imgs/medad-tarash-1.jpg'),
+    ],
     brand: 'Panah Kala',
     rating: '0',
     numReviews: 0,
@@ -400,8 +417,10 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.pink, C.skyBlue, C.lightYellow],
+        values: [C.pink, C.skyBlue, C.lightYellow, C.purple, C.green],
         variants: [
+          { price: '39000.00', stock: 10 },
+          { price: '39000.00', stock: 10 },
           { price: '39000.00', stock: 10 },
           { price: '39000.00', stock: 10 },
           { price: '39000.00', stock: 10 },
@@ -420,6 +439,7 @@ const products: SampleProduct[] = [
     description: 'Multi-color fantasy sticky notes pad.',
     descriptionFa: 'پد استیکی نوت طرح فانتزی چند رنگ؛ چسب مناسب و جداشدن آسان از سطح.',
     images: [
+      asset('products/initial-products/seed-data/sticky-note-fantasy-1.jpg'),
       asset('products/initial-products/imgs/sticky-note-1-1.jpg'),
       asset('products/initial-products/imgs/sticky-note-1-2.jpg'),
       asset('products/initial-products/imgs/sticky-note-1-3.jpg'),
@@ -453,6 +473,7 @@ const products: SampleProduct[] = [
     description: '80-sheet notebook with elastic closure, fantasy design.',
     descriptionFa: 'دفتر ۸۰ برگ با بند کشی و طرح فانتزی؛ مناسب یادداشت‌ روزانه.',
     images: [
+      asset('products/initial-products/seed-data/daftar-fantasy-1.jpg'),
       asset('products/initial-products/imgs/daftar-fantesi-1.jpg'),
       asset('products/initial-products/imgs/daftar-fantesi-2.jpg'),
       asset('products/initial-products/imgs/daftar-fantesi-3.jpg'),
@@ -469,7 +490,7 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [design('Standard', 'استاندارد')],
+        values: [design('black with flowers', 'مشکی گل دار')],
         variants: [{ price: '299000.00', stock: 5 }],
       },
     ],
@@ -485,6 +506,14 @@ const products: SampleProduct[] = [
     description: 'Fluffy bunny backpack in light yellow and sky blue.',
     descriptionFa: 'کوله پشتی پشمالو با طرح خرگوش در دو رنگ زرد روشن و آبی آسمانی.',
     images: [
+      asset('products/initial-products/seed-data/kif-pashmaloo-keremi-1.jpg'),
+      asset('products/initial-products/seed-data/kif-pashmaloo-keremi-2.jpg'),
+      asset('products/initial-products/seed-data/kif-pashmaloo-keremi-3.jpg'),
+      
+      asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-1.jpg'),
+      asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-2.jpg'),
+      asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-3.jpg'),
+
       asset('products/initial-products/imgs/kif-khargooshi-1-1.jpg'),
       asset('products/initial-products/imgs/kif-khargooshi-1-2.jpg'),
     ],
@@ -502,8 +531,8 @@ const products: SampleProduct[] = [
         nameFa: 'رنگ',
         values: [C.lightYellow, C.skyBlue],
         variants: [
-          { price: '3299000.00', stock: 2, image: asset('products/initial-products/imgs/kif-khargooshi-1-1.jpg') },
-          { price: '3299000.00', stock: 2, image: asset('products/initial-products/imgs/kif-khargooshi-1-2.jpg') },
+          { price: '3299000.00', stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-keremi-1.jpg') },
+          { price: '3299000.00', stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-1.jpg') },
         ],
       },
     ],
@@ -519,6 +548,22 @@ const products: SampleProduct[] = [
     description: 'Teddy bear backpack in four colors.',
     descriptionFa: 'کوله پشتی طرح خرس در چهار رنگ؛ مناسب مدرسه و گردش.',
     images: [
+      asset('products/initial-products/seed-data/kif-khersi-keremi-1.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-keremi-2.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-keremi-3.jpg'),
+
+      asset('products/initial-products/seed-data/kif-khersi-soorati-1.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-soorati-2.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-soorati-3.jpg'),
+
+      asset('products/initial-products/seed-data/kif-khersi-jigari-1.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-jigari-2.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-jigari-3.jpg'),
+
+      asset('products/initial-products/seed-data/kif-khersi-meshki-1.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-meshki-2.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-meshki-3.jpg'),
+      
       asset('products/initial-products/imgs/kif-sadeh-1-1-ghermez.jpg'),
       asset('products/initial-products/imgs/kif-sadeh-2-1-keremi.jpg'),
       asset('products/initial-products/imgs/kif-sadeh-3-1-keremi.jpg'),
@@ -536,17 +581,19 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.red, C.cream, C.green, C.black],
+        values: [C.lightBrown, C.pink, C.jigari, C.black],
         variants: [
-          { price: '1999000.00', stock: 1, image: asset('products/initial-products/imgs/kif-sadeh-1-1-ghermez.jpg') },
-          { price: '1999000.00', stock: 1, image: asset('products/initial-products/imgs/kif-sadeh-2-1-keremi.jpg') },
-          { price: '1999000.00', stock: 1, image: asset('products/initial-products/imgs/kif-sadeh-3-1-keremi.jpg') },
-          { price: '1999000.00', stock: 1, image: asset('products/initial-products/imgs/kif-sadeh-4-1-meshki.jpg') },
+          { price: '1999000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-keremi-1.jpg') },
+          { price: '1999000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-soorati-1.jpg') },
+          { price: '1999000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-jigari-1.jpg') },
+          { price: '1999000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-meshki-1.jpg') },
         ],
       },
     ],
   },
   // 13 — کیف > کوله پشتی
+// this porduct has 2 colors: lightBrown and the yellow, the color lightBrown has 5 designs and the yellow has 1 design. so i want to show the user if he chooses the first color, he must see the related designs and if he chooses the yellow, he must see the other design related
+
   {
     name: 'Fantasy Backpack',
     nameFa: 'کیف کوله پشتی طرح فانتزی',
@@ -554,9 +601,34 @@ const products: SampleProduct[] = [
     category: 'Bags',
     categoryFa: 'کیف',
     subCategory: 'Backpacks',
-    description: 'Fantasy-print backpack in two colors: light brown with 5 designs, yellow with 1.',
-    descriptionFa: 'کوله پشتی با چاپ فانتزی در دو رنگ: قهوه‌ای (۵ طرح) و زرد (۱ طرح)؛ دوخت مقاوم و زیپ روان.',
+    description: 'Fantasy-print backpack in two colors: light brown (5 designs) and yellow (1 design).',
+    descriptionFa: 'کوله پشتی با چاپ فانتزی در دو رنگ: قهوه‌ای روشن (۵ طرح) و زرد (۱ طرح). دوخت مقاوم و زیپ روان.',
     images: [
+
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-1.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-2.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-3.jpg'),
+
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-2-1.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-2-2.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-2-3.jpg'),
+
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-3-1.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-3-2.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-3-3.jpg'),
+
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-4-1.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-4-2.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-4-3.jpg'),
+
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-5-1.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-5-2.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-5-3.jpg'),
+
+      asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-1.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-2.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-3.jpg'),
+      
       asset('products/initial-products/imgs/kif-aroosak-dar-2-1.jpg'),
       asset('products/initial-products/imgs/kif-aroosak-dar-3-1.jpg'),
       asset('products/initial-products/imgs/kif-aroosak-dar-3-2.jpg'),
@@ -574,34 +646,26 @@ const products: SampleProduct[] = [
     heightCm: '38.00',
     weightG: '480.00',
     options: [
-      // رنگ: قهوه‌ای ۵ طرح، زرد طرح ۱ — explicit combos, not a full cartesian
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.brown, C.yellow],
-        variants: [],
+        values: [C.lightBrown, C.yellow],
+        variants: [], // combos below carry the variants (multi-option sparse)
       },
       {
         name: 'design',
         nameFa: 'طرح',
-        values: [
-          design('Design 1', 'طرح ۱'),
-          design('Design 2', 'طرح ۲'),
-          design('Design 3', 'طرح ۳'),
-          design('Design 4', 'طرح ۴'),
-          design('Design 5', 'طرح ۵'),
-        ],
+        values: [design('Design 1', 'طرح ۱'), design('Design 2', 'طرح ۲'), design('Design 3', 'طرح ۳'), design('Design 4', 'طرح ۴'), design('Design 5', 'طرح ۵')],
         variants: [],
       },
     ],
+    // رنگ: قهوه‌ای ۵ طرح، زرد طرح ۱ — explicit combos, not full cartesian
     combos: [
-      // قهوه‌ای — 5 designs
       { options: [0, 0], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-1.jpg') },
       { options: [0, 1], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-2-1.jpg') },
       { options: [0, 2], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-3-1.jpg') },
       { options: [0, 3], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-4-1.jpg') },
       { options: [0, 4], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-5-1.jpg') },
-      // زرد — 1 design
       { options: [1, 0], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-1.jpg') },
     ],
   },
