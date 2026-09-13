@@ -123,10 +123,10 @@ const products: SampleProduct[] = [
     description: 'Smooth-writing ballpoint pen, model G-2501. Available in three colors.',
     descriptionFa: 'خودکار گازی با نوشتاری روان، مدل G-2501. مناسب استفاده روزمره در مدرسه و محل کار.',
     images: [
-      asset('products/initial-products/imgs/khodkar-testgood-1-1-meshki.webp'),
-      asset('products/initial-products/imgs/khodkar-testgood-1-1-ghermez.webp'),
       asset('products/initial-products/imgs/khodkar-testgood-1-2-abi.webp'),
       asset('products/initial-products/imgs/khodkar-testgood-2-2-abi.webp'),
+      asset('products/initial-products/imgs/khodkar-testgood-1-1-meshki.webp'),
+      asset('products/initial-products/imgs/khodkar-testgood-1-1-ghermez.webp'),
     ],
     brand: 'Good Test',
     rating: '0',

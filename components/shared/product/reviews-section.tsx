@@ -38,7 +38,7 @@ const ReviewsSection = async ({
     : null;
 
   return (
-    <section className='mt-10 space-y-4'>
+    <section className='space-y-4 lg:col-span-1'>
       <div className='flex flex-wrap items-center justify-between gap-3'>
         <h2 className='h3-bold'>{t('title')}</h2>
         {userId ? (

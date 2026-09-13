@@ -314,16 +314,16 @@ const ProductDetailsPage = async (props: {
         </div>
       </div>
 
-      {/* Reviews */}
-      <ReviewsSection
-        productId={product.id}
-        rating={Number(product.rating)}
-        numReviews={product.numReviews}
-        slug={product.slug}
-      />
-
-      {/* Product Q&A */}
-      <QaSectionServer productId={product.id} />
+      {/* Reviews (1/3) side-by-side with Q&A (2/3) on desktop */}
+      <div className='grid gap-6 lg:grid-cols-3 items-start mt-10'>
+        <ReviewsSection
+          productId={product.id}
+          rating={Number(product.rating)}
+          numReviews={product.numReviews}
+          slug={product.slug}
+        />
+        <QaSectionServer productId={product.id} />
+      </div>
 
       {/* Related products (same category) */}
       {relatedProducts.length > 0 && (
