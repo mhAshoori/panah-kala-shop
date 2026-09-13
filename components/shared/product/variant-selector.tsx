@@ -91,7 +91,7 @@ const VariantSelector = ({
   return (
     <Card className='w-auto max-w-full overflow-hidden lg:sticky lg:top-24'>
       <CardContent className='p-4 min-w-0 space-y-3'>
-        {options.map((option) => {
+        {options.map((option, optIdx) => {
           const isColor = option.values.some((v) => v.hex);
           return (
             <div key={option.id}>
@@ -101,7 +101,11 @@ const VariantSelector = ({
               <div className='flex flex-wrap gap-2'>
                 {option.values.map((v) => {
                   const isSelected = selection[option.id] === v.id;
-                  const available = valueAvailable(variants, selection, option.id, v.id);
+                  // First option (e.g. color) is always fully shown; deeper
+                  // options hide values that can't combine with the selection.
+                  const available =
+                    optIdx === 0 ||
+                    valueAvailable(variants, selection, option.id, v.id);
                   // Sparse products (e.g. 5 designs in brown, 1 in yellow):
                   // hide values that can't combine with the rest of the
                   // selection instead of graying them out.
