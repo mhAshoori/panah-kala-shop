@@ -3,13 +3,14 @@
 import { useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { Banknote, CheckCircle2, Loader2, Trash2, Truck } from 'lucide-react';
+import { Banknote, CheckCircle2, Eye, Loader2, Trash2, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import DeleteDialog from '@/components/shared/delete-dialog';
 import {
   deleteOrder,
+  markOrderSeen,
   updateOrderToDelivered,
   updateOrderToPaid,
   updateOrderToShipped,
@@ -21,11 +22,13 @@ const OrderActions = ({
   isPaid,
   isShipped,
   isDelivered,
+  adminSeenAt,
 }: {
   orderId: string;
   isPaid: boolean;
   isShipped: boolean;
   isDelivered: boolean;
+  adminSeenAt?: Date | string | null;
 }) => {
   const t = useTranslations('admin');
   const tCommon = useTranslations('common');
@@ -48,6 +51,21 @@ const OrderActions = ({
 
   return (
     <div className='flex items-center justify-end gap-1'>
+      {!adminSeenAt && (
+        <Button
+          size='sm'
+          variant='outline'
+          disabled={isPending}
+          onClick={() => run(() => markOrderSeen(orderId), t('orderSeen'))}
+        >
+          {isPending ? (
+            <Loader2 className='h-4 w-4 animate-spin' />
+          ) : (
+            <Eye className='h-4 w-4' />
+          )}
+          <span className='hidden xl:inline'>{t('markSeen')}</span>
+        </Button>
+      )}
       {!isPaid && (
         <Button
           size='sm'

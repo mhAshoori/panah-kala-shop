@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import {
+  Bell,
   ExternalLink,
   Home,
   LayoutDashboard,
@@ -24,20 +25,26 @@ export const ADMIN_MENU_ITEMS: {
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
+  badge?: 'orders' | 'notifications';
 }[] = [
   { href: '/admin', label: 'overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/homepage', label: 'homepage', icon: Home },
-  { href: '/admin/orders', label: 'orders', icon: ShoppingCart },
+  { href: '/admin/orders', label: 'orders', icon: ShoppingCart, badge: 'orders' },
   { href: '/admin/products', label: 'products', icon: Package },
   { href: '/admin/categories', label: 'categories', icon: Shapes },
   { href: '/admin/coupons', label: 'couponsTitle', icon: Ticket },
   { href: '/admin/reviews', label: 'reviews', icon: MessageSquare },
+  { href: '/admin/notifications', label: 'notifications', icon: Bell, badge: 'notifications' },
   { href: '/admin/users', label: 'users', icon: Users },
   { href: '/admin/marketing', label: 'marketing', icon: Mail },
   { href: '/admin/settings', label: 'settingsTitle', icon: Settings },
 ];
 
-const AdminSidebar = () => {
+const AdminSidebar = ({
+  badges,
+}: {
+  badges?: { orders?: number; notifications?: number };
+}) => {
   const t = useTranslations('admin');
   const tHeader = useTranslations('header');
   const pathname = usePathname();
@@ -54,8 +61,9 @@ const AdminSidebar = () => {
         <span className='whitespace-nowrap'>{t('viewStore')}</span>
       </Link>
 
-      {ADMIN_MENU_ITEMS.map(({ href, label, icon: Icon, exact }) => {
+      {ADMIN_MENU_ITEMS.map(({ href, label, icon: Icon, exact, badge }) => {
         const isActive = exact ? pathname === href : pathname.startsWith(href);
+        const count = badge ? (badges?.[badge] ?? 0) : 0;
         return (
           <Link
             key={href}
@@ -69,6 +77,11 @@ const AdminSidebar = () => {
           >
             <Icon className='h-4 w-4 rtl:-scale-x-100' aria-hidden='true' />
             <span className='whitespace-nowrap'>{t(label)}</span>
+            {count > 0 && (
+              <span className='ms-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-bold text-white'>
+                {count}
+              </span>
+            )}
           </Link>
         );
       })}

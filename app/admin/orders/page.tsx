@@ -1,5 +1,7 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 
+import { cn } from '@/lib/utils';
+
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -15,6 +17,7 @@ import OrderActions from '@/components/shared/admin/order-actions';
 import Pagination from '@/components/shared/pagination';
 import PageSizeSelector from '@/components/shared/page-size-selector';
 import { parsePageSize } from '@/lib/constants';
+import { getStorePageSize } from '@/lib/store-config';
 import { Link } from '@/i18n/navigation';
 import { getAllOrders } from '@/lib/actions/admin.actions';
 import { formatDateTime, formatId } from '@/lib/utils';
@@ -25,6 +28,7 @@ const AdminOrdersPage = async (props: {
 }) => {
   const locale = await getLocale();
   const { page, q, size } = await props.searchParams;
+  const pageSize = await getStorePageSize();
 
   const t = await getTranslations('admin');
   const tOrder = await getTranslations('order');
@@ -33,7 +37,7 @@ const AdminOrdersPage = async (props: {
   const orders = await getAllOrders({
     page: Number(page) || 1,
     query: q,
-    limit: parsePageSize(size),
+    limit: parsePageSize(size, pageSize),
   });
 
   return (
@@ -47,7 +51,7 @@ const AdminOrdersPage = async (props: {
               {t('exportCsv')}
             </a>
           </Button>
-          <PageSizeSelector current={parsePageSize(size)} />
+          <PageSizeSelector current={parsePageSize(size, pageSize)} base={pageSize} />
         </div>
       </div>
 
@@ -73,14 +77,21 @@ const AdminOrdersPage = async (props: {
               </TableRow>
             ) : (
               orders.data.map((order) => (
-                <TableRow key={order.id}>
+                <TableRow key={order.id} className={cn(!order.adminSeenAt && 'bg-primary/5 font-semibold')}>
                   <TableCell>
-                    <Link
-                      href={`/admin/orders/${order.id}`}
-                      className='font-mono text-xs link text-primary'
-                    >
-                      {formatId(order.id)}
-                    </Link>
+                    <div className='flex items-center gap-1.5'>
+                      {!order.adminSeenAt && (
+                        <Badge className='bg-primary text-primary-foreground'>
+                          {t('new')}
+                        </Badge>
+                      )}
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className='font-mono text-xs link text-primary'
+                      >
+                        {formatId(order.id)}
+                      </Link>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className='flex flex-col'>
@@ -112,6 +123,7 @@ const AdminOrdersPage = async (props: {
                       isPaid={order.isPaid}
                       isShipped={!!order.shippedAt}
                       isDelivered={order.isDelivered}
+                      adminSeenAt={order.adminSeenAt}
                     />
                   </TableCell>
                 </TableRow>

@@ -11,6 +11,7 @@ import { PAGE_SIZE } from '../constants';
 import { prisma } from '@/db/prisma';
 import { CartItem, Order } from '@/types';
 import { sendOrderReceipt } from '../email/order-receipt';
+import { notifyAdminNewOrder } from '../notifications';
 import { getValidUserId } from '../auth-helpers';
 import { canPayCashOnDelivery } from './product.actions';
 import { withActionMessage } from '../action-messages';
@@ -261,6 +262,9 @@ export async function createOrder() {
     });
     if (insertedOrder) {
       await sendOrderReceipt(
+        JSON.parse(JSON.stringify(insertedOrder)) as Order
+      );
+      await notifyAdminNewOrder(
         JSON.parse(JSON.stringify(insertedOrder)) as Order
       );
     }

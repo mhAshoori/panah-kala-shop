@@ -1,0 +1,2 @@
+ALTER TABLE "Order" ADD COLUMN "adminSeenAt" TIMESTAMP(6);
+ALTER TABLE "Order" ADD COLUMN "adminComment" TEXT;

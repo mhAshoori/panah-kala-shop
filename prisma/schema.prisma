@@ -182,6 +182,9 @@ model Order {
   paidAt           DateTime?   @db.Timestamp(6)
   shippedAt        DateTime?   @db.Timestamp(6)
   trackCode        String?
+  // Orders inbox: first time an admin opens/touches the order. NULL = unread.
+  adminSeenAt      DateTime?   @db.Timestamp(6)
+  adminComment     String?
   isDelivered      Boolean     @default(false)
   deliveredAt      DateTime?   @db.Timestamp(6)
   createdAt        DateTime    @default(now()) @db.Timestamp(6)
@@ -297,6 +300,19 @@ model Setting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+// In-admin notification center entries (currently: new orders)
+model Notification {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type      String // 'order' | …
+  title     String
+  body      String
+  data      Json? // { orderId, total, itemCount }
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([isRead, createdAt])
 }
 
 // Newsletter opt-in list (footer subscribe form; unsubscribe from profile)

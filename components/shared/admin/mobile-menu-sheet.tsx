@@ -32,9 +32,11 @@ import { cn } from '@/lib/utils';
 const AdminMobileMenuSheet = ({
   currentFont,
   currentTheme,
+  badges,
 }: {
   currentFont: string;
   currentTheme: string;
+  badges?: { orders?: number; notifications?: number };
 }) => {
   const t = useTranslations('admin');
   const tHeader = useTranslations('header');
@@ -90,8 +92,9 @@ const AdminMobileMenuSheet = ({
 
         {/* Menu items */}
         <nav className='flex flex-col gap-1' aria-label={t('dashboard')}>
-          {ADMIN_MENU_ITEMS.map(({ href, label, icon: Icon, exact }) => {
+          {ADMIN_MENU_ITEMS.map(({ href, label, icon: Icon, exact, badge }) => {
             const isActive = exact ? pathname === href : pathname.startsWith(href);
+            const count = badge ? (badges?.[badge] ?? 0) : 0;
             return (
               <Link
                 key={href}
@@ -106,6 +109,11 @@ const AdminMobileMenuSheet = ({
               >
                 <Icon className='h-4 w-4 rtl:-scale-x-100' aria-hidden='true' />
                 {t(label)}
+                {count > 0 && (
+                  <span className='ms-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-bold text-white'>
+                    {count}
+                  </span>
+                )}
               </Link>
             );
           })}

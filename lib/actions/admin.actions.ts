@@ -70,6 +70,45 @@ export async function getOrderSummary() {
   };
 }
 
+// Unread orders in the admin inbox (badge count)
+export async function getUnseenOrdersCount() {
+  return prisma.order.count({ where: { adminSeenAt: null } });
+}
+
+// Mark an order as seen (admin "read" it) — inbox badge stays in sync
+export async function markOrderSeen(orderId: string) {
+  await requireAdmin();
+
+  await prisma.order.updateMany({
+    where: { id: orderId, adminSeenAt: null },
+    data: { adminSeenAt: new Date() },
+  });
+  revalidatePath('/admin/orders');
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath('/admin');
+}
+
+// Set/update the admin comment shown to the buyer on their order page
+export async function setOrderComment(orderId: string, comment: string) {
+  await requireAdmin();
+
+  const text = comment.trim();
+  if (text.length > 2000) {
+    throw new Error(await withActionMessage('orderCommentTooLong'));
+  }
+
+  const order = await prisma.order.findFirst({ where: { id: orderId } });
+  if (!order) throw new Error(await withActionMessage('orderNotFound'));
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { adminComment: text || null },
+  });
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath(`/order/${orderId}`);
+  return { success: true as const };
+}
+
 // Get all orders for the admin table, optionally filtered by user name/email, with pagination
 export async function getAllOrders({
   limit = PAGE_SIZE,

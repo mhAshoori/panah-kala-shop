@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
 import { getOrderById } from '@/lib/actions/order.actions';
+import { markOrderSeen } from '@/lib/actions/admin.actions';
+import AdminOrderCommentForm from './admin-order-comment-form';
 import OrderDetailsTable from '@/app/(root)/order/[id]/order-details-table';
 import TrackCodeForm from '@/components/shared/admin/track-code-form';
 import type { ShippingAddress } from '@/types';
@@ -22,6 +24,9 @@ const AdminOrderDetailsPage = async (props: {
   const order = await getOrderById(id);
   if (!order) notFound();
 
+  // Opening the order in the admin panel counts as reading it
+  if (!order.adminSeenAt) await markOrderSeen(id);
+
   const t = await getTranslations('admin');
 
   return (
@@ -30,6 +35,7 @@ const AdminOrderDetailsPage = async (props: {
         {t('orderDetails')} — {order.id.slice(-6)}
       </h1>
       <TrackCodeForm orderId={order.id} trackCode={order.trackCode} />
+      <AdminOrderCommentForm orderId={order.id} initialComment={order.adminComment ?? null} />
       <OrderDetailsTable
         order={{
           ...order,

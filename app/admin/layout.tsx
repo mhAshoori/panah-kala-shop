@@ -10,6 +10,8 @@ import SiteFontToggle from '@/components/shared/admin/site-font-toggle';
 import SiteThemeToggle from '@/components/shared/admin/site-theme-toggle';
 import { auth } from '@/auth';
 import { getSiteFont, getSiteTheme } from '@/lib/site-settings';
+import { getUnseenOrdersCount } from '@/lib/actions/admin.actions';
+import { getUnreadNotificationsCount } from '@/lib/notifications';
 import { APP_NAME } from '@/lib/constants';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -24,17 +26,23 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
   if (session.user?.role !== 'admin') redirect('/user/orders');
 
   const t = await getTranslations('admin');
-  const [font, theme] = await Promise.all([getSiteFont(), getSiteTheme()]);
+  const [font, theme, badges] = await Promise.all([
+    getSiteFont(),
+    getSiteTheme(),
+    Promise.all([getUnseenOrdersCount(), getUnreadNotificationsCount()]).then(
+      ([orders, notifications]) => ({ orders, notifications })
+    ),
+  ]);
 
   return (
     <div className='flex min-h-screen flex-col md:flex-row'>
       {/* Mobile top bar + menu sheet; the floating AI assistant works on all sizes */}
-      <AdminMobileMenuSheet currentFont={font} currentTheme={theme} />
+      <AdminMobileMenuSheet currentFont={font} currentTheme={theme} badges={badges} />
 
       {/* Desktop sidebar: menu + appearance toggles (mobile sheet has its own copies) */}
       <aside className='hidden border-e bg-card p-4 md:sticky md:top-0 md:block md:h-screen md:w-64 md:shrink-0 md:overflow-y-auto'>
         <p className='mb-4 px-3 text-sm font-bold'>{t('dashboard')}</p>
-        <AdminSidebar />
+        <AdminSidebar badges={badges} />
         <div className='mt-4 space-y-2 border-t pt-4'>
           <SiteLanguageToggle />
           <SiteFontToggle current={font} />
