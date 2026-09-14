@@ -76,7 +76,7 @@ const useSuggestions = (q: string, locale: string) => {
 
 /**
  * Header search. Client-side submit (SPA navigation → progress bar works),
- * dir="auto" so mixed Persian/Latin queries render correctly on Android.
+ * dir="rtl" so the Persian placeholder is right-aligned.
  *
  * - Desktop: a unified bordered row [category select | input | button]
  * - Compact (mobile sheet): right-aligned input + button (categories live in
@@ -173,7 +173,7 @@ const SearchBar = ({
           <Input
             name='q'
             type='search'
-            dir='auto'
+            dir='rtl'
             enterKeyHint='search'
             autoComplete='off'
             value={q}
@@ -222,14 +222,14 @@ const SearchBar = ({
         <Input
           name='q'
           type='search'
-          dir='auto'
+          dir='rtl'
           enterKeyHint='search'
           autoComplete='off'
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           placeholder={t('searchPlaceholder')}
-          className='min-w-0 flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 dark:bg-transparent'
+          className='min-w-0 flex-1 rounded-none border-0 shadow-none text-right focus-visible:ring-0 dark:bg-transparent'
         />
         <Button
           type='submit'

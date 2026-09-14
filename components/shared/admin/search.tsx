@@ -44,7 +44,7 @@ const AdminSearch = () => {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={t('searchPlaceholder')}
-        className='ps-9'
+        className='ps-9 text-right'
         aria-label={t('search')}
       />
     </div>
