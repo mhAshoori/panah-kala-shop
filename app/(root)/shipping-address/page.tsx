@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
+import CheckoutSteps from '@/components/shared/checkout-steps';
 import { getMyCart } from '@/lib/actions/cart.actions';
 import { getValidUserId } from '@/lib/auth-helpers';
 import { prisma } from '@/db/prisma';
@@ -43,6 +44,7 @@ const ShippingAddressPage = async () => {
 
   return (
     <div className='mx-auto max-w-2xl'>
+      <CheckoutSteps current={1} />
       <h1 className='h2-bold py-4'>{t('shippingAddress')}</h1>
       <ShippingAddressManager addresses={saved} />
     </div>

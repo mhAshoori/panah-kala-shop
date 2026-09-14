@@ -129,7 +129,14 @@ const PlaceOrderPage = async () => {
                             height={50}
                             className='rounded'
                           />
-                          <span className='px-2'>{item.name}</span>
+                          <span className='px-2'>
+                            {item.name}
+                            {item.variantLabel && (
+                              <span className='block text-xs text-muted-foreground'>
+                                {item.variantLabel}
+                              </span>
+                            )}
+                          </span>
                         </a>
                       </TableCell>
                       <TableCell>

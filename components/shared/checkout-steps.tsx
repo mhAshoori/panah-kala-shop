@@ -1,11 +1,14 @@
 import { useTranslations } from 'next-intl';
 import { Check } from 'lucide-react';
+import Link from 'next/link';
 
 import { cn } from '@/lib/utils';
 
 // Checkout progress steps using the order-timeline visual language:
 // full-width flex columns, filled circle for done, pulsing border for
 // current, muted outline for future.
+const STEP_ROUTES = ['/sign-in', '/shipping-address', '/payment-method', '/place-order'];
+
 const CheckoutSteps = ({ current = 0 }: { current: number }) => {
   const t = useTranslations();
 
@@ -24,21 +27,29 @@ const CheckoutSteps = ({ current = 0 }: { current: number }) => {
         const isFuture = index > current;
         return (
           <li key={step} className='flex-1 px-1'>
-            <span
-              aria-current={isCurrent ? 'step' : undefined}
-              className={cn(
-                'mx-auto flex h-8 w-8 items-center justify-center rounded-full border-2',
-                isDone && 'border-primary bg-primary text-primary-foreground',
-                isCurrent && 'border-primary text-primary animate-pulse',
-                isFuture && 'border-muted text-muted-foreground'
-              )}
-            >
-              {isDone ? (
+            {isDone && STEP_ROUTES[index] ? (
+              <Link
+                href={STEP_ROUTES[index]}
+                title={t('common.previous')}
+                className={cn(
+                  'mx-auto flex h-8 w-8 items-center justify-center rounded-full border-2',
+                  'border-primary bg-primary text-primary-foreground hover:opacity-80'
+                )}
+              >
                 <Check className='h-4 w-4' />
-              ) : (
+              </Link>
+            ) : (
+              <span
+                aria-current={isCurrent ? 'step' : undefined}
+                className={cn(
+                  'mx-auto flex h-8 w-8 items-center justify-center rounded-full border-2',
+                  isCurrent && 'border-primary text-primary animate-pulse',
+                  isFuture && 'border-muted text-muted-foreground'
+                )}
+              >
                 <span className='text-xs'>{index + 1}</span>
-              )}
-            </span>
+              </span>
+            )}
             <p
               className={cn(
                 'mt-1 text-xs font-medium whitespace-nowrap',

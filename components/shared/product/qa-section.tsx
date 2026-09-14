@@ -32,7 +32,7 @@ export const AskQuestionForm = ({
   signedIn: boolean;
 }) => {
   const t = useTranslations('qa');
-  const tCommon = useTranslations('common');
+  const tAuth = useTranslations('auth');
   const [state, formAction] = useActionState(askQuestion, {
     success: false,
     message: '',
@@ -49,7 +49,7 @@ export const AskQuestionForm = ({
     return (
       <div className='flex items-center gap-2 text-sm text-muted-foreground'>
         <Link href='/sign-in' className='link text-primary'>
-          {tCommon('signIn')}
+          {tAuth('signIn')}
         </Link>
         <span>{t('signInToAsk')}</span>
       </div>
@@ -82,7 +82,7 @@ export const AnswerQuestionForm = ({
   signedIn: boolean;
 }) => {
   const t = useTranslations('qa');
-  const tCommon = useTranslations('common');
+  const tAuth = useTranslations('auth');
   const [state, formAction] = useActionState(answerQuestion, {
     success: false,
     message: '',
@@ -99,7 +99,7 @@ export const AnswerQuestionForm = ({
     return (
       <p className='text-xs text-muted-foreground'>
         <Link href='/sign-in' className='link text-primary'>
-          {tCommon('signIn')}
+          {tAuth('signIn')}
         </Link>{' '}
         {t('signInToAnswer')}
       </p>
