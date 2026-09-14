@@ -21,6 +21,7 @@ import {
 import {
   FREE_SHIPPING_THRESHOLD_KEY,
   SHIPPING_FEE_KEY,
+  STORE_PAGE_SIZE_KEY,
   TAX_RATE_KEY,
 } from '../store-config';
 
@@ -28,7 +29,8 @@ import {
 export async function updateStorePricing(
   shippingFee: number,
   freeShippingThreshold: number,
-  taxRate: number
+  taxRate: number,
+  storePageSize: number
 ) {
   try {
     await requireAdmin();
@@ -36,6 +38,7 @@ export async function updateStorePricing(
     const fee = Math.round(shippingFee);
     const threshold = Math.round(freeShippingThreshold);
     const rate = taxRate;
+    const pageSize = Math.round(storePageSize);
 
     if (!Number.isFinite(fee) || fee < 0 || fee > 100_000_000) {
       throw new Error(await withActionMessage('invalidValue'));
@@ -44,6 +47,9 @@ export async function updateStorePricing(
       throw new Error(await withActionMessage('invalidValue'));
     }
     if (!Number.isFinite(rate) || rate < 0 || rate > 1) {
+      throw new Error(await withActionMessage('invalidValue'));
+    }
+    if (!Number.isInteger(pageSize) || pageSize < 2 || pageSize > 48) {
       throw new Error(await withActionMessage('invalidValue'));
     }
 
@@ -62,6 +68,11 @@ export async function updateStorePricing(
         where: { key: TAX_RATE_KEY },
         create: { key: TAX_RATE_KEY, value: String(rate) },
         update: { value: String(rate) },
+      }),
+      prisma.setting.upsert({
+        where: { key: STORE_PAGE_SIZE_KEY },
+        create: { key: STORE_PAGE_SIZE_KEY, value: String(pageSize) },
+        update: { value: String(pageSize) },
       }),
     ]);
 

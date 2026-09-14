@@ -12,6 +12,7 @@ import {
 import Pagination from '@/components/shared/pagination';
 import PageSizeSelector from '@/components/shared/page-size-selector';
 import { parsePageSize } from '@/lib/constants';
+import { getStorePageSize } from '@/lib/store-config';
 import AdminSearch from '@/components/shared/admin/search';
 import DeleteDialog from '@/components/shared/delete-dialog';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ const AdminUsersPage = async (props: {
   searchParams: Promise<{ page: string; q?: string; size?: string }>;
 }) => {
   const { page, q, size } = await props.searchParams;
+  const pageSize = await getStorePageSize();
 
   const t = await getTranslations('admin');
   const tCommon = await getTranslations('common');
@@ -31,7 +33,7 @@ const AdminUsersPage = async (props: {
   const users = await getAllUsers({
     page: Number(page) || 1,
     query: q,
-    limit: parsePageSize(size),
+    limit: parsePageSize(size, pageSize),
   });
 
   return (
@@ -39,7 +41,7 @@ const AdminUsersPage = async (props: {
       <h1 className='h2-bold'>{t('users')}</h1>
       <div className='flex flex-wrap items-center justify-between gap-2'>
         <AdminSearch />
-        <PageSizeSelector current={parsePageSize(size)} />
+        <PageSizeSelector current={parsePageSize(size, pageSize)} base={pageSize} />
       </div>
 
       <div className='overflow-x-auto rounded-lg border'>

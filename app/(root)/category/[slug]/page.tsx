@@ -7,6 +7,7 @@ import SortDropdown from '@/components/shared/product/sort-dropdown';
 import Pagination from '@/components/shared/pagination';
 import PageSizeSelector from '@/components/shared/page-size-selector';
 import { parsePageSize } from '@/lib/constants';
+import { getStorePageSize } from '@/lib/store-config';
 import {
   getCategoryBySlug,
   getCategoryTree,
@@ -49,6 +50,7 @@ const CategoryPage = async (props: {
 }) => {
   const { slug } = await props.params;
   const { page, sort, size } = await props.searchParams;
+  const pageSize = await getStorePageSize();
   const locale = await getLocale();
   const isFa = locale === 'fa';
 
@@ -56,7 +58,7 @@ const CategoryPage = async (props: {
     slug,
     sort,
     page: Number(page) || 1,
-    limit: parsePageSize(size),
+    limit: parsePageSize(size, pageSize),
   });
 
   if (!result) notFound();
@@ -99,7 +101,7 @@ const CategoryPage = async (props: {
         </h1>
         <div className='flex items-center gap-2'>
           <SortDropdown />
-          <PageSizeSelector current={parsePageSize(size)} />
+          <PageSizeSelector current={parsePageSize(size, pageSize)} base={pageSize} />
         </div>
       </div>
 

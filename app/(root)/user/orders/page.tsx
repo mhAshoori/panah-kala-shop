@@ -16,6 +16,7 @@ import { auth } from '@/auth';
 import PageSizeSelector from '@/components/shared/page-size-selector';
 import ReorderButton from '@/components/shared/user/reorder-button';
 import { parsePageSize } from '@/lib/constants';
+import { getStorePageSize } from '@/lib/store-config';
 import Pagination from '@/components/shared/pagination';
 import { Link } from '@/i18n/navigation';
 
@@ -28,6 +29,7 @@ const OrdersPage = async (props: {
   searchParams: Promise<{ page: string; size?: string }>;
 }) => {
   const { page, size } = await props.searchParams;
+  const pageSize = await getStorePageSize();
 
   const session = await auth();
   if (!session) redirect('/sign-in');
@@ -37,14 +39,14 @@ const OrdersPage = async (props: {
 
   const orders = await getMyOrders({
     page: Number(page) || 1,
-    limit: parsePageSize(size),
+    limit: parsePageSize(size, pageSize),
   });
 
   return (
     <div className='space-y-4'>
       <div className='flex items-center justify-between gap-2'>
         <h2 className='h2-bold'>{t('myOrders')}</h2>
-        <PageSizeSelector current={parsePageSize(size)} />
+        <PageSizeSelector current={parsePageSize(size, pageSize)} base={pageSize} />
       </div>
       {orders.data.length === 0 ? (
         <p className='py-10 text-center text-sm text-muted-foreground'>

@@ -6,6 +6,7 @@ import { cache } from 'react';
 import { prisma } from '@/db/prisma';
 import {
   FREE_SHIPPING_THRESHOLD,
+  PAGE_SIZE,
   SHIPPING_FLAT_RATE,
   TAX_RATE,
 } from './constants';
@@ -13,6 +14,7 @@ import {
 export const SHIPPING_FEE_KEY = 'shippingFee';
 export const FREE_SHIPPING_THRESHOLD_KEY = 'freeShippingThreshold';
 export const TAX_RATE_KEY = 'taxRate';
+export const STORE_PAGE_SIZE_KEY = 'storePageSize';
 
 async function readNumber(key: string, fallback: number): Promise<number> {
   try {
@@ -33,6 +35,11 @@ export const getShippingFee = cache(async () =>
 /** Cart subtotal at or above which shipping is free (Toman). */
 export const getFreeShippingThreshold = cache(async () =>
   readNumber(FREE_SHIPPING_THRESHOLD_KEY, FREE_SHIPPING_THRESHOLD)
+);
+
+/** Admin-set base page size; selector offers multiples ×2 ×4 ×8 capped at 48. */
+export const getStorePageSize = cache(async () =>
+  Math.min(Math.max(Math.trunc(await readNumber(STORE_PAGE_SIZE_KEY, PAGE_SIZE)), 2), 48)
 );
 
 /** VAT rate applied to the items subtotal (0..1). */

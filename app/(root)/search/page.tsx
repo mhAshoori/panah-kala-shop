@@ -8,6 +8,7 @@ import Pagination from '@/components/shared/pagination';
 import PageSizeSelector from '@/components/shared/page-size-selector';
 import SearchBar from '@/components/shared/header/search';
 import { parsePageSize } from '@/lib/constants';
+import { getStorePageSize } from '@/lib/store-config';
 import { getFilteredProducts, getCategoriesWithCount, getBrandOptions } from '@/lib/actions/product.actions';
 import { filterVisibleCategories } from '@/lib/category-visibility';
 import { formatNumberLocale } from '@/lib/persian';
@@ -41,6 +42,7 @@ const SearchPage = async (props: {
   const locale = await getLocale();
   const isFa = locale === 'fa';
   const sp = await props.searchParams;
+  const pageSize = await getStorePageSize();
 
   const q = sp.q ?? '';
   const category = sp.category ?? 'all';
@@ -50,7 +52,7 @@ const SearchPage = async (props: {
   const brand = sp.brand ?? 'all';
   const inStock = sp.inStock ?? '';
   const page = Number(sp.page) || 1;
-  const size = parsePageSize(sp.size);
+  const size = parsePageSize(sp.size, pageSize);
 
   const t = await getTranslations('search');
   const tCommon = await getTranslations('common');
@@ -140,7 +142,7 @@ const SearchPage = async (props: {
         </h1>
         <div className='flex items-center gap-2'>
           <SortDropdown />
-          <PageSizeSelector current={size} />
+          <PageSizeSelector current={size} base={pageSize} />
         </div>
       </div>
 

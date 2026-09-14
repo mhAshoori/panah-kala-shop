@@ -20,16 +20,19 @@ const StorePricingForm = ({
   initialShippingFee,
   initialFreeShippingThreshold,
   initialTaxRate,
+  initialStorePageSize,
 }: {
   initialShippingFee: number;
   initialFreeShippingThreshold: number;
   initialTaxRate: number;
+  initialStorePageSize: number;
 }) => {
   const t = useTranslations('admin');
   const tCommon = useTranslations('common');
   const [shippingFee, setShippingFee] = useState(String(initialShippingFee));
   const [threshold, setThreshold] = useState(String(initialFreeShippingThreshold));
   const [taxRate, setTaxRate] = useState(String(initialTaxRate));
+  const [storePageSize, setStorePageSize] = useState(String(initialStorePageSize));
   const [isPending, startTransition] = useTransition();
 
   const save = () => {
@@ -37,7 +40,8 @@ const StorePricingForm = ({
       const res = await updateStorePricing(
         Number(shippingFee),
         Number(threshold),
-        Number(taxRate)
+        Number(taxRate),
+        Number(storePageSize)
       );
       if (res.success) {
         toast.success(res.message);
@@ -93,6 +97,22 @@ const StorePricingForm = ({
               dir='ltr'
             />
             <FieldDescription>{t('taxRateHint')}</FieldDescription>
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor='store-page-size'>
+              {t('storePageSizeLabel')}
+            </FieldLabel>
+            <Input
+              id='store-page-size'
+              type='number'
+              min={2}
+              max={48}
+              value={storePageSize}
+              onChange={(e) => setStorePageSize(e.target.value)}
+              dir='ltr'
+            />
+            <FieldDescription>{t('storePageSizeHint')}</FieldDescription>
           </Field>
 
           <Button onClick={save} disabled={isPending} className='w-fit'>

@@ -19,6 +19,8 @@ const messages = {
       'Cannot delete: {count} order(s) reference this product. Set its stock to 0 instead.',
     // Cart / order
     cartEmpty: 'Your cart is empty',
+    // Admin orders inbox
+    orderCommentTooLong: 'Message is too long (max 2000 characters)',
     couponNotFound: 'Coupon code is invalid',
     couponInactive: 'This coupon is not active',
  nothingToReorder: 'None of these items are currently available',
@@ -133,6 +135,8 @@ const messages = {
       'حذف ناممکن است: {count} سفارش به این محصول وابسته است. به جای حذف، موجودی را صفر کنید.',
     // Cart / order
     cartEmpty: 'سبد خرید شما خالی است',
+    // Admin orders inbox
+    orderCommentTooLong: 'پیام بیش از حد بلند است (حداکثر ۲۰۰۰ نویسه)',
     couponNotFound: 'کد تخفیف نامعتبر است',
     couponInactive: 'این کد تخفیف فعال نیست',
  nothingToReorder: 'هیچ کالایی از این سفارش اکنون موجود نیست',

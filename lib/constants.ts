@@ -27,10 +27,20 @@ export const PAGE_SIZE = Number(process.env.PAGE_SIZE) || 6;
 /** Allowed page-size values for the ?size= selector (server-side clamp). */
 export const PAGE_SIZE_OPTIONS = [6, 12, 24, 48] as const;
 
-/** Parse the ?size= URL param into a safe limit (falls back to PAGE_SIZE). */
-export function parsePageSize(raw: string | undefined | null): number {
+/** Parse the ?size= URL param into a safe limit (falls back to fallback). */
+export function parsePageSize(
+  raw: string | undefined | null,
+  fallback: number = PAGE_SIZE
+): number {
   const n = Number(raw);
-  return (PAGE_SIZE_OPTIONS as readonly number[]).includes(n) ? n : PAGE_SIZE;
+  if (!Number.isInteger(n) || n < 2) return fallback;
+  // A tampered param could stream huge lists; cap like the selector does
+  return Math.min(n, 48);
+}
+
+/** Selector options derived from the admin-set base size: n, 2n, 4n, 8n — cap 48 */
+export function pageSizeOptions(base: number): number[] {
+  return [...new Set([1, 2, 4, 8].map((m) => Math.min(m * base, 48)))];
 }
 
 /** Stock at/below which the "فقط N عدد باقی مانده" urgency badge shows. */

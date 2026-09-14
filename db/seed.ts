@@ -218,6 +218,7 @@ async function main() {
         if (comboMode) continue; // variants come from p.combos below
 
         // Single-option products: one variant row per value
+        if (!option.variants?.length) continue; // combos mode / placeholder option
         if (option.variants.length !== createdValues.length) {
           throw new Error(
             `Seed variant mismatch for ${p.slug}: ${option.variants.length} inputs vs ${createdValues.length} values`

@@ -6,6 +6,7 @@ import { hasAnyAiCredential } from '@/lib/ai/provider';
 import {
   getFreeShippingThreshold,
   getShippingFee,
+  getStorePageSize,
   getTaxRate,
 } from '@/lib/store-config';
 import AiSettingsForm from './ai-settings-form';
@@ -15,7 +16,7 @@ export const metadata: Metadata = { title: 'تنظیمات | پناه کالا' 
 
 const AdminSettingsPage = async () => {
   const t = await getTranslations('admin');
-  const [model, baseUrl, enabled, shippingFee, freeThreshold, taxRate] =
+  const [model, baseUrl, enabled, shippingFee, freeThreshold, taxRate, storePageSize] =
     await Promise.all([
       getAiModel(),
       getAiBaseUrl(),
@@ -23,6 +24,7 @@ const AdminSettingsPage = async () => {
       getShippingFee(),
       getFreeShippingThreshold(),
       getTaxRate(),
+      getStorePageSize(),
     ]);
 
   return (
@@ -35,6 +37,7 @@ const AdminSettingsPage = async () => {
           initialShippingFee={shippingFee}
           initialFreeShippingThreshold={freeThreshold}
           initialTaxRate={taxRate}
+          initialStorePageSize={storePageSize}
         />
         <AiSettingsForm
           initialModel={model}

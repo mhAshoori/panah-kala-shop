@@ -15,6 +15,7 @@ import AdminSearch from '@/components/shared/admin/search';
 import DeleteDialog from '@/components/shared/delete-dialog';
 import PageSizeSelector from '@/components/shared/page-size-selector';
 import { parsePageSize } from '@/lib/constants';
+import { getStorePageSize } from '@/lib/store-config';
 import { getAllProducts, deleteProduct } from '@/lib/actions/product.actions';
 import { formatId } from '@/lib/utils';
 import { formatNumberLocale } from '@/lib/persian';
@@ -25,6 +26,7 @@ const AdminProductsPage = async (props: {
 }) => {
   const locale = await getLocale();
   const { page, q, size } = await props.searchParams;
+  const pageSize = await getStorePageSize();
 
   const t = await getTranslations('admin');
   const tCommon = await getTranslations('common');
@@ -32,7 +34,7 @@ const AdminProductsPage = async (props: {
   const products = await getAllProducts({
     query: q,
     page: Number(page) || 1,
-    limit: parsePageSize(size),
+    limit: parsePageSize(size, pageSize),
   });
 
   return (
@@ -51,7 +53,7 @@ const AdminProductsPage = async (props: {
               {t('exportCsv')}
             </a>
           </Button>
-          <PageSizeSelector current={parsePageSize(size)} />
+          <PageSizeSelector current={parsePageSize(size, pageSize)} base={pageSize} />
         </div>
       </div>
 

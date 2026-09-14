@@ -5,23 +5,31 @@ import { useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
-export const PAGE_SIZE_OPTIONS = [6, 12, 24, 48] as const;
+import { pageSizeOptions } from '@/lib/constants';
 
 /**
  * Per-page size selector for any listing page. Writes the `size` URL param
  * (capped server-side) and resets pagination. Works on /search, /category,
- * admin tables and user orders.
+ * admin tables and user orders. Options derive from the admin-set base size.
  */
-const PageSizeSelector = ({ current }: { current: number }) => {
+const PageSizeSelector = ({
+  current,
+  base,
+}: {
+  current: number;
+  base?: number;
+}) => {
   const t = useTranslations('search');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
+  const options = pageSizeOptions(base ?? current);
+
   const onChange = (size: string) => {
     const params = new URLSearchParams(searchParams);
-    if (size === String(PAGE_SIZE_OPTIONS[0])) {
+    if (size === String(options[0])) {
       params.delete('size');
     } else {
       params.set('size', size);
@@ -44,7 +52,7 @@ const PageSizeSelector = ({ current }: { current: number }) => {
         aria-label={t('perPage')}
         className='h-9 rounded-md border bg-transparent px-2 text-sm outline-none cursor-pointer'
       >
-        {PAGE_SIZE_OPTIONS.map((n) => (
+        {options.map((n) => (
           <option key={n} value={n}>
             {n}
           </option>

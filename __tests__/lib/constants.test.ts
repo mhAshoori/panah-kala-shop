@@ -1,4 +1,6 @@
 import {
+  parsePageSize,
+  pageSizeOptions,
   PAYMENT_METHODS,
   DEFAULT_PAYMENT_METHOD,
   PAGE_SIZE,
@@ -32,5 +34,19 @@ describe('constants', () => {
     expect(productDefaultValues).toHaveProperty('nameFa');
     expect(productDefaultValues).toHaveProperty('category');
     expect(productDefaultValues).toHaveProperty('categoryFa');
+  });
+
+  it('pageSizeOptions derives capped multiples of the base', () => {
+    expect(pageSizeOptions(6)).toEqual([6, 12, 24, 48]);
+    expect(pageSizeOptions(10)).toEqual([10, 20, 40, 48]);
+    expect(pageSizeOptions(40)).toEqual([40, 48]);
+  });
+
+  it('parsePageSize accepts any int 2..48 and falls back otherwise', () => {
+    expect(parsePageSize('20', 6)).toBe(20);
+    expect(parsePageSize('99', 6)).toBe(48);
+    expect(parsePageSize('0', 6)).toBe(6);
+    expect(parsePageSize(undefined, 10)).toBe(10);
+    expect(parsePageSize('6')).toBe(6);
   });
 });
