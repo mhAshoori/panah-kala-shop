@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { SignOutUser } from '@/lib/actions/user.actions';
+import { getUnreadNotificationsCount } from '@/lib/notifications';
 
 const UserButton = async () => {
   const session = await auth();
@@ -25,6 +26,9 @@ const UserButton = async () => {
         <Link href='/sign-in'>{t('signIn')}</Link>
       </Button>
     );
+
+  const unreadNotifications =
+    session.user?.role === 'admin' ? await getUnreadNotificationsCount() : 0;
 
   const firstInitial = session.user?.name?.charAt(0).toUpperCase() ?? 'U';
 
@@ -88,8 +92,13 @@ const UserButton = async () => {
           </DropdownMenuItem>
           {session.user?.role === 'admin' && (
             <DropdownMenuItem asChild>
-              <Link href="/admin" className="w-full">
-                {tAdmin('dashboard')}
+              <Link href="/admin" className="w-full flex items-center justify-between">
+                <span>{tAdmin('dashboard')}</span>
+                {unreadNotifications > 0 && (
+                  <span className='inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-bold text-white'>
+                    {new Intl.NumberFormat(locale).format(unreadNotifications)}
+                  </span>
+                )}
               </Link>
             </DropdownMenuItem>
           )}
