@@ -67,7 +67,7 @@ const NewAddressForm = ({ onSaved }: { onSaved: () => void }) => {
             <div className='grid gap-4 sm:grid-cols-2'>
               <Field>
                 <FieldLabel htmlFor='fullName'>{t('fullName')}</FieldLabel>
-                <Input id='fullName' name='fullName' required minLength={3} />
+                <Input id='fullName' name='fullName' required minLength={3} className='text-right' dir='rtl' />
               </Field>
               <Field>
                 <FieldLabel htmlFor='phone'>{t('phone')}</FieldLabel>
@@ -89,16 +89,17 @@ const NewAddressForm = ({ onSaved }: { onSaved: () => void }) => {
                 name='streetAddress'
                 required
                 minLength={3}
+                className='text-right' dir='rtl'
               />
             </Field>
             <div className='grid gap-4 sm:grid-cols-3'>
               <Field>
                 <FieldLabel htmlFor='city'>{t('city')}</FieldLabel>
-                <Input id='city' name='city' required minLength={2} />
+                <Input id='city' name='city' required minLength={2} className='text-right' dir='rtl' />
               </Field>
               <Field>
                 <FieldLabel htmlFor='province'>{t('province')}</FieldLabel>
-                <Input id='province' name='province' required minLength={2} />
+                <Input id='province' name='province' required minLength={2} className='text-right' dir='rtl' />
               </Field>
               <Field>
                 <FieldLabel htmlFor='postalCode'>{t('postalCode')}</FieldLabel>

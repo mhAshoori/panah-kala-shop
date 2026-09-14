@@ -167,10 +167,10 @@ const ChangeContactDialog = ({
     }}>
       <DialogContent dir='rtl' className='max-w-md'>
         <DialogHeader>
-          <DialogTitle className='text-right'>
+          <DialogTitle className='text-right' dir='rtl'>
             {type === 'email' ? tAccount('newEmail') : tAccount('newMobile')}
           </DialogTitle>
-          <DialogDescription className='text-right'>
+          <DialogDescription className='text-right' dir='rtl'>
             {currentValue
               ? tAccount('contactChangeWarning')
               : tAccount('contactAddWarning')}
@@ -574,10 +574,10 @@ const ProfileFormInner = ({
                   </AlertDialogTrigger>
                   <AlertDialogContent dir='rtl'>
                     <AlertDialogHeader>
-                      <AlertDialogTitle className='text-right'>
+                      <AlertDialogTitle className='text-right' dir='rtl'>
                         {t('deleteAvatarConfirmTitle')}
                       </AlertDialogTitle>
-                      <AlertDialogDescription className='text-right'>
+                      <AlertDialogDescription className='text-right' dir='rtl'>
                         {t('deleteAvatarConfirmDesc')}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
@@ -663,6 +663,7 @@ const ProfileFormInner = ({
                     <Input
                       {...field}
                       id='name'
+                      className='text-right' dir='rtl'
                       aria-invalid={fieldState.invalid}
                     />
                     {fieldState.invalid && (

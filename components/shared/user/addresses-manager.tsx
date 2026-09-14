@@ -66,6 +66,7 @@ const AddressFields = ({
             defaultValue={address?.fullName}
             required
             minLength={3}
+            className='text-right' dir='rtl'
           />
         </Field>
         <Field>
@@ -87,12 +88,19 @@ const AddressFields = ({
           defaultValue={address?.streetAddress}
           required
           minLength={3}
+          className='text-right' dir='rtl'
         />
       </Field>
       <div className='grid gap-4 sm:grid-cols-3'>
         <Field>
           <FieldLabel htmlFor='city'>{t('city')}</FieldLabel>
-          <Input id='city' name='city' defaultValue={address?.city} required />
+          <Input
+            id='city'
+            name='city'
+            defaultValue={address?.city}
+            required
+            className='text-right' dir='rtl'
+          />
         </Field>
         <Field>
           <FieldLabel htmlFor='province'>{t('province')}</FieldLabel>
@@ -101,6 +109,7 @@ const AddressFields = ({
             name='province'
             defaultValue={address?.province}
             required
+            className='text-right' dir='rtl'
           />
         </Field>
         <Field>

@@ -181,6 +181,7 @@ const SignUpForm = ({
             type='text'
             autoComplete='name'
             defaultValue={signUpDefaultValues.name}
+            className='text-right' dir='rtl'
           />
         </Field>
 
