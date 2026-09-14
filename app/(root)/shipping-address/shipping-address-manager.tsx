@@ -5,6 +5,7 @@ import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Check, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -207,7 +208,13 @@ const ShippingAddressManager = ({
 
       {addresses.length > 0 && (
         <p className='text-center text-xs text-muted-foreground'>
-          {t('manageHint')}
+          {t.rich('manageHint', {
+            link: (chunks) => (
+              <Link href='/user/addresses' className='text-primary underline'>
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       )}
     </div>

@@ -82,6 +82,15 @@ const OrderDetailsTable = ({
               <OrderTimeline order={order} />
             </CardContent>
           </Card>
+          {/* Store message from the admin */}
+          {order.adminComment && (
+            <Card className='border-primary/40 bg-primary/5'>
+              <CardContent className='p-4 pt-6'>
+                <h2 className='pb-2 text-sm font-medium'>{t('storeMessage')}</h2>
+                <p className='text-sm whitespace-pre-line'>{order.adminComment}</p>
+              </CardContent>
+            </Card>
+          )}
           {/* Payment method */}
           <Card>
             <CardContent className='p-4 gap-4'>
@@ -165,7 +174,14 @@ const OrderDetailsTable = ({
                             height={56}
                             className='h-14 w-14 rounded-lg object-cover'
                           />
-                          <span className='text-sm'>{item.name}</span>
+                          <span>
+                            <span className='block text-sm'>{item.name}</span>
+                            {item.variantLabel && (
+                              <span className='block text-xs text-muted-foreground'>
+                                {item.variantLabel}
+                              </span>
+                            )}
+                          </span>
                         </Link>
                       </TableCell>
                       <TableCell>

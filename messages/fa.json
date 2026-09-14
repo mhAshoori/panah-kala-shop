@@ -211,7 +211,7 @@
     "codDesc": "پرداخت هنگام تحویل کالا",
     "cod": "پرداخت در محل",
     "addAddress": "افزودن نشانی جدید",
-    "manageHint": "نشانی‌های ذخیره‌شده را می‌توانید از حساب کاربری مدیریت کنید.",
+    "manageHint": "نشانی‌های ذخیره‌شده را می‌توانید از <link>حساب کاربری</link> مدیریت کنید.",
     "orderSummary": "خلاصه سفارش",
     "steps": {
       "shipping": "ارسال",
@@ -313,7 +313,8 @@
     "timelinePlaced": "ثبت سفارش",
     "timelinePaid": "پرداخت",
     "timelineShipped": "ارسال",
-    "timelineDelivered": "تحویل"
+    "timelineDelivered": "تحویل",
+    "storeMessage": "پیام فروشگاه"
   },
   "account": {
     "profile": "اطلاعات حساب",
@@ -596,7 +597,29 @@
     "reviewUpdated": "وضعیت دیدگاه بروزرسانی شد",
     "deleted": "حذف شد",
     "error": "خطایی رخ داد",
-    "status": "وضعیت"
+    "status": "وضعیت",
+    "new": "جدید",
+    "markSeen": "خوانده شد",
+    "orderSeen": "سفارش خوانده شد",
+    "orderComment": "پیام فروشگاه",
+    "orderCommentSaved": "پیام ذخیره شد",
+    "orderCommentPlaceholder": "پیامی برای نمایش به خریدار در صفحه سفارش…",
+    "save": "ذخیره",
+    "notifications": "اعلان‌ها",
+    "unread": "خوانده‌نشده",
+    "markAllRead": "خواندن همه",
+    "markRead": "خوانده شد",
+    "notificationSettings": "تنظیمات اطلاع‌رسانی",
+    "notifyEmail": "اطلاع‌رسانی ایمیلی",
+    "notifySms": "اطلاع‌رسانی پیامکی",
+    "adminEmail": "ایمیل ادمین",
+    "adminMobile": "موبایل ادمین",
+    "notifySaved": "تنظیمات اطلاع‌رسانی ذخیره شد",
+    "notificationsEmpty": "اعلانی وجود ندارد",
+    "viewOrder": "مشاهده سفارش",
+    "orderCommentTooLong": "پیام بیش از حد بلند است (حداکثر ۲۰۰۰ نویسه)",
+    "storePageSizeLabel": "تعداد ردیف در هر صفحه",
+    "storePageSizeHint": "عدد پایه صفحه‌بندی؛ گزینه‌های [n، ۲n، ۴n، ۸n] تا حداکثر ۴۸ نشان داده می‌شوند."
   },
   "assistant": {
     "title": "دستیار پناه کالا",
@@ -643,4 +666,4 @@
     "skipToContent": "رفتن به محتوا",
     "backToTop": "بازگشت به بالا"
   }
-}
+}

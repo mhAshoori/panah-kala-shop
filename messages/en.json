@@ -211,7 +211,7 @@
     "codDesc": "Pay when your order is delivered",
     "cod": "Cash on Delivery",
     "addAddress": "Add New Address",
-    "manageHint": "Manage your saved addresses from your account.",
+    "manageHint": "Manage saved addresses from your <link>account</link>.",
     "orderSummary": "Order Summary",
     "steps": {
       "shipping": "Shipping",
@@ -313,7 +313,8 @@
     "timelinePlaced": "Order placed",
     "timelinePaid": "Paid",
     "timelineShipped": "Shipped",
-    "timelineDelivered": "Delivered"
+    "timelineDelivered": "Delivered",
+    "storeMessage": "Store message"
   },
   "account": {
     "profile": "Profile Details",
@@ -596,7 +597,29 @@
     "reviewUpdated": "Review status updated",
     "deleted": "Deleted",
     "error": "Something went wrong",
-    "status": "Status"
+    "status": "Status",
+    "new": "New",
+    "markSeen": "Mark as read",
+    "orderSeen": "Order marked as read",
+    "orderComment": "Store message",
+    "orderCommentSaved": "Message saved",
+    "orderCommentPlaceholder": "Message shown to the buyer on their order page…",
+    "save": "Save",
+    "notifications": "Notifications",
+    "unread": "Unread",
+    "markAllRead": "Mark all read",
+    "markRead": "Mark read",
+    "notificationSettings": "Notification settings",
+    "notifyEmail": "Email notifications",
+    "notifySms": "SMS notifications",
+    "adminEmail": "Admin email",
+    "adminMobile": "Admin mobile",
+    "notifySaved": "Notification settings saved",
+    "notificationsEmpty": "No notifications",
+    "viewOrder": "View order",
+    "orderCommentTooLong": "Message is too long (max 2000 characters)",
+    "storePageSizeLabel": "Rows per page",
+    "storePageSizeHint": "Base page size; selector offers [n, 2n, 4n, 8n] capped at 48."
   },
   "assistant": {
     "title": "Panah Kala Assistant",
@@ -643,4 +666,4 @@
     "skipToContent": "Skip to content",
     "backToTop": "Back to top"
   }
-}
+}

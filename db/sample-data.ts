@@ -71,7 +71,7 @@ export type SampleOption = {
   name: string; // 'color' | 'design'
   nameFa: string; // 'رنگ' | 'طرح'
   values: SampleOptionValue[];
-  variants: SampleVariant[]; // one row per value, same order (single-option use)
+  variants?: SampleVariant[]; // one row per value, same order (single-option use)
 };
 
 export type SampleProduct = {
@@ -116,6 +116,7 @@ const C = {
   yellow: { value: 'Yellow', valueFa: 'زرد', hex: '#FDD835' },
   lightBrown: { value: 'Light Brown', valueFa: 'قهوه‌ای', hex: '#8c7f7b' },
   cream: { value: 'Cream', valueFa: 'کرمی', hex: '#EFEBE0' },
+  multicolor: { value: 'Multicolor', valueFa: 'چند رنگ', hex: '#B0BEC5' },
 };
 
 // Non-color "طرح" values (no hex → rendered as chips, not swatches)
@@ -234,16 +235,22 @@ const products: SampleProduct[] = [
     weightG: '6.00',
     options: [
       {
+        name: 'color',
+        nameFa: 'رنگ',
+        values: [C.multicolor],
+        variants: [], // single color; combos below carry the variants
+      },
+      {
         name: 'design',
         nameFa: 'طرح',
         values: [design('Design 1', 'طرح آدمک'), design('Design 2', 'طرح کودک'), design('Design 3', 'طرح گربه'), design('Design 4', 'طرح ایموجی')],
-        variants: [
-          { price: '49000.00', stock: 10, image: asset('products/initial-products/seed-data/medad-hb-1.jpg') },
-          { price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-1-1-kaleh-ghermez.jpg') },
-          { price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-2-1-kaleh-siah.jpg') },
-          { price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-2-3-kaleh-siah.jpg') },
-        ],
       },
+    ],
+    combos: [
+      { options: [0, 0], price: '49000.00', stock: 10, image: asset('products/initial-products/seed-data/medad-hb-1.jpg') },
+      { options: [0, 1], price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-1-1-kaleh-ghermez.jpg') },
+      { options: [0, 2], price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-2-1-kaleh-siah.jpg') },
+      { options: [0, 3], price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-2-3-kaleh-siah.jpg') },
     ],
   },
   // 4 — نوشت‌افزار > پاک کن
@@ -271,15 +278,21 @@ const products: SampleProduct[] = [
     weightG: '12.00',
     options: [
       {
+        name: 'color',
+        nameFa: 'رنگ',
+        values: [C.multicolor],
+        variants: [], // single color; combos below carry the variants
+      },
+      {
         name: 'design',
         nameFa: 'طرح',
         values: [design('Design 1', 'طرح ۱'), design('Design 2', 'طرح ۲'), design('Design 3', 'طرح ۳')],
-        variants: [
-          { price: '99000.00', stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-1-all-kachal-sho.webp') },
-          { price: '99000.00', stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-2-all-kachal-sho.webp') },
-          { price: '99000.00', stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-3-all-kachal-sho.webp') },
-        ],
       },
+    ],
+    combos: [
+      { options: [0, 0], price: '99000.00', stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-1-all-kachal-sho.webp') },
+      { options: [0, 1], price: '99000.00', stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-2-all-kachal-sho.webp') },
+      { options: [0, 2], price: '99000.00', stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-3-all-kachal-sho.webp') },
     ],
   },
   // 5 — نوشت‌افزار > مداد نوکی

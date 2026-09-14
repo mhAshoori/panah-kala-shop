@@ -3,7 +3,9 @@ import { Check } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-// Numbered checkout progress steps (RTL-safe with logical gaps)
+// Checkout progress steps using the order-timeline visual language:
+// full-width flex columns, filled circle for done, pulsing border for
+// current, muted outline for future.
 const CheckoutSteps = ({ current = 0 }: { current: number }) => {
   const t = useTranslations();
 
@@ -15,39 +17,36 @@ const CheckoutSteps = ({ current = 0 }: { current: number }) => {
   ];
 
   return (
-    <ol className='mb-10 flex flex-wrap items-center gap-y-3'>
+    <ol className='mb-10 flex items-stretch text-center'>
       {steps.map((step, index) => {
         const isDone = index < current;
         const isCurrent = index === current;
+        const isFuture = index > current;
         return (
-          <li key={step} className='flex items-center gap-2'>
-            <div
+          <li key={step} className='flex-1 px-1'>
+            <span
+              aria-current={isCurrent ? 'step' : undefined}
               className={cn(
-                'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors',
+                'mx-auto flex h-8 w-8 items-center justify-center rounded-full border-2',
                 isDone && 'border-primary bg-primary text-primary-foreground',
-                isCurrent && 'border-primary text-primary',
-                !isDone && !isCurrent && 'border-border text-muted-foreground'
+                isCurrent && 'border-primary text-primary animate-pulse',
+                isFuture && 'border-muted text-muted-foreground'
               )}
             >
-              {isDone ? <Check className='h-4 w-4' /> : index + 1}
-            </div>
-            <span
+              {isDone ? (
+                <Check className='h-4 w-4' />
+              ) : (
+                <span className='text-xs'>{index + 1}</span>
+              )}
+            </span>
+            <p
               className={cn(
-                'text-sm whitespace-nowrap',
-                isCurrent ? 'font-semibold' : 'text-muted-foreground'
+                'mt-1 text-xs font-medium whitespace-nowrap',
+                isDone || isCurrent ? 'text-foreground' : 'text-muted-foreground'
               )}
             >
               {step}
-            </span>
-            {index !== steps.length - 1 && (
-              <span
-                aria-hidden='true'
-                className={cn(
-                  'mx-3 hidden h-px w-10 sm:block',
-                  isDone ? 'bg-primary' : 'bg-border'
-                )}
-              />
-            )}
+            </p>
           </li>
         );
       })}

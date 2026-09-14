@@ -108,12 +108,12 @@ async function sendVerifyTemplate(
 /** Raw-text send (/v1/send/bulk) — no template approval needed. */
 async function sendBulkText(
   mobileE164: string,
-  code: string,
+  text: string,
 ): Promise<boolean> {
   const lineNumber = process.env.SMSIR_LINE_NUMBER as string;
   const result = await smsirPost("/send/bulk", {
     lineNumber,
-    messageText: `کد تایید پناه کالا: ${code}`,
+    messageText: text,
     mobiles: [mobileE164],
   });
   if (!result) return false;
@@ -123,6 +123,19 @@ async function sendBulkText(
     );
   }
   return result.status === 1;
+}
+
+/** Free-text SMS (admin notifications etc.). Dev fallback: console log. */
+export async function sendSmsText(
+  mobileE164: string,
+  text: string,
+): Promise<SmsSendResult> {
+  if (!isSmsConfigured() || !process.env.SMSIR_LINE_NUMBER) {
+    console.info(`[SMS:dev-fallback] to=${mobileE164}: ${text}`);
+    return { ok: true };
+  }
+  const ok = await sendBulkText(mobileE164, text);
+  return ok ? { ok: true } : { ok: false, reason: "ارسال پیامک ناموفق بود" };
 }
 
 /**
@@ -153,7 +166,7 @@ export async function sendVerificationSms(
   }
 
   if (process.env.SMSIR_LINE_NUMBER) {
-    const ok = await sendBulkText(mobileE164, code);
+    const ok = await sendBulkText(mobileE164, `کد تایید پناه کالا: ${code}`);
     return ok ? { ok: true } : { ok: false, reason: "ارسال پیامک ناموفق بود" };
   }
 

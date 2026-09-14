@@ -30,7 +30,7 @@ const PaymentMethodPage = async () => {
   const codAllowed = await canPayCashOnDelivery([...new Set(productIds)]);
 
   return (
-    <div className='max-w-xl mx-auto'>
+    <div className='max-w-2xl mx-auto'>
       <h1 className='h2-bold py-4'>{t('paymentMethod')}</h1>
       <PaymentMethodForm
         preferredPaymentMethod={user.paymentMethod}
