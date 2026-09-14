@@ -183,6 +183,7 @@ const CategoryForm = ({
               name='nameFa'
               defaultValue={category?.nameFa}
               placeholder='دسته‌بندی (فارسی)'
+              className='text-right' dir='rtl'
               required
             />
           </Field>

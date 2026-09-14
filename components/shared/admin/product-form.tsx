@@ -294,6 +294,7 @@ const ProductForm = ({
               name='nameFa'
               defaultValue={product?.nameFa}
               placeholder='نام محصول (فارسی)'
+              className='text-right' dir='rtl'
               required
             />
           </Field>
@@ -628,7 +629,7 @@ const ProductForm = ({
               name='descriptionFa'
               defaultValue={product?.descriptionFa}
               placeholder='توضیحات (فارسی)'
-              className='resize-none'
+              dir='rtl' className='resize-none text-right'
               required
             />
           </Field>

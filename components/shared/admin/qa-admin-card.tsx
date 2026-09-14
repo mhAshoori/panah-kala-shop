@@ -176,6 +176,7 @@ export default function QaAdminCard({
             onChange={(e) => setReply(e.target.value)}
             maxLength={1000}
             placeholder={t('answerPlaceholder')}
+            className='text-right' dir='rtl'
           />
           <Button size='sm' disabled={sending || isPending} onClick={sendReply}>
             {sending ? (

@@ -38,6 +38,7 @@ const AdminOrderCommentForm = ({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={t('orderCommentPlaceholder')}
+        className='text-right' dir='rtl'
       />
       <Button size='sm' onClick={save} disabled={isPending}>
         {t('save')}

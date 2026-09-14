@@ -101,6 +101,7 @@ const UpdateUserForm = ({
               defaultValue={user.name}
               required
               minLength={3}
+              className='text-right' dir='rtl'
             />
           </Field>
           <Field>

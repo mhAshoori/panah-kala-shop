@@ -133,6 +133,7 @@ const ReviewForm = ({
                 defaultValue={existingReview?.title}
                 required
                 minLength={3}
+                className='text-right' dir='rtl'
               />
             </Field>
             <Field>
@@ -143,7 +144,7 @@ const ReviewForm = ({
                 id='review-description'
                 name='description'
                 defaultValue={existingReview?.description}
-                className='resize-none'
+                dir='rtl' className='resize-none text-right'
                 rows={4}
                 required
                 minLength={3}

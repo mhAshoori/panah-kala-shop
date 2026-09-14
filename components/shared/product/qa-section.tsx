@@ -65,6 +65,7 @@ export const AskQuestionForm = ({
         maxLength={500}
         required
         placeholder={t('askPlaceholder')}
+        className='text-right' dir='rtl'
       />
       <div>
         <Submit label={t('submitQuestion')} />
@@ -115,6 +116,7 @@ export const AnswerQuestionForm = ({
         maxLength={1000}
         required
         placeholder={t('answerPlaceholder')}
+        className='text-right' dir='rtl'
       />
       <div>
         <Submit label={t('submitAnswer')} />
