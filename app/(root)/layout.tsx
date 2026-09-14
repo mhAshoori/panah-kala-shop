@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import Header from '@/components/shared/header';
 import Footer from '@/components/footer';
 import ChatWidget from '@/components/shared/assistant/chat-widget';
+import { getValidUserId } from '@/lib/auth-helpers';
 import BackToTop from '@/components/shared/back-to-top';
 import { getCategoriesWithCount } from '@/lib/actions/product.actions';
 
@@ -11,8 +12,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await getCategoriesWithCount(); // warm the category cache for the header
-  const t = await getTranslations('common');
+  const [t, userId] = await Promise.all([
+    getTranslations('common'),
+    getValidUserId(),
+  ]);
 
   return (
     <div className='flex min-h-screen flex-col'>
@@ -27,7 +30,7 @@ export default async function RootLayout({
         {children}
       </main>
       <Footer />
-      <ChatWidget />
+      <ChatWidget isAuthed={!!userId} />
       <BackToTop />
     </div>
   );
