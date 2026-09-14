@@ -619,7 +619,14 @@
     "viewOrder": "View order",
     "orderCommentTooLong": "Message is too long (max 2000 characters)",
     "storePageSizeLabel": "Rows per page",
-    "storePageSizeHint": "Base page size; selector offers [n, 2n, 4n, 8n] capped at 48."
+    "storePageSizeHint": "Base page size; selector offers [n, 2n, 4n, 8n] capped at 48.",
+    "supportTitle": "Support",
+    "supportUnread": "unread",
+    "supportReply": "Reply…",
+    "supportReplySent": "Reply sent",
+    "supportEmptyThread": "No messages",
+    "supportThreadsEmpty": "No support messages",
+    "reply": "Reply"
   },
   "assistant": {
     "title": "Panah Kala Assistant",
@@ -634,7 +641,13 @@
     "adminTitle": "Admin Assistant",
     "adminSubtitle": "Sales & store analytics",
     "adminOpen": "Admin assistant",
-    "adminGreeting": "Hi! What store insight do you need?"
+    "adminGreeting": "Hi! What store insight do you need?",
+    "support": "Support team",
+    "aiAssist": "AI assistant",
+    "supportGreeting": "Your message goes to the support team; replies appear in this conversation.",
+    "supportPlaceholder": "Write your message…",
+    "supportSent": "Your message has been sent",
+    "signInToContact": "Sign in first to message the support team"
   },
   "common": {
     "email": "Email",

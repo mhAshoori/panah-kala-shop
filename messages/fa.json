@@ -619,7 +619,14 @@
     "viewOrder": "مشاهده سفارش",
     "orderCommentTooLong": "پیام بیش از حد بلند است (حداکثر ۲۰۰۰ نویسه)",
     "storePageSizeLabel": "تعداد ردیف در هر صفحه",
-    "storePageSizeHint": "عدد پایه صفحه‌بندی؛ گزینه‌های [n، ۲n، ۴n، ۸n] تا حداکثر ۴۸ نشان داده می‌شوند."
+    "storePageSizeHint": "عدد پایه صفحه‌بندی؛ گزینه‌های [n، ۲n، ۴n، ۸n] تا حداکثر ۴۸ نشان داده می‌شوند.",
+    "supportTitle": "پشتیبانی",
+    "supportUnread": "پیام خوانده‌نشده",
+    "supportReply": "پاسخ…",
+    "supportReplySent": "پاسخ ارسال شد",
+    "supportEmptyThread": "پیامی نیست",
+    "supportThreadsEmpty": "هیچ پیام پشتیبانی وجود ندارد",
+    "reply": "پاسخ"
   },
   "assistant": {
     "title": "دستیار پناه کالا",
@@ -634,7 +641,13 @@
     "adminTitle": "دستیار مدیریت",
     "adminSubtitle": "تحلیل فروش و وضعیت فروشگاه",
     "adminOpen": "دستیار مدیریت",
-    "adminGreeting": "سلام! چه تحلیلی از فروشگاه می‌خواید؟"
+    "adminGreeting": "سلام! چه تحلیلی از فروشگاه می‌خواید؟",
+    "support": "پیام به پشتیبانی",
+    "aiAssist": "دستیار هوشمند",
+    "supportGreeting": "پیام شما به تیم پشتیبانی ارسال می‌شود؛ پاسخ در همین گفتگو نمایش داده می‌شود.",
+    "supportPlaceholder": "پیام خود را بنویسید…",
+    "supportSent": "پیام شما ارسال شد",
+    "signInToContact": "برای ارسال پیام به پشتیبانی ابتدا وارد شوید"
   },
   "common": {
     "email": "ایمیل",
