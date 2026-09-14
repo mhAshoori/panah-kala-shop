@@ -166,9 +166,9 @@ const AdminChat = () => {
               onChange={(e) => setInput(e.target.value)}
               placeholder={t('placeholder')}
               maxLength={600}
-              dir='auto'
+              dir='rtl'
               disabled={status === 'streaming'}
-              className='flex-1'
+              className='flex-1 text-right'
             />
             {status === 'streaming' ? (
               <Button
