@@ -39,7 +39,7 @@ const UserButton = async () => {
           <div className='flex items-center'>
             <Button
               variant='ghost'
-              className='relative w-8 h-8 rounded-full ms-2 flex items-center justify-center bg-muted text-sm font-medium overflow-hidden p-0'
+              className='relative w-8 h-8 rounded-full ms-2 flex items-center justify-center bg-muted text-sm font-medium p-0'
             >
               {session.user?.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -50,6 +50,11 @@ const UserButton = async () => {
                 />
               ) : (
                 firstInitial
+              )}
+              {unreadNotifications > 0 && (
+                <span className='absolute -top-1 -end-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white'>
+                  {new Intl.NumberFormat(locale).format(unreadNotifications)}
+                </span>
               )}
             </Button>
           </div>

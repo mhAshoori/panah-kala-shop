@@ -14,6 +14,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from '../notifications';
+import { normalizeIranMobile } from '../phone';
 
 export async function getAdminNotifications({
   page = 1,
@@ -54,12 +55,10 @@ export async function updateNotificationSettings(input: {
   if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     throw new Error(await withActionMessage('invalidValue'));
   }
-  if (mobile && !isValidFaMobile(mobile)) {
+  if (mobile && !normalizeIranMobile(mobile)) {
     throw new Error(await withActionMessage('invalidValue'));
   }
-  const mobileE164 = mobile
-    ? (mobile.startsWith('+98') ? mobile : mobile.startsWith('0') ? `+98${mobile.slice(1)}` : `+98${mobile}`)
-    : '';
+  const mobileE164 = mobile ? normalizeIranMobile(mobile) ?? '' : '';
 
   const upserts = [
     { key: NOTIFY_EMAIL_ENABLED_KEY, value: String(!!input.notifyEmailEnabled) },
@@ -79,9 +78,4 @@ export async function updateNotificationSettings(input: {
 
   revalidatePath('/admin/notifications');
   return { success: true as const };
-}
-
-// Iranian mobile; store in E.164 (+98…) for the send path
-function isValidFaMobile(v: string): boolean {
-  return /^(?:\+98|0)?9\d{9}$/.test(v);
 }
