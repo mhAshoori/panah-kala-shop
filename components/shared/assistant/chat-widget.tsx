@@ -66,7 +66,6 @@ const ChatWidget = ({ isAuthed = false }: { isAuthed?: boolean }) => {
   >('idle');
 
   const refreshThread = useCallback(async () => {
-    setSupportStatus('loading');
     const res = await fetchMySupportThread();
     if (res.success && res.messages) {
       setSupportThread(res.messages);
@@ -80,10 +79,25 @@ const ChatWidget = ({ isAuthed = false }: { isAuthed?: boolean }) => {
   // Poll for admin replies while the support thread is open
   useEffect(() => {
     if (!open || mode !== 'support' || !isAuthed) return;
-    void refreshThread();
-    const timer = setInterval(() => void refreshThread(), 10_000);
-    return () => clearInterval(timer);
-  }, [open, mode, isAuthed, refreshThread]);
+    let alive = true;
+    const tick = async () => {
+      const res = await fetchMySupportThread();
+      if (!alive) return;
+      if (res.success && res.messages) {
+        setSupportThread(res.messages);
+        setSupportStatus('idle');
+        await markSupportReadForUser();
+      } else {
+        setSupportStatus('error');
+      }
+    };
+    void tick();
+    const timer = setInterval(() => void tick(), 10_000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [open, mode, isAuthed]);
 
   // Keep the latest message in view
   useEffect(() => {

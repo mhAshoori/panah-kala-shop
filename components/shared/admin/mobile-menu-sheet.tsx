@@ -36,7 +36,7 @@ const AdminMobileMenuSheet = ({
 }: {
   currentFont: string;
   currentTheme: string;
-  badges?: { orders?: number; notifications?: number };
+  badges?: { orders?: number; notifications?: number; support?: number };
 }) => {
   const t = useTranslations('admin');
   const tHeader = useTranslations('header');

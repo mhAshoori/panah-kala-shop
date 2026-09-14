@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import {
   Bell,
+  Headset,
   ExternalLink,
   Home,
   LayoutDashboard,
@@ -25,7 +26,7 @@ export const ADMIN_MENU_ITEMS: {
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
-  badge?: 'orders' | 'notifications';
+  badge?: 'orders' | 'notifications' | 'support';
 }[] = [
   { href: '/admin', label: 'overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/homepage', label: 'homepage', icon: Home },
@@ -35,6 +36,7 @@ export const ADMIN_MENU_ITEMS: {
   { href: '/admin/coupons', label: 'couponsTitle', icon: Ticket },
   { href: '/admin/reviews', label: 'reviews', icon: MessageSquare },
   { href: '/admin/notifications', label: 'notifications', icon: Bell, badge: 'notifications' },
+  { href: '/admin/support', label: 'supportTitle', icon: Headset, badge: 'support' },
   { href: '/admin/users', label: 'users', icon: Users },
   { href: '/admin/marketing', label: 'marketing', icon: Mail },
   { href: '/admin/settings', label: 'settingsTitle', icon: Settings },
@@ -43,7 +45,7 @@ export const ADMIN_MENU_ITEMS: {
 const AdminSidebar = ({
   badges,
 }: {
-  badges?: { orders?: number; notifications?: number };
+  badges?: { orders?: number; notifications?: number; support?: number };
 }) => {
   const t = useTranslations('admin');
   const tHeader = useTranslations('header');

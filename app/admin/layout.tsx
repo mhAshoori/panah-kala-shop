@@ -12,6 +12,7 @@ import { auth } from '@/auth';
 import { getSiteFont, getSiteTheme } from '@/lib/site-settings';
 import { getUnseenOrdersCount } from '@/lib/actions/admin.actions';
 import { getUnreadNotificationsCount } from '@/lib/notifications';
+import { getUnreadSupportCountForAdmin } from '@/lib/support';
 import { APP_NAME } from '@/lib/constants';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -29,8 +30,12 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
   const [font, theme, badges] = await Promise.all([
     getSiteFont(),
     getSiteTheme(),
-    Promise.all([getUnseenOrdersCount(), getUnreadNotificationsCount()]).then(
-      ([orders, notifications]) => ({ orders, notifications })
+    Promise.all([
+      getUnseenOrdersCount(),
+      getUnreadNotificationsCount(),
+      getUnreadSupportCountForAdmin(),
+    ]).then(
+      ([orders, notifications, support]) => ({ orders, notifications, support })
     ),
   ]);
 
