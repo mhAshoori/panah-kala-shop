@@ -22,11 +22,11 @@ description: "Task list for feature 001-full-feature-audit"
 
 ## Phase 2: Foundational (blocking prerequisites)
 
-- [ ] T004 Verify fixture accounts exist/usable: `admin@example.com/12345678`, `jane@example.com/123456`; create a third user for the banned-state test via admin (or note existing banned row); confirm at least 2 products with variants visible in DB ([db/sample-data.ts](db/sample-data.ts) names) — anything missing noted as defect, no silent workarounds
+- [x] T004 Verify fixture accounts exist/usable: `admin@example.com/12345678`, `jane@example.com/123456`; create a third user for the banned-state test via admin (or note existing banned row); confirm at least 2 products with variants visible in DB ([db/sample-data.ts](db/sample-data.ts) names) — anything missing noted as defect, no silent workarounds
 
 ## Phase 3: US1 — Shopper golden paths (P1) — storefront stations
 
-- [ ] T005 [US1] Execute S1 (Home): load `/`, verify all enabled HomeBlocks render (bestSellers, promoBanners, hero…), header nav + mega menu hover + mobile sheet open/navigate, footer links (subscribe newsletter invalid+valid email); toggle one block disabled in admin later is covered in S12 — here only storefront render — record result in audit-notes
+- [x] T005 [US1] Execute S1 (Home): load `/`, verify all enabled HomeBlocks render (bestSellers, promoBanners, hero…), header nav + mega menu hover + mobile sheet open/navigate, footer links (subscribe newsletter invalid+valid email); toggle one block disabled in admin later is covered in S12 — here only storefront render — record result in audit-notes
 - [ ] T006 [US1] Execute S2 (Catalog): browse category listings incl. empty-category auto-hide, run `/search` by product and by category name, test listing sort; image URLs on listing cards resolve (no broken-image icon)
 - [ ] T007 [US1] Execute S3 (Product): open 2+ products (one with variants: patterned-pencil-hb; one simple: test_good pen); gallery images load, variant selector switches price/stock, deep link `?variant=` restores selection on reload, reviews/Q&A sections render, schema.org JSON-LD present
 - [ ] T008 [US1] Execute S5 (Cart): guest add-to-cart (session cookie), quantity +/- and stock cap, remove item, then sign in as jane — cart items persist (merge); apply valid coupon, apply expired/unknown coupon (expect bilingual toast, no crash)

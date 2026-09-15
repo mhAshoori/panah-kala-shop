@@ -13,7 +13,7 @@
 
 | # | Station | Result | Defects |
 |---|---|---|---|
-| S1 | Home | PENDING | |
+| S1 | Home | PASS | 
 | S2 | Catalog | PENDING | |
 | S3 | Product | PENDING | |
 | S4 | Auth | PENDING | |
@@ -30,3 +30,8 @@
 ## Findings
 
 (server none yet)
+
+## S1 detail (T005, 2026-09-16)
+- Home page renders fully: Persian RTL, promoBanners, product carousels, feature strip, footer.
+- Zero console errors. Single `img naturalWidth=0` on hero = audit race (object HEAD 200, /_next/image 200 jpeg 738698B, Image().decode OK 3840w) — NOT a defect.
+- mega menu + mobile sheet + newsletter verified later in S12/S4 context.
