@@ -16,9 +16,9 @@ description: "Task list for feature 001-full-feature-audit"
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Baseline capture: run `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`; record test count (expect 286) and any pre-existing lint warnings in `specs/001-full-feature-audit/audit-notes.md` "Gate baseline" section
-- [ ] T002 Start dev server via preview tools (launch config `dev`, port 3000); verify DB reachable (probe `SELECT 1`, restart server on P1001); probe seeded accounts sign-in-ability implicitly during S4, not reseeding unless data destroyed
-- [ ] T003 Create `specs/001-full-feature-audit/audit-notes.md` with the station checklist table from `contracts/audit-stations.md` (13 stations, result + defect rows columns)
+- [x] T001 Baseline capture: run `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`; record test count (expect 286) and any pre-existing lint warnings in `specs/001-full-feature-audit/audit-notes.md` "Gate baseline" section
+- [x] T002 Start dev server via preview tools (launch config `dev`, port 3000); verify DB reachable (probe `SELECT 1`, restart server on P1001); probe seeded accounts sign-in-ability implicitly during S4, not reseeding unless data destroyed
+- [x] T003 Create `specs/001-full-feature-audit/audit-notes.md` with the station checklist table from `contracts/audit-stations.md` (13 stations, result + defect rows columns)
 
 ## Phase 2: Foundational (blocking prerequisites)
 
