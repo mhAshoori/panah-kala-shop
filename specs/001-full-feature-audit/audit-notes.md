@@ -15,7 +15,7 @@
 |---|---|---|---|
 | S1 | Home | PASS | 
 | S2 | Catalog | PASS | 
-| S3 | Product | PENDING | |
+| S3 | Product | PASS | 
 | S4 | Auth | PENDING | |
 | S5 | Cart | PENDING | |
 | S6 | Pay | PENDING | |
