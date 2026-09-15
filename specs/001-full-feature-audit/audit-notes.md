@@ -14,7 +14,7 @@
 | # | Station | Result | Defects |
 |---|---|---|---|
 | S1 | Home | PASS | 
-| S2 | Catalog | PENDING | |
+| S2 | Catalog | PASS | 
 | S3 | Product | PENDING | |
 | S4 | Auth | PENDING | |
 | S5 | Cart | PENDING | |
