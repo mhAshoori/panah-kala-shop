@@ -22,7 +22,7 @@
 | S7 | Orders | PASS | |
 | S8 | UGC | PASS | |
 | S9 | Profile | PASS | |
-| S10 | Support | PENDING | |
+| S10 | Support | PASS | |
 | S11 | AI | PENDING | |
 | S12 | Admin | PENDING | |
 | S13 | Gate | PENDING | |
@@ -41,6 +41,13 @@
 - Addresses: added "Audit Two" (اصفهان) → toast + listed; set-default → DB isDefault flips correctly (Jan Doe false → Audit Two true), star chip moves.
 - Avatar: canvas PNG uploaded to /api/upload → bucket URL stored in User.image by updateProfileImage; renders on profile + header. >5MB → 400 storageTooLarge (400, friendly key). Disguised MIME (text content with type=image/png) accepted — comment-only; header image type is client-supplied but bucket serves as-is; NOT exploit-critical since avatar renders as <img> (execution requires model-attacked vector). Severity C3 hardening note.
 - Note: jane's email now jane2@example.com (audit artifact).
+
+## S10 detail (T013, 2026-09-16)
+- Widget opened via header aria-label "گفتگو با دستیار"; tab switch to "پیام به پشتیبانی"; composer placeholder "پیام خود را بنویسید…".
+- jane sent "پیام آزمون ممیزی — لطفاً پاسخ آزمایشی بدهید" → persisted: DB SupportMessage row (SupportThread model does not exist; schema uses flat per-user SupportMessage list — earlier prisma.supportThread reference in profile-form was wrong target, actual model is supportMessage in lib schema), fromAdmin=false, isRead=false (reserved as unread for admin in T017). Rate-limit issue from earlier session consumed one message slot; re-issued via "ارسال" button then submitted first-try correctly.
+- UI: message renders in widget thread with jalali date ۱۴۰۵ شهریور ۲۵; older 9/14 admin/user messages render with jalali dates too.
+- Guest sign-in gate: covered in S8-style gating context; thread left OPEN for admin closure in T017.
+- Note: thread OPEN, 1 unread sent message awaiting admin side.
 
 ## S6 detail (T009, 2026-09-16)
 - Address book: created "Audit Tester" entry via checkout page, toast ok, default-selected at payment.
