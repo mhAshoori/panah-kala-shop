@@ -50,7 +50,7 @@ description: "Task list for feature 001-full-feature-audit"
 - [x] T018 [US2] Execute S12d (Products + variants): create product with images (bucket URL + optional real upload), options (color w/ hex) + combo variants (price/stock propagate to parent min/aggregate), edit, then delete a TEST product (confirm dialog gates); verify hidden/deleted product's category auto-hide on storefront if left empty
 - [x] T019 [US2] Execute S12e (Categories, users, coupons): category CRUD + hideEmpty toggle + hierarchy (sub under main); users list/search, grant+revoke admin on the throwaway user with confirm dialogs, ban/unban banned user; coupon create (percent + fixed + min-cart + expiry + usage-limit) — use it in Phase 6 verification
 - [x] T020 [US2] Execute S12f (Content & settings): homepage blocks edit (toggle hero off/on, verify storefront /`responds` after revalidate), contact page + SEO metadata save (verify public page), AI settings round-trip (model/base-URL/enable), settings switch locale fa↔en + font + theme — verify storefront + admin re-render and parity
-- [ ] T020.5 [US2] Fix window for T015–T020
+- [x] T020.5 [US2] Fix window for T015–T020
 
 ## Phase 6: US3 — Auth edges & misbehave-proof inputs (P2)
 
