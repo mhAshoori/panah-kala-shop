@@ -80,6 +80,12 @@
 - Test coupons created in DB: AUDIT-EXPIRED (2020 expiry), AUDIT-VALID (fixed 20000) — reused in S6/T019.
 
 
+## S12a detail (T015, 2026-09-16)
+- Admin sign-in: contract password stale — admin@example.com actual password is `123456` (changed in 12 Sep trackCode session; memory said 12345678). Verified bcrypt compare in DB. Not a defect (docs drift); noted.
+- /admin dashboard renders: درآمد کل ۷٬۲۹۲٬۳۲۰تومان، کل سفارش‌ها ۸، محصولات ۱۳, کاربران ۲ — sane, no NaN. Monthly chart (۶ ماه) renders.
+- Sidebar badges reflect jane artifacts: سفارش‌ها=4 (4 unseen unpaid audit orders), پشتیبانی=3 unread, اعلان‌ها=7. DB cross-check: supportMessage.isRead=false → 3, orders adminSeenAt=null unpaid → 4. MATCH.
+- NOTE: jane@example.com no longer exists (email swapped to jane2@example.com in S9) — password `123456`.
+
 ## T010.5 / T014.5 fix windows
 - No C1/C2 defects found in T005–T010 or T011–T014. Windows empty; Phase 4 complete.
 

@@ -44,7 +44,7 @@ description: "Task list for feature 001-full-feature-audit"
 
 ## Phase 5: US2 — Admin panel surfaces & interactivity closures (P1)
 
-- [ ] T015 [US2] Execute S12a (Admin dashboard + badges): sign in admin, verify sidebar badges reflect state jane created (order unseen, support unread ≥1, notification rows), dashboard numbers sane (not NaN/blank)
+- [x] T015 [US2] Execute S12a (Admin dashboard + badges): sign in admin, verify sidebar badges reflect state jane created (order unseen, support unread ≥1, notification rows), dashboard numbers sane (not NaN/blank)
 - [ ] T016 [US2] Execute S12b (Orders management): orders inbox shows jane's orders as unseen; admin seen/comments/ships (trackCode assigned) and marks COD paid order delivered; verify jane's order detail reflects shipped/delivered + trackCode
 - [ ] T017 [US2] Execute S12c (Support inbox closure): /admin/support shows jane thread with unread badge; admin opens (badge clears) and replies; shop-side: jane's open widget shows reply within 10s poll and her own unread clears; admin Notification rows for 'support' created then cleared
 - [ ] T018 [US2] Execute S12d (Products + variants): create product with images (bucket URL + optional real upload), options (color w/ hex) + combo variants (price/stock propagate to parent min/aggregate), edit, then delete a TEST product (confirm dialog gates); verify hidden/deleted product's category auto-hide on storefront if left empty
