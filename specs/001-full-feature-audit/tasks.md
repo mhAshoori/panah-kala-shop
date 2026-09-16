@@ -32,7 +32,7 @@ description: "Task list for feature 001-full-feature-audit"
 - [x] T008 [US1] Execute S5 (Cart): guest add-to-cart (session cookie), quantity +/- and stock cap, remove item, then sign in as jane — cart items persist (merge); apply valid coupon, apply expired/unknown coupon (expect bilingual toast, no crash)
 - [x] T009 [US1] Execute S6 part A (Checkout+payment): complete jane checkout with address book entry (create/edit), ZarinPal sandbox full ride to PAID order; then second cart with COD order; then abandon a payment at gateway/callback (order stays unpaid, no crash); verify expired/limit-hit coupon rejected at purchase time even if it applied in cart
 - [x] T010 [US1] Execute S7 (Orders): jane's order history lists both orders with jalali dates, order detail shows items incl. variantLabel, coupon line, trackCode display state; COD order can be seen pending
-- [ ] T010.5 [US1] Fix window: repair any C1/C2 found in T005–T010 (append fix tasks + commits), re-verify each before T011
+- [x] T010.5 [US1] Fix window: repair any C1/C2 found in T005–T010 (append fix tasks + commits), re-verify each before T011
 
 ## Phase 4: US1 — Storefront interactions that feed admin (P1, continues US1)
 
@@ -40,7 +40,7 @@ description: "Task list for feature 001-full-feature-audit"
 - [x] T012 [US1] Execute S9 (Profile): jane edits profile fields incl. contact-change flow with mock codes (`123456` email / `456789` phone), adds second address + sets default, uploads avatar (succeeds, shows in header), attempts >5MB / wrong-MIME upload (friendly reject)
 - [x] T013 [US1] Execute S10 (Support, shopper side): jane opens AI widget → support tab (sign-in gate for guests verified), sends message, sees it persist with jalali date; leave the thread OPEN with 1 unread sent message for admin side in Phase 5
 - [x] T014 [US1] Execute S11 (AI): ask assistant a product question (grounded answer + internal link renders clickable/juicy), trigger rate limit (rapid sends → 429 → friendly Persian error), confirm no protocol leak in output
-- [ ] T014.5 [US1] Fix window for T011–T014
+- [x] T014.5 [US1] Fix window for T011–T014
 
 ## Phase 5: US2 — Admin panel surfaces & interactivity closures (P1)
 

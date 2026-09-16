@@ -80,6 +80,9 @@
 - Test coupons created in DB: AUDIT-EXPIRED (2020 expiry), AUDIT-VALID (fixed 20000) — reused in S6/T019.
 
 
+## T010.5 / T014.5 fix windows
+- No C1/C2 defects found in T005–T010 or T011–T014. Windows empty; Phase 4 complete.
+
 ## Findings
 
 (server none yet)
