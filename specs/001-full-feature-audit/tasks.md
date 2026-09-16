@@ -31,7 +31,7 @@ description: "Task list for feature 001-full-feature-audit"
 - [x] T007 [US1] Execute S3 (Product): open 2+ products (one with variants: patterned-pencil-hb; one simple: test_good pen); gallery images load, variant selector switches price/stock, deep link `?variant=` restores selection on reload, reviews/Q&A sections render, schema.org JSON-LD present
 - [x] T008 [US1] Execute S5 (Cart): guest add-to-cart (session cookie), quantity +/- and stock cap, remove item, then sign in as jane — cart items persist (merge); apply valid coupon, apply expired/unknown coupon (expect bilingual toast, no crash)
 - [x] T009 [US1] Execute S6 part A (Checkout+payment): complete jane checkout with address book entry (create/edit), ZarinPal sandbox full ride to PAID order; then second cart with COD order; then abandon a payment at gateway/callback (order stays unpaid, no crash); verify expired/limit-hit coupon rejected at purchase time even if it applied in cart
-- [ ] T010 [US1] Execute S7 (Orders): jane's order history lists both orders with jalali dates, order detail shows items incl. variantLabel, coupon line, trackCode display state; COD order can be seen pending
+- [x] T010 [US1] Execute S7 (Orders): jane's order history lists both orders with jalali dates, order detail shows items incl. variantLabel, coupon line, trackCode display state; COD order can be seen pending
 - [ ] T010.5 [US1] Fix window: repair any C1/C2 found in T005–T010 (append fix tasks + commits), re-verify each before T011
 
 ## Phase 4: US1 — Storefront interactions that feed admin (P1, continues US1)

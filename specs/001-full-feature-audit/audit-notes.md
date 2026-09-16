@@ -19,7 +19,7 @@
 | S4 | Auth | PENDING | |
 | S5 | Cart | PASS | |
 | S6 | Pay | PASS (ZarinPal full ride env-blocked) | |
-| S7 | Orders | PENDING | |
+| S7 | Orders | PASS | |
 
 ## S6 detail (T009, 2026-09-16)
 - Address book: created "Audit Tester" entry via checkout page, toast ok, default-selected at payment.
@@ -30,6 +30,12 @@
 - Expired coupon at purchase: forged AUDIT-EXPIRED (discount 20,000) directly onto cart DB row → createOrder ignored it: order stored couponCode=null, couponDiscount=0, full totals. Server-side re-validation holds money integrity. Cart-side apply of same code rejected with "این کد تخفیف منقضی شده است".
 - Cart cleared after each successful order (verified empty post-order).
 - LIMITATION recorded: ZarinPal full ride (StartPay→pay→verify success→PAID order) not executable inside the preview browser (external nav blocked). Integration is verified up to request/verify/failure paths. Needs manual run or Playwright outside preview to complete FR-4 literal coverage.
+
+## S7 detail (T010, 2026-09-16)
+- /user/orders: 6 orders listed (4 today's audit runs unpaid + 2 historical delivered), jalali dates, paid date column, status column (در انتظار پرداخت / تحویل داده شده), reorder + detail links, page-size selector present.
+- Order detail: items with variantLabel (رنگ: آبی), coupon line AUDIT-VALID −۲۰٬۰۰۰, totals correct; unpaid ZarinPal order offers پرداخت (زرین‌پال) retry button.
+- Delivered order (44fcd4c9): کد رهگیری: 12345678912345678912 displayed; تاریخ تحویل jalali.
+- Known artifact: 4 unpaid test orders are today's audit data; admin side (T016) will ship/deliver the COD one → trackCode appears for jane.
 
 ## S5 detail (T008, 2026-09-16)
 - Qty +/-: server stock authority held (variant stock 98; increments tracked, no crash). False alarm on "cap missing" — variant stock was 98.
