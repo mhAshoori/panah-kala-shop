@@ -24,8 +24,8 @@
 | S9 | Profile | PASS | |
 | S10 | Support | PASS | |
 | S11 | AI | PASS | |
-| S12 | Admin | PENDING | |
-| S13 | Gate | PENDING | |
+| S12 | Admin | PASS | |
+| S13 | Gate | PASS | |
 
 ## S8 detail (T011, 2026-09-16)
 - Favorite: jane favorites test-good-pen-g-2501 → toast "به علاقه‌مندی‌ها اضافه شد", aria-label flips to "حذف از علاقه‌مندی‌ها", persists across reload; DB Favorite row (userId f20132c9 / productId d09ee849) confirmed; row survives sign-out.
@@ -137,6 +137,15 @@
 - Initial run: 2 × 404 (jamedadi-abi-1.jpg, jamedadi-banafsh1.jpg) on fluffy-bunny-pencilcase product+variants. Root cause: live DB rows predated the ba9e0dd seed fix (seed never re-run).
 - Fix patched live rows to verified bucket paths (jamedadi-soorati-1.jpg / jamedadi-banafsh-1.jpg, both verified 200): 2 variant rows + 1 product gallery. Re-sweep: 90/90 → HTTP 200. Browser spot-check: all jamedadi <img> naturalWidth>0 on /product/fluffy-bunny-pencilcase.
 - No app-code change needed (seed file was already correct; current DB is a dev database, not production data).
+
+## S13 detail (T024, 2026-09-16) — validation gate
+| Check | Result |
+|---|---|
+| tsc --noEmit | PASS |
+| lint | 0 errors, 13 warnings (unchanged baseline) |
+| jest | 29 suites / **286 tests** PASS (= baseline 286, ≥ 286 required) |
+| build | PASS |
+- Net app-code changes during audit: 2 — df139db (order-detail render crash), 04aabe5 (review length caps, C3-1). Both covered by gate; fa/en parity auto-checked by suite.
 
 ## S1 detail (T005, 2026-09-16)
 - Home page renders fully: Persian RTL, promoBanners, product carousels, feature strip, footer.
