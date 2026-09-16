@@ -130,6 +130,7 @@
 
 ## Fix windows
 - T010.5, T014.5, T020.5: no C1/C2 defects found in T005–T020 — windows empty. Only fix commit so far: df139db (S12b order-detail render crash, caught during T016 prep).
+- T022.5: C3-1 fixed — insertReviewSchema gained .max(100) title / .max(2000) description caps (lib/validator.ts). Re-verified in browser: 10,000-char review → toast "description: Description must be at most 2000 characters", DB row untouched. Gate: tsc ✓ / 286 tests ✓ / lint ✓ / build ✓.
 
 ## S1 detail (T005, 2026-09-16)
 - Home page renders fully: Persian RTL, promoBanners, product carousels, feature strip, footer.
