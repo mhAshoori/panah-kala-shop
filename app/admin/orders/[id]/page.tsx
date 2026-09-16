@@ -25,7 +25,7 @@ const AdminOrderDetailsPage = async (props: {
   if (!order) notFound();
 
   // Opening the order in the admin panel counts as reading it
-  if (!order.adminSeenAt) await markOrderSeen(id);
+  if (!order.adminSeenAt) await markOrderSeen(id, false);
 
   const t = await getTranslations('admin');
 

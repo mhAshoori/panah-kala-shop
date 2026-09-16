@@ -76,13 +76,16 @@ export async function getUnseenOrdersCount() {
 }
 
 // Mark an order as seen (admin "read" it) — inbox badge stays in sync
-export async function markOrderSeen(orderId: string) {
+// revalidate boolean exists because this is also called during the admin order
+// detail page render, where revalidatePath() is unsupported
+export async function markOrderSeen(orderId: string, revalidate = true) {
   await requireAdmin();
 
   await prisma.order.updateMany({
     where: { id: orderId, adminSeenAt: null },
     data: { adminSeenAt: new Date() },
   });
+  if (!revalidate) return;
   revalidatePath('/admin/orders');
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath('/admin');
