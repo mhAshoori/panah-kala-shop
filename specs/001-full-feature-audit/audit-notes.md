@@ -86,6 +86,14 @@
 - Sidebar badges reflect jane artifacts: سفارش‌ها=4 (4 unseen unpaid audit orders), پشتیبانی=3 unread, اعلان‌ها=7. DB cross-check: supportMessage.isRead=false → 3, orders adminSeenAt=null unpaid → 4. MATCH.
 - NOTE: jane@example.com no longer exists (email swapped to jane2@example.com in S9) — password `123456`.
 
+## S12b detail (T016, 2026-09-16)
+- Orders inbox: stamped rows show fresh-dot "جدید" on unseen orders; seen rows lose it. Badge سفارش‌ها 4→3→… drops as admin opens.
+- Actions located on /admin/orders LIST rows (not detail page): ثبت ارسال / ثبت تحویل / حذف (+ثبت دیده‌شده when unseen). Detail page has trackCode + comment forms + print only — actions-by-design, not a defect.
+- TrackCode `12345678912345678912` set via detail form → persisted (DB verified).
+- COD paid order ..7c10e6: mark delivered via list row button → toast "سفارش به عنوان تحویل‌شده ثبت شد", DB state isPaid=true, isDelivered=true, deliveredAt set, shippedAt=null, paymentMethod=cod, adminSeenAt set. Cross-verified against contract.
+- jane side (/user/orders, signed in jane2@example.com): COD order row status "تحویل داده شده" + paid date jalali; detail page timeline shows پرداخت + تحویل with jalali dates, کد رهگیری 12345678912345678912, store message (adminComment "سفارش آزمون patterning — tomorrow expedited") in پیام فروشگاه card, totals consistent.
+- Note: sign-in flow quirks in preview browser (RTL native setters, untyped inputs) were session-test noise, not app defects.
+
 ## T010.5 / T014.5 fix windows
 - No C1/C2 defects found in T005–T010 or T011–T014. Windows empty; Phase 4 complete.
 
