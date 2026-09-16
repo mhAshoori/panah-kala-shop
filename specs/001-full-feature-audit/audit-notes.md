@@ -20,6 +20,19 @@
 | S5 | Cart | PASS | |
 | S6 | Pay | PASS (ZarinPal full ride env-blocked) | |
 | S7 | Orders | PASS | |
+| S8 | UGC | PASS | |
+| S9 | Profile | PENDING | |
+| S10 | Support | PENDING | |
+| S11 | AI | PENDING | |
+| S12 | Admin | PENDING | |
+| S13 | Gate | PENDING | |
+
+## S8 detail (T011, 2026-09-16)
+- Favorite: jane favorites test-good-pen-g-2501 → toast "به علاقه‌مندی‌ها اضافه شد", aria-label flips to "حذف از علاقه‌مندی‌ها", persists across reload; DB Favorite row (userId f20132c9 / productId d09ee849) confirmed; row survives sign-out.
+- Review: submitted 5★ ("بسیار خوب") via ثبت دیدگاه → toast success, stored rating=5 isApproved=TRUE (auto-approve on), appears immediately in listing "۵ · ۱ دیدگاه" with خریدار badge + jalali date.
+- Q&A: posted question → toast "پرسش شما ثبت شد", renders on product page ("پرسش از Jane", هنوز پاسخی داده نشده شده, jalali date), DB row confirmed.
+- Guest negatives: signed out. Favorite click → graceful toast "نشست شما منقضی شده است — لطفاً دوباره وارد شوید" (no crash, no state change). Q&A form replaced with "برای ثبت پرسش ابتدا وارد شوید". /user/favorites as guest shows sign-in gate prompt ("هنوز محصولی را نشان نکرده‌اید… برای ذخیره…") — auth-gated pages don't leak data.
+- Note: guest review flow uses sign-in prompt; direct anonymous server-action POST returns 500 on raw fetch (no friendly HTML) — LOW risk, only reachable via crafted manual fetch, browser UI path is graceful. Not filed as defect (C3 threshold / pre-existing server-not-found handling); can harden later.
 
 ## S6 detail (T009, 2026-09-16)
 - Address book: created "Audit Tester" entry via checkout page, toast ok, default-selected at payment.
@@ -43,12 +56,7 @@
 - Guest add 2 lines, sign-in jane: cart merged (both items persisted).
 - Coupons: unknown → "نامعتبر", min-cart → "مبلغ کافی نیست", expired AUDIT-EXPIRED → "منقضی شده", valid fixed AUDIT-VALID → "اعمال شد — 20000 تومان تخفیف". Bilingual friendly toasts.
 - Test coupons created in DB: AUDIT-EXPIRED (2020 expiry), AUDIT-VALID (fixed 20000) — reused in S6/T019.
-| S8 | UGC | PENDING | |
-| S9 | Profile | PENDING | |
-| S10 | Support | PENDING | |
-| S11 | AI | PENDING | |
-| S12 | Admin | PENDING | |
-| S13 | Gate | PENDING | |
+
 
 ## Findings
 
