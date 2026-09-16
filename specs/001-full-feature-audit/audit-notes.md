@@ -23,7 +23,7 @@
 | S8 | UGC | PASS | |
 | S9 | Profile | PASS | |
 | S10 | Support | PASS | |
-| S11 | AI | PENDING | |
+| S11 | AI | PASS | |
 | S12 | Admin | PENDING | |
 | S13 | Gate | PENDING | |
 
@@ -41,6 +41,13 @@
 - Addresses: added "Audit Two" (اصفهان) → toast + listed; set-default → DB isDefault flips correctly (Jan Doe false → Audit Two true), star chip moves.
 - Avatar: canvas PNG uploaded to /api/upload → bucket URL stored in User.image by updateProfileImage; renders on profile + header. >5MB → 400 storageTooLarge (400, friendly key). Disguised MIME (text content with type=image/png) accepted — comment-only; header image type is client-supplied but bucket serves as-is; NOT exploit-critical since avatar renders as <img> (execution requires model-attacked vector). Severity C3 hardening note.
 - Note: jane's email now jane2@example.com (audit artifact).
+
+## S11 detail (T014, 2026-09-16)
+- AI tab ("دستیار هوشمند") product question "بهترین خودکار برای مدرسه کدام است؟" → grounded answer mentioning stock state + clickable internal `<a href="/product/fantasy-elastic-notebook-80">` rendered as styled product link (verified in DOM).
+- Off-topic inputs ("سوال 1") → graceful deflection, no crash, no protocol leak (no tool/system text in output).
+- Unknown-product questions → grounding holds (suggests real seeded products).
+- Rate limit: server-side per-identity bucket (lib/rate-limit.ts, USER_LIMIT 20/10min); direct fetch burst hit 429 with `{"error":"rate_limited","message":"پیام‌های زیادی فرستادید — لطفاً کمی بعد دوباره تلاش کنید"}`; widget UI shows same friendly destructive error paragraph after ~30 sends. Guest bucket 8/10min.
+- No PII/protocol leak observed in any output.
 
 ## S10 detail (T013, 2026-09-16)
 - Widget opened via header aria-label "گفتگو با دستیار"; tab switch to "پیام به پشتیبانی"; composer placeholder "پیام خود را بنویسید…".
