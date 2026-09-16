@@ -147,6 +147,15 @@
 | build | PASS |
 - Net app-code changes during audit: 2 — df139db (order-detail render crash), 04aabe5 (review length caps, C3-1). Both covered by gate; fa/en parity auto-checked by suite.
 
+## Audit closure footer (T025, 2026-09-16)
+
+- **Stations**: 13/13 PASS (S6 ZarinPal full-ride marked env-limited inside the preview browser; S4 OTP real-SMS delivery noted as fixture limitation). No open C1.
+- **Defects**: C1 = 0, C2 = 1 (S12b order-detail render crash — FIXED df139db, re-verified), C3 = a handful of hardening notes (raw anonymous server-action fetch returns 500, disguised avatar MIME accepted, review length caps = fixed in 04aabe5).
+- **Fix commits**: df139db, 04aabe5 (plus DB-data-only patches in S23 — live dev rows, no app code).
+- **Gate**: final full run PASS — 286 tests (= baseline), tsc/lint/build clean.
+- **Scope surprises**: seed image URLs in dev DB predated the ba9e0dd fix (dev-data only); admin has no user-create route (by design); contract password drift for admin@example.com (docs, corrected in notes).
+- **Post-audit cleanup pending**: AUDIT-* coupons, 4 unpaid audit orders, jane2 contact artifacts, audit avatar, banned-audit user, homoglyph/test addresses (data-only, left for user's manual pass).
+
 ## S1 detail (T005, 2026-09-16)
 - Home page renders fully: Persian RTL, promoBanners, product carousels, feature strip, footer.
 - Zero console errors. Single `img naturalWidth=0` on hero = audit race (object HEAD 200, /_next/image 200 jpeg 738698B, Image().decode OK 3840w) — NOT a defect.

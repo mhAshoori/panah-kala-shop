@@ -62,7 +62,7 @@ description: "Task list for feature 001-full-feature-audit"
 
 - [x] T023 [US4] Full image-URL sweep re-run (all Product.images + ProductVariant.image ⇒ HTTP 200) and record result
 - [x] T024 [US4] Run validation gate; test count ≥ 286 baseline; add small Jest test for any pure logic fixed during audit (coupon re-validation, auth-guard, etc.) if not covered; fa/en message parity auto-checked by suite
-- [ ] T025 [US4] Close out audit-notes: every station marked PASS or defect-fixed+reverified; update spec.md checklist if any scope surprise emerged; summarize C1/C2/C3 counts and commits in audit-notes footer; final commit
+- [x] T025 [US4] Close out audit-notes: every station marked PASS or defect-fixed+reverified; update spec.md checklist if any scope surprise emerged; summarize C1/C2/C3 counts and commits in audit-notes footer; final commit
 
 ## Dependencies
 
