@@ -101,6 +101,14 @@
 - jane side (jane2@example.com): widget opened, support tab, admin reply appeared within 10 s poll, her unread indicator cleared.
 - Round-trip PASS. No support-side notification-row check drift: getUnreadSupportCount matched badge in S12a.
 
+## S12d detail (T018, 2026-09-16)
+- Create: /admin/products/create → full form filled (name/nameFa/slug/Stationery>خودکار/brand/price 85000/stock 40/descriptions/bucket image) → toast "محصول با موفقیت ایجاد شد"; DB row cbdf3e01 confirmed (85000.00, 40). "Product must have at least one image"/"Subcategory required" validations trigger correctly on skipped fields (friendly, no 500).
+- Edit: /admin/products/{id} (note: route has no /edit suffix — session path error, not a defect) pre-filled all fields; stock 40→45 via form → toast موفقیت; DB stock=45 confirmed.
+- Soundness checks: price/stock min constraints respected (number inputs); variants/options left [] for simple product — variant propagation covered by existing variants config (S3/S6 verified parent min-price/Σstock on seeded product).
+- Delete: /admin/products list row حذف → AlertDialog "آیا از حذف این محصول مطمئن هستید؟" → انصراف closes without delete (gating verified); re-open → حذف confirm → toast موفقیت, row gone from list, DB row deleted (cascade fine, no orphans surfaced).
+- Auto-hide: category خودکار became empty → direct URL /category/خودکار renders 404 "صفحه مورد نظر یافت نشد" gracefully; storefront category strips/mega menu list only نوشت‌افزار (20) and کیف (6) — خودکار absent everywhere. PASS (lib/category-visibility.ts behavior).
+- NOTE: preview-browser quirk (Radix AlertDialog needs pointerdown/pointerup+click synthetic sequence; React form submit via __reactProps$.action(FormData)) — session-test noise, not app defects.
+
 ## T010.5 / T014.5 fix windows
 - No C1/C2 defects found in T005–T010 or T011–T014. Windows empty; Phase 4 complete.
 
