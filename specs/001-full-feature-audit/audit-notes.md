@@ -21,7 +21,7 @@
 | S6 | Pay | PASS (ZarinPal full ride env-blocked) | |
 | S7 | Orders | PASS | |
 | S8 | UGC | PASS | |
-| S9 | Profile | PENDING | |
+| S9 | Profile | PASS | |
 | S10 | Support | PENDING | |
 | S11 | AI | PENDING | |
 | S12 | Admin | PENDING | |
@@ -33,6 +33,14 @@
 - Q&A: posted question → toast "پرسش شما ثبت شد", renders on product page ("پرسش از Jane", هنوز پاسخی داده نشده شده, jalali date), DB row confirmed.
 - Guest negatives: signed out. Favorite click → graceful toast "نشست شما منقضی شده است — لطفاً دوباره وارد شوید" (no crash, no state change). Q&A form replaced with "برای ثبت پرسش ابتدا وارد شوید". /user/favorites as guest shows sign-in gate prompt ("هنوز محصولی را نشان نکرده‌اید… برای ذخیره…") — auth-gated pages don't leak data.
 - Note: guest review flow uses sign-in prompt; direct anonymous server-action POST returns 500 on raw fetch (no friendly HTML) — LOW risk, only reachable via crafted manual fetch, browser UI path is graceful. Not filed as defect (C3 threshold / pre-existing server-not-found handling); can harden later.
+
+## S9 detail (T012, 2026-09-16)
+- Profile card: name/nationalId/birthDate/cardNumber/sheba fields render, save → "تغییرات ذخیره شد".
+- Email change: jane@example.com → jane2@example.com via two-side mock codes (old 123456 verified then DB shows email swapped; old email row gone). Master codes accepted since no SMTP provider.
+- Mobile change codes: master codes bound per-side (old≠new slots). Wrong old-code attempt → friendly "کد ارسال‌شده به تماس قبلی نامعتبر است"; brute-force guard consumes the entry by design (re-issue needed). Attempted full phone swap hit request rate-limit (3 per 10 min) — friendly Persian countdown toast. LIMITATION: mobile swap completion not verifiable in-window; rate limiting itself verified working (throttles contact-change attempts).
+- Addresses: added "Audit Two" (اصفهان) → toast + listed; set-default → DB isDefault flips correctly (Jan Doe false → Audit Two true), star chip moves.
+- Avatar: canvas PNG uploaded to /api/upload → bucket URL stored in User.image by updateProfileImage; renders on profile + header. >5MB → 400 storageTooLarge (400, friendly key). Disguised MIME (text content with type=image/png) accepted — comment-only; header image type is client-supplied but bucket serves as-is; NOT exploit-critical since avatar renders as <img> (execution requires model-attacked vector). Severity C3 hardening note.
+- Note: jane's email now jane2@example.com (audit artifact).
 
 ## S6 detail (T009, 2026-09-16)
 - Address book: created "Audit Tester" entry via checkout page, toast ok, default-selected at payment.

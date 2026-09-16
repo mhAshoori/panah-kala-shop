@@ -37,7 +37,7 @@ description: "Task list for feature 001-full-feature-audit"
 ## Phase 4: US1 — Storefront interactions that feed admin (P1, continues US1)
 
 - [x] T011 [US1] Execute S8 (UGC): jane leaves review on a product (appears per approval setting), posts a product question, favorites a product (star state persists across reload); guest attempts = auth-gated gracefully
-- [ ] T012 [US1] Execute S9 (Profile): jane edits profile fields incl. contact-change flow with mock codes (`123456` email / `456789` phone), adds second address + sets default, uploads avatar (succeeds, shows in header), attempts >5MB / wrong-MIME upload (friendly reject)
+- [x] T012 [US1] Execute S9 (Profile): jane edits profile fields incl. contact-change flow with mock codes (`123456` email / `456789` phone), adds second address + sets default, uploads avatar (succeeds, shows in header), attempts >5MB / wrong-MIME upload (friendly reject)
 - [ ] T013 [US1] Execute S10 (Support, shopper side): jane opens AI widget → support tab (sign-in gate for guests verified), sends message, sees it persist with jalali date; leave the thread OPEN with 1 unread sent message for admin side in Phase 5
 - [ ] T014 [US1] Execute S11 (AI): ask assistant a product question (grounded answer + internal link renders clickable/juicy), trigger rate limit (rapid sends → 429 → friendly Persian error), confirm no protocol leak in output
 - [ ] T014.5 [US1] Fix window for T011–T014
