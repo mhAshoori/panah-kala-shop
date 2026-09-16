@@ -55,7 +55,7 @@ description: "Task list for feature 001-full-feature-audit"
 ## Phase 6: US3 — Auth edges & misbehave-proof inputs (P2)
 
 - [x] T021 [US3] Execute S4 negatives: wrong password ×1 (friendly error), sign-up duplicate email/mobile (bilingual message), OTP wrong code + master code `123456` success, sign-out → protected route redirect, banned user sign-in attempt + one authenticated action (expect clear denial)
-- [ ] T022 [US3] Execute malformed-input sweep: paste oversized/empty/homoglyph inputs into sign-in, coupon field, product review, Q&A, shipping address, admin product form (validation messages, never 500/white screen); verify guest POST rejection on a server action route (e.g., favorite calls) where quick-checkable
+- [x] T022 [US3] Execute malformed-input sweep: paste oversized/empty/homoglyph inputs into sign-in, coupon field, product review, Q&A, shipping address, admin product form (validation messages, never 500/white screen); verify guest POST rejection on a server action route (e.g., favorite calls) where quick-checkable
 - [ ] T022.5 [US3] Fix window for T021–T022
 
 ## Phase 7: US4 — Regression net & closure (P3)
