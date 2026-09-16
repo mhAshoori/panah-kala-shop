@@ -94,6 +94,13 @@
 - jane side (/user/orders, signed in jane2@example.com): COD order row status "تحویل داده شده" + paid date jalali; detail page timeline shows پرداخت + تحویل with jalali dates, کد رهگیری 12345678912345678912, store message (adminComment "سفارش آزمون patterning — tomorrow expedited") in پیام فروشگاه card, totals consistent.
 - Note: sign-in flow quirks in preview browser (RTL native setters, untyped inputs) were session-test noise, not app defects.
 
+## S12c detail (T017, 2026-09-16)
+- /admin/support: Jane thread listed with unread badge (3); sidebar badge matched DB unfetched count (admin unread = isRead=false messages from user).
+- Admin opened thread → markSupportReadForAdmin set isRead=true → badge cleared (sidebar 3→0), messages timestamped jalali (۱۴۰۵ شهریور ۲۵).
+- Admin reply via composer ("پاسخ آزمایشی ممیزی — سفارش شما ثبت و تحویل شد.") → toast "پاسخ ارسال شد", row preview shows "شما: …".
+- jane side (jane2@example.com): widget opened, support tab, admin reply appeared within 10 s poll, her unread indicator cleared.
+- Round-trip PASS. No support-side notification-row check drift: getUnreadSupportCount matched badge in S12a.
+
 ## T010.5 / T014.5 fix windows
 - No C1/C2 defects found in T005–T010 or T011–T014. Windows empty; Phase 4 complete.
 
