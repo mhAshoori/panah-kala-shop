@@ -13,12 +13,18 @@
 
 | # | Station | Result | Defects |
 |---|---|---|---|
-| S1 | Home | PASS | 
-| S2 | Catalog | PASS | 
-| S3 | Product | PASS | 
+| S1 | Home | PASS | |
+| S2 | Catalog | PASS | |
+| S3 | Product | PASS | |
 | S4 | Auth | PENDING | |
-| S5 | Cart | PENDING | |
-| S6 | Pay | PENDING | |
+| S5 | Cart | PASS | |
+
+## S5 detail (T008, 2026-09-16)
+- Qty +/-: server stock authority held (variant stock 98; increments tracked, no crash). False alarm on "cap missing" — variant stock was 98.
+- Remove item to empty state OK.
+- Guest add 2 lines, sign-in jane: cart merged (both items persisted).
+- Coupons: unknown → "نامعتبر", min-cart → "مبلغ کافی نیست", expired AUDIT-EXPIRED → "منقضی شده", valid fixed AUDIT-VALID → "اعمال شد — 20000 تومان تخفیف". Bilingual friendly toasts.
+- Test coupons created in DB: AUDIT-EXPIRED (2020 expiry), AUDIT-VALID (fixed 20000) — reused in S6/T019.| S6 | Pay | PENDING | |
 | S7 | Orders | PENDING | |
 | S8 | UGC | PENDING | |
 | S9 | Profile | PENDING | |
