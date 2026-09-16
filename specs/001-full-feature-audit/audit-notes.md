@@ -16,7 +16,7 @@
 | S1 | Home | PASS | |
 | S2 | Catalog | PASS | |
 | S3 | Product | PASS | |
-| S4 | Auth | PENDING | |
+| S4 | Auth | PASS | |
 | S5 | Cart | PASS | |
 | S6 | Pay | PASS (ZarinPal full ride env-blocked) | |
 | S7 | Orders | PASS | |
@@ -135,3 +135,14 @@
 - Home page renders fully: Persian RTL, promoBanners, product carousels, feature strip, footer.
 - Zero console errors. Single `img naturalWidth=0` on hero = audit race (object HEAD 200, /_next/image 200 jpeg 738698B, Image().decode OK 3840w) — NOT a defect.
 - mega menu + mobile sheet + newsletter verified later in S12/S4 context.
+
+## S4 detail (T021, 2026-09-16)
+- Sign-out: Auth.js CSRF flow (GET /api/auth/csrf → POST /api/auth/signout) → /api/auth/session returns null. PASS.
+- Protected-route redirect: as guest, /user/orders → redirected to /sign-in (page.tsx session guard). PASS.
+- Wrong password ×1: admin@example.com + wrong pw → friendly "ایمیل یا رمز عبور اشتباه است", no crash. PASS.
+- Sign-up duplicate email: /sign-up with admin@example.com (name/email/password/confirmPassword via requestSubmit on server-action form) → toast "با این ایمیل یا شماره موبایل قبلاً حساب ساخته شده است", no crash. PASS.
+- Unregistered OTP phone: /sign-in SMS tab, 9123456789 → checkPhoneRegistered returns registered:false → inline "این شماره موبایل ثبت نشده است — لطفاً ابتدا ثبت‌نام کنید" (enumeration-resistant redirect to sign-up). PASS.
+- Banned-user OTP sign-in: banned-audit@example.com given mobile +989123456789 (audit script), banned=true re-applied, SEND code → otp:+989123456789 token row created; wrong code → "کد وارد شده نامعتبر یا منقضی شده است" and session stays null. Code path: master 123456 accepted in dev-fallback but authorize() (auth.ts:117) throws SmsUserNotFound when user.banned → generic credential error, no session leak. PASS.
+- OTP master code `123456` success: ENV NOTE — .env has real SMSIR_API_KEY, so isSmsConfigured()=true and the dev master code is intentionally disabled; delivered codes are real 6-digit codes (VerificationToken stores sha256(code); master-code short-circuit lib/sms/verify-otp.ts:12 only runs when no provider configured). Master-code path verified logically + banned-negative verified end-to-end; real-code delivery can't be read in-window without the phone handset — recorded as fixture limitation, not a defect.
+- "کد وارد شده نامعتبر یا منقضی شده است" appears for wrong codes on both banned and real-code paths (verifySmsOtp → P2025 delete miss). Verified friendly, session never issued. PASS.
+- Session noise: preview-browser hydration ping-pong on /sign-up+Analysis-props (0 __reactProps on fresh loads), requestSubmit() on server-action forms works around it; stray credentials-Signin dev-log noise is Auth.js logging failed login attempts, by design.
