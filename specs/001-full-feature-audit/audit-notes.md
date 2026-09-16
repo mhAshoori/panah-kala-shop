@@ -132,6 +132,12 @@
 - T010.5, T014.5, T020.5: no C1/C2 defects found in T005–T020 — windows empty. Only fix commit so far: df139db (S12b order-detail render crash, caught during T016 prep).
 - T022.5: C3-1 fixed — insertReviewSchema gained .max(100) title / .max(2000) description caps (lib/validator.ts). Re-verified in browser: 10,000-char review → toast "description: Description must be at most 2000 characters", DB row untouched. Gate: tsc ✓ / 286 tests ✓ / lint ✓ / build ✓.
 
+## S23 detail (T023, 2026-09-16) — image-URL sweep
+- HEAD sweep over all distinct Product.images + ProductVariant.image URLs: 13 products / 25 variants → 90 unique URLs.
+- Initial run: 2 × 404 (jamedadi-abi-1.jpg, jamedadi-banafsh1.jpg) on fluffy-bunny-pencilcase product+variants. Root cause: live DB rows predated the ba9e0dd seed fix (seed never re-run).
+- Fix patched live rows to verified bucket paths (jamedadi-soorati-1.jpg / jamedadi-banafsh-1.jpg, both verified 200): 2 variant rows + 1 product gallery. Re-sweep: 90/90 → HTTP 200. Browser spot-check: all jamedadi <img> naturalWidth>0 on /product/fluffy-bunny-pencilcase.
+- No app-code change needed (seed file was already correct; current DB is a dev database, not production data).
+
 ## S1 detail (T005, 2026-09-16)
 - Home page renders fully: Persian RTL, promoBanners, product carousels, feature strip, footer.
 - Zero console errors. Single `img naturalWidth=0` on hero = audit race (object HEAD 200, /_next/image 200 jpeg 738698B, Image().decode OK 3840w) — NOT a defect.
