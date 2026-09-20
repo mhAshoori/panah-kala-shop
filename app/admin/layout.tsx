@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 
 import AdminSidebar from '@/components/shared/admin/sidebar';
 import AdminMobileMenuSheet from '@/components/shared/admin/mobile-menu-sheet';
+import AdminNotifications from '@/components/shared/admin/admin-notifications';
 import AdminChat from '@/components/shared/assistant/admin-chat';
 import SiteLanguageToggle from '@/components/shared/admin/site-language-toggle';
 import SiteFontToggle from '@/components/shared/admin/site-font-toggle';
@@ -41,6 +42,9 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className='flex min-h-screen flex-col md:flex-row'>
+      {/* Live store-activity toasts (orders, payments, signups, questions, low stock) */}
+      <AdminNotifications />
+
       {/* Mobile top bar + menu sheet; the floating AI assistant works on all sizes */}
       <AdminMobileMenuSheet currentFont={font} currentTheme={theme} badges={badges} />
 
