@@ -45,6 +45,13 @@ describe('message catalogs', () => {
       // favorites toggle reads these from the review namespace (was a crash)
       ['review.favoriteAdd'],
       ['review.favoriteRemove'],
+      // admin activity toasts (specs/002-chatbox-ux)
+      ['admin.toastOrderPlaced'],
+      ['admin.toastPaymentReceived'],
+      ['admin.toastPaymentFailed'],
+      ['admin.toastUserSignedUp'],
+      ['admin.toastQuestionAsked'],
+      ['admin.toastLowStock'],
     ])('%s resolves in both locales', (key) => {
       const resolve = (obj: Record<string, unknown>) =>
         key.split('.').reduce<unknown>(
