@@ -3,7 +3,7 @@
 // Admin support inbox: one card per user thread, reply inline, unread badge
 // per thread. Replies persist on the user's thread and show in their widget.
 
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Headset, Inbox, Loader2, SendHorizonal } from 'lucide-react';
 import { toast } from 'sonner';
@@ -39,6 +39,20 @@ const AdminSupportClient = ({
   );
   const [reply, setReply] = useState('');
   const [isPending, startTransition] = useTransition();
+
+  // Poll fresh threads every 10s so shopper messages appear without a reload.
+  // Paused while a reply draft exists so the fetch can't confuse the open thread.
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      if (reply) return;
+      const fresh = await getAdminSupportThreads();
+      if (Array.isArray(fresh)) {
+        setThreads(fresh);
+        setOpenId((id) => id ?? fresh[0]?.user?.id ?? null);
+      }
+    }, 10_000);
+    return () => clearInterval(timer);
+  }, [reply]);
 
   const run = (fn: () => Promise<unknown>, successMsg?: string) =>
     startTransition(async () => {
