@@ -22,7 +22,7 @@ Validation before every commit: `npx tsc --noEmit`, `npm run lint`, `npm test`, 
 
 Environment notes:
 - Git repo root is this folder (`panah-kala-shop/`), not the parent directory.
-- Commits use the repo-local author `Mammad Linuxer <mammad.linuxer@gmail.com>`.
+- Commits use the repo-local author `mhAshoori <mh_ashoori@yahoo.com>`.
 - Windows shell: always use forward slashes in paths passed to tools.
 - Port 3000 stale process: `netstat -ano | findstr :3000` then `taskkill //PID <pid> //F`.
 - Dev logs: `.next/dev/logs/next-development.log`.
