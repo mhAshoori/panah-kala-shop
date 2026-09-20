@@ -44,8 +44,14 @@ const AdminChat = () => {
     });
   }, [messages]);
 
+  // Esc closes (no autofocus on open — mobile keyboard must not pop)
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
   const submit = (e: React.FormEvent) => {
@@ -70,11 +76,20 @@ const AdminChat = () => {
         <Bot className='h-7 w-7' />
       </button>
 
-      {/* Panel — centered bottom sheet on small screens, side panel from sm up */}
+      {/* Backdrop — mobile only, tap closes; panel stays above it */}
+      {open && (
+        <div
+          aria-hidden
+          onClick={() => setOpen(false)}
+          className='fixed inset-0 z-40 bg-black/50 sm:hidden'
+        />
+      )}
+
+      {/* Panel — top-anchored sheet on small screens, inset side panel from sm up */}
       {open && (
         <div
           dir='rtl'
-          className='fixed inset-x-4 bottom-4 z-50 flex h-[min(560px,80vh)] w-auto flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl sm:left-auto sm:right-auto sm:bottom-6 sm:start-6 sm:w-[380px]'
+          className='fixed inset-x-4 top-4 z-50 flex h-[min(560px,80vh)] w-auto flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl sm:inset-x-5 sm:top-auto sm:bottom-6 sm:w-[380px]'
         >
           {/* Header */}
           <div className='flex items-center justify-between border-b p-3'>
