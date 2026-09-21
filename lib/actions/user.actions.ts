@@ -27,6 +27,7 @@ import { PAGE_SIZE } from '../constants';
 import { requireAdmin } from '../auth-guard';
 import { withActionMessage } from '../action-messages';
 import { getValidUserId } from '../auth-helpers';
+import { recordNotification } from '../notifications';
 import { rateLimit } from '../rate-limit';
 import { normalizeIranMobile } from '../phone';
 import { OTP_TTL_MS } from '@/auth';
@@ -970,13 +971,20 @@ export async function signUpUser(
       }
     }
 
-    await prisma.user.create({
+    const created = await prisma.user.create({
       data: {
         name,
         email: email || null,
         mobile: mobile ? `+98${mobile}` : null,
         password: password ? hashSync(password, 10) : null,
       },
+    });
+
+    recordNotification({
+      type: 'signup',
+      title: 'ثبت‌نام جدید',
+      body: `ثبت‌نام کاربر ${name || mobile || email}`,
+      data: { userId: created.id },
     });
 
     if (mode === 'email') {

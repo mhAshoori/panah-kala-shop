@@ -7,11 +7,12 @@ import { auth } from '@/auth';
 import { getMyCart, addItemToCart } from './cart.actions';
 import { getUserById } from './user.actions';
 import { insertOrderSchema } from '../validator';
-import { PAGE_SIZE } from '../constants';
+import { LOW_STOCK_THRESHOLD, PAGE_SIZE } from '../constants';
 import { prisma } from '@/db/prisma';
 import { CartItem, Order } from '@/types';
 import { sendOrderReceipt } from '../email/order-receipt';
 import { notifyAdminNewOrder } from '../notifications';
+import { recordStockEventIfLow } from '../stock-events';
 import { getValidUserId } from '../auth-helpers';
 import { canPayCashOnDelivery } from './product.actions';
 import { withActionMessage } from '../action-messages';
@@ -267,6 +268,13 @@ export async function createOrder() {
       await notifyAdminNewOrder(
         JSON.parse(JSON.stringify(insertedOrder)) as Order
       );
+
+      // Stock fell low on any of these items? One bounded read + ≤1 insert.
+      const dropped = await prisma.product.findMany({
+        where: { id: { in: pricedItems.map((i) => i.productId) }, stock: { lte: LOW_STOCK_THRESHOLD } },
+        select: { id: true, name: true, stock: true },
+      });
+      for (const p of dropped) recordStockEventIfLow(p);
     }
 
     return {

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { prisma } from '@/db/prisma';
 import { requireAdmin } from '../auth-guard';
+import { recordNotification } from '../notifications';
 import { getValidUserId } from '../auth-helpers';
 import { withActionMessage } from '../action-messages';
 import {
@@ -48,16 +49,12 @@ export async function sendSupportMessage(body: string): Promise<{
       where: { id: userId },
       select: { name: true, mobile: true, email: true },
     });
-    prisma.notification
-      .create({
-        data: {
-          type: 'support',
-          title: 'پیام پشتیبانی جدید',
-          body: `${user?.name ?? 'کاربر'} — ${text.slice(0, 80)}`,
-          data: { userId },
-        },
-      })
-      .catch(() => {});
+    recordNotification({
+      type: 'question',
+      title: 'پیام پشتیبانی جدید',
+      body: `سوال کاربر ${user?.name ?? 'کاربر'} — «${text.slice(0, 80)}»`,
+      data: { userId },
+    });
 
     revalidatePath('/admin/support');
 

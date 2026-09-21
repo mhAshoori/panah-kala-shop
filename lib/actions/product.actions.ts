@@ -13,6 +13,7 @@ import {
   productOptionsPayloadSchema,
 } from '../validator';
 import { buildVariantKey, cartesian, recomputeParent } from '../variants';
+import { recordStockEventIfLow } from '../stock-events';
 import { filterVisibleCategories } from '../category-visibility';
 import type { ActionState } from '@/types';
 
@@ -764,7 +765,7 @@ export async function createProduct(
 
     const diversity = diversityFromFormData(formData);
 
-    await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
         data: {
           ...product,
@@ -776,7 +777,9 @@ export async function createProduct(
       if (diversity) {
         await replaceProductDiversity(tx as unknown as Prisma.TransactionClient, created.id, diversity);
       }
+      return created;
     });
+    recordStockEventIfLow(created);
 
     return { success: true, message: await withActionMessage('productCreated') };
   } catch (error) {
@@ -803,12 +806,13 @@ export async function updateProduct(
     if (!productExists)
       throw new Error(await withActionMessage('productNotFound'));
 
+    const beforeStock = productExists.stock;
     const chain = await resolveCategoryChain(formData);
     product.slug = await resolveUniqueSlug(product.slug, product.id);
     const diversity = diversityFromFormData(formData);
 
-    await prisma.$transaction(async (tx) => {
-      await tx.product.update({
+    const updated = await prisma.$transaction(async (tx) => {
+      const row = await tx.product.update({
         where: { id: product.id },
         data: {
           ...product,
@@ -820,7 +824,11 @@ export async function updateProduct(
       if (diversity) {
         await replaceProductDiversity(tx as unknown as Prisma.TransactionClient, product.id, diversity);
       }
+      return row;
     });
+    if (Number(updated.stock) < Number(beforeStock)) {
+      recordStockEventIfLow(updated);
+    }
 
     revalidatePath(`/admin/products/${product.id}`);
     revalidatePath('/admin/products');

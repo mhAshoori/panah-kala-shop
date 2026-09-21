@@ -9,6 +9,7 @@ import {
   zarinpalVerifyPayment,
 } from '../pay/zarinpal';
 import { bumpProductSales } from '../sales';
+import { recordNotification } from '../notifications';
 
 /**
  * Start a ZarinPal payment for a pending order (paymentMethod === 'zarinpal').
@@ -157,6 +158,13 @@ export async function verifyZarinpalPayment(params: {
       bumpProductSales(order.id).catch((e) =>
         console.error('[sales] bump failed:', e)
       );
+      recordNotification({
+        type: 'payment',
+
+        title: 'پرداخت موفق',
+        body: `پرداخت سفارش ${order.id.slice(-6)} — ${order.totalPrice} تومان`,
+        data: { orderId: order.id, total: String(order.totalPrice) },
+      });
       return { ...base, success: true as const, refId: verification.refId };
     }
 
