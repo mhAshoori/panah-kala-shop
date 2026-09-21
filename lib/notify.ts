@@ -7,7 +7,7 @@ export type AdminActivityEvent = {
   // unique per event so the client toast poller can dedupe
   id: string;
   // 'order' | 'payment' | 'signup' | 'question' | 'lowStock'
-  kind: 'order' | 'payment' | 'signup' | 'question' | 'lowStock';
+  kind: 'order' | 'payment' | 'signup' | 'question' | 'stock' | 'lowStock';
   // toast link target
   href: string;
   createdAtIso: string;
