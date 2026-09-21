@@ -4,7 +4,7 @@
 // event id (session scope), caps toasts per tick with an aggregate overflow
 // toast. Mounted once in the admin layout.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -39,15 +39,15 @@ const eventLinkKey: Record<AdminActivityEvent['kind'], string> = {
 
 const AdminNotifications = () => {
   const t = useTranslations('admin');
-  const [since, setSince] = useState<string>(() => new Date().toISOString());
+  const since = useRef<string>(new Date().toISOString());
   const shown = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let alive = true;
     const tick = async () => {
-      const res = await fetchAdminActivitySince(since);
+      const res = await fetchAdminActivitySince(since.current);
       if (!alive || !res.success) return;
-      setSince(new Date().toISOString());
+      since.current = new Date().toISOString();
 
       const seen = diffEvents(res.events, shown.current);
       if (seen.length === 0) return;
@@ -77,7 +77,7 @@ const AdminNotifications = () => {
       alive = false;
       clearInterval(timer);
     };
-  }, [since, t]);
+  }, [t]);
 
   return null;
 };
