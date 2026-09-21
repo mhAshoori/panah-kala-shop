@@ -52,6 +52,15 @@ describe('message catalogs', () => {
       ['admin.toastUserSignedUp'],
       ['admin.toastQuestionAsked'],
       ['admin.toastLowStock'],
+      // admin notification log (specs/003-admin-notification-log)
+      ['admin.tagOrder'],
+      ['admin.tagPayment'],
+      ['admin.tagSignup'],
+      ['admin.tagQuestion'],
+      ['admin.tagStock'],
+      ['admin.viewLink'],
+      ['admin.pageSizeLabel'],
+      ['admin.saveNotificationsPageSizeFailed'],
     ])('%s resolves in both locales', (key) => {
       const resolve = (obj: Record<string, unknown>) =>
         key.split('.').reduce<unknown>(
