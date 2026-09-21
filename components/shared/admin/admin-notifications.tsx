@@ -2,7 +2,9 @@
 
 // Admin activity toasts: polls fetchAdminActivitySince every 30s, dedupes by
 // event id (session scope), caps toasts per tick with an aggregate overflow
-// toast. Mounted once in the admin layout.
+// toast. Mounted once in the admin layout. Events come from the recorded
+// Notification rows — the toast description carries the row's own detail
+// (product name for stock, buyer/total for orders), never generic copy.
 
 import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
@@ -24,6 +26,8 @@ const kindKey: Record<AdminActivityEvent['kind'], string> = {
   payment: 'toastPaymentReceived',
   signup: 'toastUserSignedUp',
   question: 'toastQuestionAsked',
+  stock: 'toastLowStock',
+  // legacy pre-log rows
   lowStock: 'toastLowStock',
 };
 
@@ -34,6 +38,7 @@ const eventLinkKey: Record<AdminActivityEvent['kind'], string> = {
   payment: 'orders',
   signup: 'users',
   question: 'support',
+  stock: 'products',
   lowStock: 'products',
 };
 
@@ -53,14 +58,15 @@ const AdminNotifications = () => {
       if (seen.length === 0) return;
 
       seen.forEach((e) => {
-        toast(t(kindKey[e.kind as AdminActivityEvent['kind']]), {
+        const kind = e.kind as AdminActivityEvent['kind'];
+        toast(t(kindKey[kind]), {
           description: (
-            <Link
-              href={e.href}
-              className='underline underline-offset-4'
-            >
-              {t(eventLinkKey[e.kind as AdminActivityEvent['kind']])}
-            </Link>
+            <>
+              {e.refId ? <span className='me-2'>{e.refId}</span> : null}
+              <Link href={e.href} className='underline underline-offset-4'>
+                {t(eventLinkKey[kind])}
+              </Link>
+            </>
           ),
           duration: 10_000,
         });

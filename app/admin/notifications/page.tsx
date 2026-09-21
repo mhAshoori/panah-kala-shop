@@ -19,7 +19,15 @@ const AdminNotificationsPage = async (props: {
 }) => {
   const { page, size } = await props.searchParams;
   const t = await getTranslations('admin');
-  const pageSize = parsePageSize(size);
+  const savedSize = await prisma.setting
+    .findUnique({ where: { key: 'notificationsPageSize' } })
+    .then((s) => Number(s?.value))
+    .catch(() => NaN);
+  const defaultSize =
+    Number.isInteger(savedSize) && savedSize >= 10 && savedSize <= 100
+      ? savedSize
+      : 12;
+  const pageSize = parsePageSize(size, defaultSize);
 
   const [list, settingsRows] = await Promise.all([
     getNotifications({ page: Number(page) || 1, limit: pageSize }),
