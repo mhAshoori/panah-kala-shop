@@ -1,7 +1,50 @@
 import { prisma } from '@/db/prisma';
+import type { Prisma } from '@/lib/generated/prisma/client';
 import { sendEmail } from './email/mailer';
 import { sendSmsText } from './sms/smsir';
 import type { Order } from '@/types';
+import { pruneCount } from './notification-events';
+
+/**
+ * Record one admin-log notification row. Never throws, never blocks callers.
+ * Best-effort rolling cap: > NOTIFICATION_LOG_CAP rows → one bounded deleteMany
+ * of the oldest overflow.
+ */
+export async function recordNotification(input: {
+  type: string;
+  title: string;
+  body: string;
+  data?: Record<string, unknown>;
+}): Promise<void> {
+  try {
+    await prisma.notification.create({
+      data: {
+        type: input.type,
+        title: input.title,
+        body: input.body,
+        data: input.data as Prisma.InputJsonValue | undefined,
+      },
+    });
+    const count = await prisma.notification.count();
+    const prune = pruneCount(count);
+    if (prune > 0) {
+      // Prisma 7 deleteMany has no orderBy/skip — find the cutoff createdAt
+      // of the oldest (count-prune) rows and delete everything at/below it.
+      const cutoff = await prisma.notification.findFirst({
+        orderBy: { createdAt: 'asc' },
+        skip: count - prune,
+        select: { createdAt: true },
+      });
+      if (cutoff) {
+        await prisma.notification.deleteMany({
+          where: { createdAt: { lte: cutoff.createdAt } },
+        });
+      }
+    }
+  } catch (error) {
+    console.error('[notify] record failed:', error);
+  }
+}
 
 async function readSetting(key: string): Promise<string | null> {
   try {
@@ -28,13 +71,11 @@ export async function notifyAdminNewOrder(order: Order): Promise<void> {
       (order.shippingAddress as { fullName?: string } | null)?.fullName ??
       '—';
 
-    await prisma.notification.create({
-      data: {
-        type: 'order',
-        title: 'سفارش جدید',
-        body: `${buyer} — ${itemCount} قلم — ${order.totalPrice} تومان`,
-        data: { orderId: order.id, total: String(order.totalPrice), itemCount },
-      },
+    await recordNotification({
+      type: 'order',
+      title: 'سفارش جدید',
+      body: `${buyer} — ${itemCount} قلم — ${order.totalPrice} تومان`,
+      data: { orderId: order.id, total: String(order.totalPrice), itemCount },
     });
 
     const emailEnabled = (await readSetting(NOTIFY_EMAIL_ENABLED_KEY)) === 'true';
