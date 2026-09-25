@@ -15,6 +15,7 @@
 - Q: When a percentage does not divide evenly, how should the stored numbers be rounded? → A: Round the money to two decimals and floor the displayed percentage, so the badge never overstates the discount. (Superseded by the money-storage answer below: money is whole Toman, rounded half-up.)
 - Q: Money is to be stored as whole Toman (integer) instead of a two-decimal value. Which integer type, and how does it round? → A: 32-bit integer; round half-up to whole Toman and floor the displayed percentage. The money storage change is specified separately (005-money-int-migration) and lands first; this feature assumes integer money.
 - Q: Coupon.value holds either a percentage or a Toman amount in one column. How should integer money handle it? → A: Keep it as a single integer column — both uses are already whole numbers, so the coupon model and its logic are unchanged.
+- Q: Whole Toman makes some discounts impossible to store exactly, so a derived badge can overstate the real saving at low prices. How should the admin form handle it? → A: Both — derive the price-before-discount by rounding DOWN so the badge can only ever understate, AND refuse discounts on products priced below 100 Toman (the price at which even a 1% discount still saves a whole Toman).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -209,9 +210,14 @@ placeholder on its detail page.
   implementation]** Whole-Toman granularity makes this unachievable below a
   price floor — a price of 7 Toman at a typed 10% needs a price-before-discount
   of 7.78, and rounding half-up to 8 yields a real saving of 1/8, which a badge
-  would report as 12%. The form MUST therefore either refuse a discount whose
-  derived badge would exceed the typed percentage, or derive
-  price-before-discount by rounding so the badge can only ever understate.
+  would report as 12%. Two rules together prevent this:
+  1. **The price-before-discount MUST be derived by rounding DOWN**, never
+     half-up, so the stored pair can only ever understate the typed percentage
+     and the badge can never overstate the real saving.
+  2. **Discounts MUST be refused on products priced below 100 Toman.** The floor
+     is derived, not arbitrary: at 100 Toman even a 1% discount still
+     represents at least 1 whole Toman of saving, whereas below 100 small
+     percentages round away to nothing and the badge silently disappears.
 - **FR-014**: Opening an existing discounted product for editing MUST show the
   percentage, the selling price, and the price-before-discount, all consistent
   with what the storefront displays.
@@ -268,8 +274,7 @@ placeholder on its detail page.
 - **SC-003**: For every product shown on the storefront with a discount, the
   displayed sale price and the price-before-discount match the prices the
   administrator entered, and the displayed discount percentage never claims a
-  saving larger than the difference between the two displayed prices — for any
-  price at or above the whole-Toman price floor the admin form enforces.
+  saving larger than the difference between the two displayed prices.
 - **SC-004**: A fully completed product form saves in a single submission with no
   correction round-trip.
 - **SC-005**: An administrator can understand the price and discount fields
