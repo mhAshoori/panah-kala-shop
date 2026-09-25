@@ -20,10 +20,6 @@ import { isProductFavorited } from '@/lib/actions/favorite.actions';
 import { Badge } from '@/components/ui/badge';
 import { formatNumberLocale } from '@/lib/persian';
 import { LOW_STOCK_THRESHOLD } from '@/lib/constants';
-import {
-  bestVariantPercent,
-  classifyProduct,
-} from '@/lib/discount-math';
 import PriceCard from '@/components/shared/product/price-card';
 import {
   breadcrumbJsonLd,
@@ -121,11 +117,6 @@ const ProductDetailsPage = async (props: {
     }
   }
 
-  // Computed once here and passed down, so the price card and the variant
-  // selector can never each decide for themselves what the discount is.
-  const variantState = classifyProduct(variants);
-  const bestPercent = bestVariantPercent(variants);
-
   // Load the visitor's cart so AddToCart can show +/- controls
   const cart = await getMyCart();
   const isFavorited = await isProductFavorited(product.id);
@@ -194,18 +185,11 @@ const ProductDetailsPage = async (props: {
                 {formatNumberLocale(product.numReviews, locale)} {t('reviews')}
               </span>
             </div>
-            {/* The one and only price block on this page. */}
-            <PriceCard
-              price={Number(product.price)}
-              compareAtPrice={
-                product.compareAtPrice == null
-                  ? null
-                  : Number(product.compareAtPrice)
-              }
-              variantState={variantState}
-              bestVariantPercent={bestPercent}
-              className='w-fit min-w-64'
-            />
+            {/* No price here. On a product with variants the price lives in the
+                variant selector, where it can show the SELECTED variant's
+                price and discount; the action column renders this same card
+                for a product with no variants, so the price always appears
+                exactly once and always next to the choice that sets it. */}
           </div>
           <div className='mt-10'>
             <p className='font-semibold mb-2'>{t('description')}:</p>
@@ -260,7 +244,15 @@ const ProductDetailsPage = async (props: {
           ) : (
             <Card className='w-auto max-w-full overflow-hidden lg:sticky lg:top-24'>
               <CardContent className='p-4 min-w-0'>
-                <div className="mb-2 flex justify-between">
+                <PriceCard
+                  price={Number(product.price)}
+                  compareAtPrice={
+                    product.compareAtPrice == null
+                      ? null
+                      : Number(product.compareAtPrice)
+                  }
+                />
+                <div className="mb-2 mt-3 flex justify-between">
                   <div>{t('status')}</div>
                   {product.stock > 0 ? (
                     product.stock <= LOW_STOCK_THRESHOLD ? (

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import AddToCart from '@/components/shared/product/add-to-cart';
 import FavoriteToggle from '@/components/shared/product/favorite-toggle';
+import PriceCard from '@/components/shared/product/price-card';
 import { cn } from '@/lib/utils';
 import { LOW_STOCK_THRESHOLD } from '@/lib/constants';
 import { formatNumberLocale } from '@/lib/persian';
@@ -68,14 +69,14 @@ const VariantSelector = ({
   const image = active?.image || defaultImage;
   const stock = active?.stock ?? 0;
   const complete = selected != null;
-  // The price card shows the product's "from" price, which is the cheapest
-  // purchasable variant. Only say something when the shopper has actually
-  // picked something dearer, so the number on screen is never ambiguous.
-  const cheapest = useMemo(
-    () => Math.min(...variants.map((v) => Number(v.price))),
-    [variants]
-  );
-  const priceChanged = complete && price !== cheapest;
+  // The selected variant's OWN original price. The product page shows this
+  // card inside the selector, so it reports the exact thing the shopper is
+  // about to add to the cart — never a product-level aggregate, which on a
+  // product whose variants disagree would name a discount this variant does
+  // not carry.
+  const compareAtPrice = active?.compareAtPrice
+    ? Number(active.compareAtPrice)
+    : null;
 
   const choose = (optionId: string, valueId: string) => {
     setSelection((prev) => ({ ...prev, [optionId]: valueId }));
@@ -149,19 +150,14 @@ const VariantSelector = ({
           );
         })}
 
-        {/* No price here: the product page prints it once, in the price card.
-            This row is only meaningful when the shopper has actually changed
-            the selection, so it says so rather than repeating a number. */}
-        {priceChanged && (
-          <div className='flex items-center justify-between border-t pt-3'>
-            <span className='text-xs text-muted-foreground'>
-              {t('selectedVariantPrice')}
-            </span>
-            <span className='text-sm font-medium'>
-              {formatNumberLocale(price, locale)}
-            </span>
-          </div>
-        )}
+        {/* The product page's one price block, living here so it can report
+            the SELECTED variant's price and discount. The details column has
+            no price at all. */}
+        <PriceCard
+          price={price}
+          compareAtPrice={compareAtPrice}
+          className='mt-3'
+        />
 
         <div className='flex items-center justify-between'>
           <span className='text-sm'>{t('status')}</span>
