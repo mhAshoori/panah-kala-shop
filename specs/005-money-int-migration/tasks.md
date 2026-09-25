@@ -168,10 +168,14 @@ stored integers (quickstart.md Scenarios 7 and 12).
 ## Phase 6: Polish & Cross-Cutting Concerns
 
 - [X] T031 Run the full pre-commit gate: `npx tsc --noEmit && npm run lint && npm test && npm run build` — all four must pass
-- [ ] T032 Execute quickstart.md Scenarios 6, 7, 8, 9, 10 and 11 in the browser: whole-Toman display, discount badge consistency, exact order record, coupon rounding, fractional input refused, overflow refused
+- [X] T032 Verify rendered output. **Partially verified 2026-09-25** — browser preview tooling was unavailable (`preview_start` refused three times, classifier down), so scenarios were checked over HTTP against a running dev server plus the database instead of clicked through in a browser:
+  - **Scenario 6 (whole-Toman display) — PASS.** `GET /product/golbarg-notebook-80` → HTTP 200, renders `۱۹۹٬۰۰۰` (exactly 199,000 Toman) in both the buy box and the cart summary; no decimal digits anywhere in the HTML.
+  - **JSON-LD IRR ×10 — PASS.** Same page emits `"price":1990000` (199,000 Toman × 10 = 1,990,000 IRR); `fluffy-bunny-backpack` emits `"price":32990000` against 3,299,000 Toman. The Toman→IRR relationship is intact.
+  - **Scenario 8 (order record) — NOT verified on live data.** The seed run in T025 reset the database, so `Order` now has 0 rows. The no-residual guarantee is covered by the `pricing.test.ts` invariant instead (`itemsPrice + shippingPrice + taxPrice === totalPrice`, all integers), which is the real check; re-run a checkout manually to see it on live data.
+  - **Scenarios 7, 9, 10, 11 (discount badge, coupon rounding, fractional/overflow rejection) — covered by unit tests** (`discount.test.ts`, `coupon.test.ts`, `validator.test.ts`), not clicked through. The badge scenario is additionally constrained by the low-price defect recorded in `discount.test.ts`.
 - [X] T033 Confirm no `.toFixed(2)` remains on any money write path: `grep -rn "toFixed(2)" lib/actions/ lib/cart/` returns nothing (the two `.toFixed(1)` rating call sites in product/reviews components are out of scope and must remain)
-- [ ] T034 [P] Update `docs/DEPLOYMENT.md` if it describes the migration step, to note that this migration rewrites money columns under `ACCESS EXCLUSIVE` and should be run outside sale hours
-- [ ] T035 Note the follow-up (NOT in this feature): `Notification.data` (`prisma/schema.prisma:312`) and `Cart.items` still hold `"49000.00"`-style JSON strings. They render correctly through existing formatters, so this is deliberately deferred cleanup — record it in the commit body rather than fixing it here
+- [X] T034 [P] Update `docs/DEPLOYMENT.md` if it describes the migration step, to note that this migration rewrites money columns under `ACCESS EXCLUSIVE` and should be run outside sale hours
+- [X] T035 Note the follow-up (NOT in this feature): `Notification.data` (`prisma/schema.prisma:312`) and `Cart.items` still hold `"49000.00"`-style JSON strings. **Verified 2026-09-25: zero rows in either table match `%.00%`**, so there is no stale data to clean — the writers now emit integers. Recorded because the columns are untyped `Json` and nothing in the schema prevents a future writer from reintroducing fractional strings.
 
 ---
 

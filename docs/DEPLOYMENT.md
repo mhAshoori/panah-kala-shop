@@ -146,6 +146,14 @@ npx prisma migrate deploy
 npm run build
 ```
 
+`migrate deploy` is a one-way step — there is no automatic rollback. Some
+migrations rewrite tables under an `ACCESS EXCLUSIVE` lock (the
+`20260925120000_money_to_integer` one converts every money column from
+`numeric(12,2)` to `integer`), which is fine for a small store but will block
+concurrent queries for the duration. Run it outside sale hours. After any
+schema change, `npx prisma generate` is required before the build — a stale
+client keeps deserializing new column types incorrectly.
+
 Copy static assets into the standalone bundle:
 
 ```bash
