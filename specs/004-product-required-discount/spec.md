@@ -201,7 +201,10 @@ placeholder on its detail page.
 - **FR-013**: The stored price and price-before-discount MUST be the single source
   of truth for the storefront's displayed price and discount badge; the
   percentage is derived for display and MUST NOT be stored as a separate
-  authoritative value.
+  authoritative value. Because only two whole-number values are stored, the
+  derived percentage is floored and therefore may be lower than the percentage
+  the administrator typed; it MUST never be higher, and the guarantee is that the
+  badge never overstates the saving, not that it always equals the typed value.
 - **FR-014**: Opening an existing discounted product for editing MUST show the
   percentage, the selling price, and the price-before-discount, all consistent
   with what the storefront displays.
@@ -251,11 +254,14 @@ placeholder on its detail page.
   refused with a field-specific message; zero incomplete products are created or
   modified through any path, including direct requests that bypass the browser.
 - **SC-002**: An administrator can set a product's discount by typing a percentage
-  into a single field, and the form shows the correct price-before-discount and
-  sale price immediately, with no manual calculation and no second editable field.
+  into a single field, and the form shows the price-before-discount and sale price
+  that follow from it immediately, with no manual calculation and no second
+  editable field; when whole Toman makes the exact percentage unrepresentable, the
+  form shows the percentage that its own numbers actually produce.
 - **SC-003**: For every product shown on the storefront with a discount, the
-  displayed discount percentage and sale price match the prices the administrator
-  entered, with no discrepancy visible to shoppers.
+  displayed sale price and the price-before-discount match the prices the
+  administrator entered, and the displayed discount percentage is never higher
+  than the actual saving it represents.
 - **SC-004**: A fully completed product form saves in a single submission with no
   correction round-trip.
 - **SC-005**: An administrator can understand the price and discount fields
