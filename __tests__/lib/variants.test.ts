@@ -126,26 +126,28 @@ describe('cartesian', () => {
 });
 
 describe('recomputeParent', () => {
-  it('price = min, stock = sum', () => {
+  it('price = min, stock = sum, returned as integers', () => {
     const r = recomputeParent([
-      { price: '120000', stock: 2 },
-      { price: '90000', stock: 3 },
+      { price: 120000, stock: 2 },
+      { price: 90000, stock: 3 },
     ]);
-    expect(r).toEqual({ price: '90000', compareAtPrice: null, stock: 5 });
+    // Numbers, not strings: these are written straight into Int columns, and a
+    // .toString() here would let the test stay green on a broken write path.
+    expect(r).toEqual({ price: 90000, compareAtPrice: null, stock: 5 });
   });
 
   it('compareAtPrice = lowest non-null', () => {
     const r = recomputeParent([
-      { price: '100000', compareAtPrice: '150000', stock: 1 },
-      { price: '120000', compareAtPrice: '200000', stock: 1 },
-      { price: '110000', compareAtPrice: null, stock: 1 },
+      { price: 100000, compareAtPrice: 150000, stock: 1 },
+      { price: 120000, compareAtPrice: 200000, stock: 1 },
+      { price: 110000, compareAtPrice: null, stock: 1 },
     ]);
-    expect(r.compareAtPrice).toBe('150000');
-    expect(r.price).toBe('100000');
+    expect(r.compareAtPrice).toBe(150000);
+    expect(r.price).toBe(100000);
   });
 
   it('handles the empty list', () => {
-    expect(recomputeParent([])).toEqual({ price: '0', compareAtPrice: null, stock: 0 });
+    expect(recomputeParent([])).toEqual({ price: 0, compareAtPrice: null, stock: 0 });
   });
 });
 

@@ -1,7 +1,7 @@
 import { mergeCartItems } from '@/lib/cart/merge';
 import { CartItem } from '@/types';
 
-const item = (productId: string, qty: number, price = '100000'): CartItem => ({
+const item = (productId: string, qty: number, price = 100000): CartItem => ({
   productId,
   qty,
   price,

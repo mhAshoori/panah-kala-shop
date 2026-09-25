@@ -96,9 +96,14 @@ describe('couponDiscount', () => {
     expect(couponDiscount('fixed', 0, 1000000)).toBe(0);
   });
 
-  it('handles fractional results without FP drift', () => {
-    // 15% of 999,999 = 149,999.85 exactly (2dp is correct for money)
-    expect(couponDiscount('percent', 15, 999999)).toBe(149999.85);
+  it('rounds percent results to whole Toman', () => {
+    // 15% of 999,999 = 149,999.85 → whole Toman rounds half-up to 150,000.
+    expect(couponDiscount('percent', 15, 999999)).toBe(150000);
+  });
+
+  it('rounds a tiny percent result down to zero rather than erroring', () => {
+    // 1% of 10 = 0.1 → 0. Handled, not a failure.
+    expect(couponDiscount('percent', 1, 10)).toBe(0);
   });
 });
 

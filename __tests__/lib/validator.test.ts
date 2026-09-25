@@ -21,7 +21,7 @@ const validProduct = {
   isFeatured: false,
   banner: null,
   codAvailable: false,
-  price: '50000000.00',
+  price: '50000000',
 };
 
 describe('insertProductSchema', () => {
@@ -41,16 +41,28 @@ describe('insertProductSchema', () => {
     ).toThrow();
   });
 
-  it('normalizes integer prices to two decimals', () => {
+  it('accepts whole-Toman prices', () => {
     expect(() =>
       insertProductSchema.parse({ ...validProduct, price: '50000000' })
     ).not.toThrow();
   });
 
-  it('rejects prices with more than two decimal places', () => {
+  it('rejects fractional Toman prices', () => {
+    expect(() =>
+      insertProductSchema.parse({ ...validProduct, price: '100.5' })
+    ).toThrow();
     expect(() =>
       insertProductSchema.parse({ ...validProduct, price: '50000000.123' })
     ).toThrow();
+  });
+
+  it('rejects prices above the 32-bit integer ceiling', () => {
+    expect(() =>
+      insertProductSchema.parse({ ...validProduct, price: '2147483648' })
+    ).toThrow();
+    expect(() =>
+      insertProductSchema.parse({ ...validProduct, price: '2147483647' })
+    ).not.toThrow();
   });
 });
 

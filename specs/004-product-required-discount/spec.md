@@ -202,9 +202,16 @@ placeholder on its detail page.
   of truth for the storefront's displayed price and discount badge; the
   percentage is derived for display and MUST NOT be stored as a separate
   authoritative value. Because only two whole-number values are stored, the
-  derived percentage is floored and therefore may be lower than the percentage
-  the administrator typed; it MUST never be higher, and the guarantee is that the
-  badge never overstates the saving, not that it always equals the typed value.
+  derived percentage is an approximation of the percentage the administrator
+  typed, and the rounding direction is what guarantees the shopper is not
+  misled: the badge MUST never show a saving larger than the actual saving
+  between the two stored prices. **[Constraint discovered during 005
+  implementation]** Whole-Toman granularity makes this unachievable below a
+  price floor — a price of 7 Toman at a typed 10% needs a price-before-discount
+  of 7.78, and rounding half-up to 8 yields a real saving of 1/8, which a badge
+  would report as 12%. The form MUST therefore either refuse a discount whose
+  derived badge would exceed the typed percentage, or derive
+  price-before-discount by rounding so the badge can only ever understate.
 - **FR-014**: Opening an existing discounted product for editing MUST show the
   percentage, the selling price, and the price-before-discount, all consistent
   with what the storefront displays.
@@ -260,8 +267,9 @@ placeholder on its detail page.
   form shows the percentage that its own numbers actually produce.
 - **SC-003**: For every product shown on the storefront with a discount, the
   displayed sale price and the price-before-discount match the prices the
-  administrator entered, and the displayed discount percentage is never higher
-  than the actual saving it represents.
+  administrator entered, and the displayed discount percentage never claims a
+  saving larger than the difference between the two displayed prices — for any
+  price at or above the whole-Toman price floor the admin form enforces.
 - **SC-004**: A fully completed product form saves in a single submission with no
   correction round-trip.
 - **SC-005**: An administrator can understand the price and discount fields

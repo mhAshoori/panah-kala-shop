@@ -76,7 +76,7 @@ describe('lib/seo — structured data (SEO for the Persian market)', () => {
       images: ['/images/sample-products/p1.webp'],
       brand: 'Apple',
       slug: 'iphone-15-pro',
-      price: '68500000.00',
+      price: 68500000,
       rating: '4.8',
       numReviews: 132,
       stock: 12,
@@ -88,12 +88,11 @@ describe('lib/seo — structured data (SEO for the Persian market)', () => {
       expect(jsonLd.offers.price).toBe(685000000);
     });
 
-    it('rounds non-integer Toman prices correctly in IRR', () => {
-      const jsonLd = productJsonLd(
-        { ...product, price: '1234567.89' },
-        'fa'
-      );
-      expect(jsonLd.offers.price).toBe(12345679);
+    it('keeps the Toman-to-IRR relationship for whole-Toman prices', () => {
+      // Money is whole Toman as an Int, but JSON-LD still requires IRR, so the
+      // x10 conversion and its rounding stay exactly as they were.
+      const jsonLd = productJsonLd({ ...product, price: 1234567 }, 'fa');
+      expect(jsonLd.offers.price).toBe(12345670);
     });
 
     it('localizes name and description per locale', () => {
