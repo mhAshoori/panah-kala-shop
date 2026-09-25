@@ -1,0 +1,34 @@
+# Pre-migration money baseline — 005-money-int-migration
+# Captured 2026-09-25 against the dev database (T003).
+# Re-run the same queries after `migrate deploy` and compare (T010).
+# Sums are Decimal strings; the two 0.01 compareAtPrice values round to 0.00, so
+# compareAtPrice sums are excluded here on purpose — only the *stored integer*
+# columns that must be preserved exactly are baselined.
+
+Order:        n=10   sum(totalPrice)=9051300.00
+OrderItem:    n=19   sum(price)=7531000.00
+Product:      n=14   sum(price)=44437000.00
+ProductVariant: n=47 sum(price)=68334000.00
+Cart:         n=4
+Coupon:       n=5
+UnbalancedOrders: 0
+
+# GATE RESULT (T002): initially HALT — 2 fractional values found; then
+# reconciled and re-run to all zeros. See the reconciliation note below.
+#
+# RECONCILIATION APPLIED (user-approved 2026-09-25): both offending rows had
+# compareAtPrice = 0.01, a "0.01 sentinel" meaning "not discounted". The
+# storefront predicate is strictly compareAtPrice > price (lib/discount.ts:22),
+# so 0.01 <= 3299000 already produced no discount badge — a no-op sentinel, not
+# a real markdown. Set to NULL, the canonical "no discount" value every other
+# product and the seed already use. Behaviour unchanged.
+#   UPDATE "Product"       SET "compareAtPrice"=NULL WHERE ...  -> 1 row (Fluffy Bunny Backpack)
+#   UPDATE "ProductVariant" SET "compareAtPrice"=NULL WHERE ...  -> 1 row
+# Re-audit: all 17 columns fractional=0, unbalanced orders=0 -> SAFE TO MIGRATE.
+#
+# Original offending rows (both the same product, hand-entered live data, NOT in seed):
+#   Product       f4948a73-276a-4333-b078-1b6055dcf1bc  "Fluffy Bunny Backpack"
+#                 price=3299000.00  compareAtPrice=0.01
+#   ProductVariant 93993a88-79fc-4ca9-9448-141c10c1e046
+#                 key=dbcbea81-f0b9-4318-aead-33fa545864e8
+#                 price=3299000.00  compareAtPrice=0.01
