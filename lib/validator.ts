@@ -30,14 +30,27 @@ export const insertProductSchema = z.object({
   brand: z.string().min(3, 'Brand must be at least 3 characters'),
   description: z.string().min(3, 'Description must be at least 3 characters'),
   descriptionFa: z.string().min(3, 'توضیحات باید حداقل ۳ کاراکتر باشد'),
-  stock: z.coerce.number(),
+  // Whole units, never negative. Rejecting the empty string BEFORE coercion is
+  // the point: `z.coerce.number()` turns '' into 0, so the int/min rules never
+  // see it, which is how an unsellable product used to be saved with a cleared
+  // stock field. Accepts a number too, since callers other than the form pass
+  // one (seed data, tests).
+  stock: z
+    .union([z.string(), z.number()])
+    .refine((v) => String(v).trim() !== '', 'Stock is required')
+    .transform((v) => Number(v))
+    .refine((v) => Number.isInteger(v), 'Stock must be a whole number')
+    .refine((v) => v >= 0, 'Stock cannot be negative'),
   images: z.array(z.string()).min(1, 'Product must have at least one image'),
   isFeatured: z.boolean(),
   banner: z.string().nullable(),
   codAvailable: z.boolean(),
   // Validated as a whole-Toman string, then coerced to a number for the Int
   // column — so the form contract stays string-based while the write is typed.
-  price: currency.transform((v) => Number(v)),
+  // Positivity is enforced here: a free product is not sellable.
+  price: currency
+    .transform((v) => Number(v))
+    .refine((v) => v > 0, 'Price must be greater than zero'),
   // Original price for showing a discount; must be empty or > price
   compareAtPrice: z
     .union([currency, z.literal('')])
@@ -96,7 +109,17 @@ export const variantInputSchema = z.object({
     .transform((v) => (v === '' || v === undefined ? null : Number(v))),
   stock: z.coerce.number().int().min(0, 'Stock cannot be negative'),
   image: z.string().nullish(),
-});
+})
+  // Same rule the parent product has: a "discount" that is not above the
+  // selling price is not a discount, and getDiscount would show no badge for
+  // it — so it is a data error rather than a silent no-op.
+  .refine(
+    (v) => v.compareAtPrice == null || v.compareAtPrice > v.price,
+    {
+      message: 'compareAtPrice must be greater than price',
+      path: ['compareAtPrice'],
+    }
+  );
 
 export const productOptionsPayloadSchema = z.object({
   options: z.array(productOptionSchema).min(1, 'At least one option is required'),

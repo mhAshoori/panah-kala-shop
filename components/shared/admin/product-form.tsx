@@ -203,6 +203,27 @@ const ProductForm = ({
     return () => window.removeEventListener('beforeunload', handler);
   }, [isDirty]);
 
+  // Images are the one mandatory field with no browser-level gate: the list is
+  // a hidden JSON field, so an empty list reaches the server and is refused
+  // there with a toast naming a field the admin never saw. Gate it here
+  // instead, so the refusal happens before submission (T014).
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (images.length === 0) {
+      e.preventDefault();
+      toast.error(t('atLeastOneImageRequired'));
+      return;
+    }
+    // Product price must be strictly positive; the browser's min='1' already
+    // covers this, but the check keeps the rule explicit next to the images
+    // gate so both live in one place.
+    const priceInput = formRef.current?.elements.namedItem('price');
+    if (priceInput instanceof HTMLInputElement && Number(priceInput.value) <= 0) {
+      e.preventDefault();
+      toast.error(t('priceMustBePositive'));
+      return;
+    }
+  };
+
   // Reset every field to its initial value (discard)
   const onDiscard = () => {
     const form = formRef.current;
@@ -251,7 +272,12 @@ const ProductForm = ({
   };
 
   return (
-    <form ref={formRef} action={formAction} className='space-y-6'>
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={onSubmit}
+      className='space-y-6'
+    >
       {type === 'Update' && <input type='hidden' name='id' value={productId} />}
       <input type='hidden' name='images' value={JSON.stringify(images)} />
       <input
@@ -416,10 +442,10 @@ const ProductForm = ({
               id='price'
               name='price'
               type='number'
-              step='0.01'
-              min='0'
+              step='1'
+              min='1'
               defaultValue={product?.price}
-              placeholder='0.00'
+              placeholder='0'
               required
             />
           </Field>
@@ -431,8 +457,8 @@ const ProductForm = ({
               id='compareAtPrice'
               name='compareAtPrice'
               type='number'
-              step='0.01'
-              min='0'
+              step='1'
+              min='1'
               defaultValue={product?.compareAtPrice ?? ''}
               placeholder={t('compareAtPriceHint')}
             />

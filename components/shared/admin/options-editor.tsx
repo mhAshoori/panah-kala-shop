@@ -362,19 +362,19 @@ const OptionsEditor = ({
                       <td className='p-2'>
                         <Input
                           type='number'
-                          step='0.01'
-                          min='0'
+                          step='1'
+                          min='1'
                           value={alignedVariants[i].price}
                           onChange={(e) => setVariant(i, { price: e.target.value })}
-                          placeholder='0.00'
+                          placeholder='0'
                           className='w-28'
                         />
                       </td>
                       <td className='p-2'>
                         <Input
                           type='number'
-                          step='0.01'
-                          min='0'
+                          step='1'
+                          min='1'
                           value={alignedVariants[i].compareAtPrice}
                           onChange={(e) =>
                             setVariant(i, { compareAtPrice: e.target.value })

@@ -442,6 +442,8 @@
     "price": "Price",
     "compareAtPrice": "Original Price (before discount)",
     "compareAtPriceHint": "Empty = no discount",
+    "atLeastOneImageRequired": "A product needs at least one image",
+    "priceMustBePositive": "Price must be greater than zero",
     "stock": "Stock",
     "lengthCm": "Length (cm)",
     "widthCm": "Width (cm)",

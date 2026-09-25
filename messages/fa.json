@@ -442,6 +442,8 @@
     "price": "قیمت",
     "compareAtPrice": "قیمت قبل از تخفیف",
     "compareAtPriceHint": "خالی = بدون تخفیف",
+    "atLeastOneImageRequired": "حداقل یک تصویر برای محصول لازم است",
+    "priceMustBePositive": "قیمت باید بزرگ‌تر از صفر باشد",
     "stock": "موجودی",
     "lengthCm": "طول (سانتی‌متر)",
     "widthCm": "عرض (سانتی‌متر)",

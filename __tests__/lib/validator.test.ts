@@ -1,5 +1,6 @@
 import {
   insertProductSchema,
+  variantInputSchema,
   signUpFormSchema,
   shippingAddressSchema,
   insertReviewSchema,
@@ -62,6 +63,64 @@ describe('insertProductSchema', () => {
     ).toThrow();
     expect(() =>
       insertProductSchema.parse({ ...validProduct, price: '2147483647' })
+    ).not.toThrow();
+  });
+
+  it('rejects a zero price — a free product is not sellable', () => {
+    expect(() =>
+      insertProductSchema.parse({ ...validProduct, price: '0' })
+    ).toThrow();
+    expect(() =>
+      insertProductSchema.parse({ ...validProduct, price: '1' })
+    ).not.toThrow();
+  });
+
+  it('rejects blank, negative and fractional stock', () => {
+    // Blank previously became 0 through Number(''), so an admin who cleared the
+    // field silently produced an unsellable product.
+    expect(() =>
+      insertProductSchema.parse({ ...validProduct, stock: '' })
+    ).toThrow();
+    expect(() =>
+      insertProductSchema.parse({ ...validProduct, stock: '-1' })
+    ).toThrow();
+    expect(() =>
+      insertProductSchema.parse({ ...validProduct, stock: '1.5' })
+    ).toThrow();
+  });
+
+  it('accepts zero stock — a product may exist while out of stock', () => {
+    expect(() =>
+      insertProductSchema.parse({ ...validProduct, stock: '0' })
+    ).not.toThrow();
+  });
+});
+
+describe('variantInputSchema', () => {
+  const variant = {
+    key: '',
+    price: '1000',
+    stock: 5,
+  };
+
+  it('accepts a variant with no discount', () => {
+    expect(() => variantInputSchema.parse({ ...variant })).not.toThrow();
+  });
+
+  it('rejects a variant whose compareAtPrice is not above its price', () => {
+    // A "discount" that is not a discount is a data error, and the parent
+    // schema already refuses it — the variant path did not.
+    expect(() =>
+      variantInputSchema.parse({ ...variant, compareAtPrice: '1000' })
+    ).toThrow();
+    expect(() =>
+      variantInputSchema.parse({ ...variant, compareAtPrice: '900' })
+    ).toThrow();
+  });
+
+  it('accepts a variant whose compareAtPrice is above its price', () => {
+    expect(() =>
+      variantInputSchema.parse({ ...variant, compareAtPrice: '1500' })
     ).not.toThrow();
   });
 });
