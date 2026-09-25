@@ -491,7 +491,7 @@ export async function getAllProducts({
       slug: string;
       category: string;
       categoryFa: string;
-      price: string;
+      price: number;
       stock: number;
       rating: string;
     })[]
@@ -642,7 +642,7 @@ async function replaceProductDiversity(
   }
 
   const seenKeys = new Set<string>();
-  const variantRows: { price: string; compareAtPrice: string | null; stock: number }[] = [];
+  const variantRows: { price: number; compareAtPrice: number | null; stock: number }[] = [];
   for (const [comboIdx, input] of diversity.variants.entries()) {
     const explicitIndexes = useExplicit
       ? (input.combo as number[] | undefined)
@@ -671,8 +671,10 @@ async function replaceProductDiversity(
       data: {
         productId,
         key,
-        price: input.price,
-        compareAtPrice: input.compareAtPrice,
+        // Whole Toman integers; the form submits validated decimal strings.
+        price: Number(input.price),
+        compareAtPrice:
+          input.compareAtPrice == null ? null : Number(input.compareAtPrice),
         stock: input.stock,
         options: snapshot,
         image: input.image ?? null,

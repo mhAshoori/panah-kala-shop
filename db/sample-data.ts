@@ -1,4 +1,4 @@
-// Seed source data. Prices are in Toman (stored as Decimal strings for Prisma).
+// Seed source data. Prices are whole Toman numbers (Int columns).
 // Names carry fa/en pairs for the bilingual UI.
 //
 // Catalog: the user's real stationery/bag products with color/pattern
@@ -50,8 +50,8 @@ export type SampleOptionValue = {
 };
 
 export type SampleVariant = {
-  price: string; // Toman, two decimals for Prisma Decimal
-  compareAtPrice?: string;
+  price: number; // Toman, whole numbers (Int column)
+  compareAtPrice?: number;
   stock: number;
   image?: string; // per-variant photo override (ArvanCloud bucket URL)
 };
@@ -61,8 +61,8 @@ export type SampleVariant = {
 // product.options. A missing combination simply isn't sold.
 export type SampleCombo = {
   options: number[];
-  price: string;
-  compareAtPrice?: string;
+  price: number;
+  compareAtPrice?: number;
   stock: number;
   image?: string;
 };
@@ -156,9 +156,9 @@ const products: SampleProduct[] = [
         nameFa: 'رنگ',
         values: [C.blue, C.red, C.black],
         variants: [
-          { price: '59000.00', stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-abi.webp') },
-          { price: '59000.00', stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-ghermez.webp') },
-          { price: '59000.00', stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-meshki.webp') },
+          { price: 59000, stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-abi.webp') },
+          { price: 59000, stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-ghermez.webp') },
+          { price: 59000, stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-meshki.webp') },
         ],
       },
     ],
@@ -195,12 +195,12 @@ const products: SampleProduct[] = [
         nameFa: 'رنگ',
         values: [C.blue, C.jade, C.purple, C.orange,C.skyBlue,C.green],
         variants: [
-          { price: '199000.00', stock: 2 },
-          { price: '199000.00', stock: 2 },
-          { price: '199000.00', stock: 2 },
-          { price: '199000.00', stock: 2 },
-          { price: '199000.00', stock: 2 },
-          { price: '199000.00', stock: 2 },
+          { price: 199000, stock: 2 },
+          { price: 199000, stock: 2 },
+          { price: 199000, stock: 2 },
+          { price: 199000, stock: 2 },
+          { price: 199000, stock: 2 },
+          { price: 199000, stock: 2 },
         ],
       },
     ],
@@ -247,10 +247,10 @@ const products: SampleProduct[] = [
       },
     ],
     combos: [
-      { options: [0, 0], price: '49000.00', stock: 10, image: asset('products/initial-products/seed-data/medad-hb-1.jpg') },
-      { options: [0, 1], price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-1-1-kaleh-ghermez.jpg') },
-      { options: [0, 2], price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-2-1-kaleh-siah.jpg') },
-      { options: [0, 3], price: '49000.00', stock: 10, image: asset('products/initial-products/imgs/medad-2-3-kaleh-siah.jpg') },
+      { options: [0, 0], price: 49000, stock: 10, image: asset('products/initial-products/seed-data/medad-hb-1.jpg') },
+      { options: [0, 1], price: 49000, stock: 10, image: asset('products/initial-products/imgs/medad-1-1-kaleh-ghermez.jpg') },
+      { options: [0, 2], price: 49000, stock: 10, image: asset('products/initial-products/imgs/medad-2-1-kaleh-siah.jpg') },
+      { options: [0, 3], price: 49000, stock: 10, image: asset('products/initial-products/imgs/medad-2-3-kaleh-siah.jpg') },
     ],
   },
   // 4 — نوشت‌افزار > پاک کن
@@ -290,9 +290,9 @@ const products: SampleProduct[] = [
       },
     ],
     combos: [
-      { options: [0, 0], price: '99000.00', stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-1-all-kachal-sho.webp') },
-      { options: [0, 1], price: '99000.00', stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-2-all-kachal-sho.webp') },
-      { options: [0, 2], price: '99000.00', stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-3-all-kachal-sho.webp') },
+      { options: [0, 0], price: 99000, stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-1-all-kachal-sho.webp') },
+      { options: [0, 1], price: 99000, stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-2-all-kachal-sho.webp') },
+      { options: [0, 2], price: 99000, stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-3-all-kachal-sho.webp') },
     ],
   },
   // 5 — نوشت‌افزار > مداد نوکی
@@ -320,10 +320,10 @@ const products: SampleProduct[] = [
         nameFa: 'رنگ',
         values: [C.purple, C.skyBlue, C.pink, C.white],
         variants: [
-          { price: '99000.00', stock: 10 },
-          { price: '99000.00', stock: 10 },
-          { price: '99000.00', stock: 10 },
-          { price: '99000.00', stock: 10 },
+          { price: 99000, stock: 10 },
+          { price: 99000, stock: 10 },
+          { price: 99000, stock: 10 },
+          { price: 99000, stock: 10 },
         ],
       },
     ],
@@ -353,10 +353,10 @@ const products: SampleProduct[] = [
         nameFa: 'رنگ',
         values: [C.blue, C.pink, C.green, C.yellow],
         variants: [
-          { price: '99000.00', stock: 5 },
-          { price: '99000.00', stock: 5 },
-          { price: '99000.00', stock: 5 },
-          { price: '99000.00', stock: 5 },
+          { price: 99000, stock: 5 },
+          { price: 99000, stock: 5 },
+          { price: 99000, stock: 5 },
+          { price: 99000, stock: 5 },
         ],
       },
     ],
@@ -397,9 +397,9 @@ const products: SampleProduct[] = [
         nameFa: 'رنگ',
         values: [C.pink, C.skyBlue, C.purple],
         variants: [
-          { price: '699000.00', stock: 4, image: asset('products/initial-products/seed-data/jamedadi-soorati-1.jpg') },
-          { price: '699000.00', stock: 4, image: asset('products/initial-products/seed-data/jamedadi-soorati-1.jpg') },
-          { price: '699000.00', stock: 4, image: asset('products/initial-products/seed-data/jamedadi-banafsh-1.jpg') },
+          { price: 699000, stock: 4, image: asset('products/initial-products/seed-data/jamedadi-soorati-1.jpg') },
+          { price: 699000, stock: 4, image: asset('products/initial-products/seed-data/jamedadi-soorati-1.jpg') },
+          { price: 699000, stock: 4, image: asset('products/initial-products/seed-data/jamedadi-banafsh-1.jpg') },
         ],
       },
     ],
@@ -432,11 +432,11 @@ const products: SampleProduct[] = [
         nameFa: 'رنگ',
         values: [C.pink, C.skyBlue, C.lightYellow, C.purple, C.green],
         variants: [
-          { price: '39000.00', stock: 10 },
-          { price: '39000.00', stock: 10 },
-          { price: '39000.00', stock: 10 },
-          { price: '39000.00', stock: 10 },
-          { price: '39000.00', stock: 10 },
+          { price: 39000, stock: 10 },
+          { price: 39000, stock: 10 },
+          { price: 39000, stock: 10 },
+          { price: 39000, stock: 10 },
+          { price: 39000, stock: 10 },
         ],
       },
     ],
@@ -471,7 +471,7 @@ const products: SampleProduct[] = [
         name: 'color',
         nameFa: 'رنگ',
         values: [design('Multicolor', 'چند رنگ')],
-        variants: [{ price: '299000.00', stock: 10 }],
+        variants: [{ price: 299000, stock: 10 }],
       },
     ],
   },
@@ -504,7 +504,7 @@ const products: SampleProduct[] = [
         name: 'color',
         nameFa: 'رنگ',
         values: [design('black with flowers', 'مشکی گل دار')],
-        variants: [{ price: '299000.00', stock: 5 }],
+        variants: [{ price: 299000, stock: 5 }],
       },
     ],
   },
@@ -544,8 +544,8 @@ const products: SampleProduct[] = [
         nameFa: 'رنگ',
         values: [C.lightYellow, C.skyBlue],
         variants: [
-          { price: '3299000.00', stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-keremi-1.jpg') },
-          { price: '3299000.00', stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-1.jpg') },
+          { price: 3299000, stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-keremi-1.jpg') },
+          { price: 3299000, stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-1.jpg') },
         ],
       },
     ],
@@ -596,10 +596,10 @@ const products: SampleProduct[] = [
         nameFa: 'رنگ',
         values: [C.lightBrown, C.pink, C.jigari, C.black],
         variants: [
-          { price: '1999000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-keremi-1.jpg') },
-          { price: '1999000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-soorati-1.jpg') },
-          { price: '1999000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-jigari-1.jpg') },
-          { price: '1999000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-meshki-1.jpg') },
+          { price: 1999000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-keremi-1.jpg') },
+          { price: 1999000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-soorati-1.jpg') },
+          { price: 1999000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-jigari-1.jpg') },
+          { price: 1999000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-meshki-1.jpg') },
         ],
       },
     ],
@@ -674,12 +674,12 @@ const products: SampleProduct[] = [
     ],
     // رنگ: قهوه‌ای ۵ طرح، زرد طرح ۱ — explicit combos, not full cartesian
     combos: [
-      { options: [0, 0], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-1.jpg') },
-      { options: [0, 1], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-2-1.jpg') },
-      { options: [0, 2], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-3-1.jpg') },
-      { options: [0, 3], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-4-1.jpg') },
-      { options: [0, 4], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-5-2.jpg') },
-      { options: [1, 0], price: '2199000.00', stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-1.jpg') },
+      { options: [0, 0], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-1.jpg') },
+      { options: [0, 1], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-2-1.jpg') },
+      { options: [0, 2], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-3-1.jpg') },
+      { options: [0, 3], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-4-1.jpg') },
+      { options: [0, 4], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-5-2.jpg') },
+      { options: [1, 0], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-1.jpg') },
     ],
   },
 ];

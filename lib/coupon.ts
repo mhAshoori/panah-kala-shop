@@ -1,7 +1,7 @@
-import { round2 } from './utils';
-
 // Pure coupon logic — shared by cart actions, checkout, and admin CRUD.
 // unit-tested in __tests__/lib/coupon.test.ts
+//
+// Money is whole Toman (integer), so results round half-up to a whole number.
 
 export type CouponType = 'percent' | 'fixed';
 
@@ -68,10 +68,10 @@ export function couponDiscount(
   if (!Number.isFinite(v) || v <= 0) return 0;
   if (type === 'percent') {
     const pct = Math.min(Math.max(Math.floor(v), 0), 99);
-    return round2((itemsPrice * pct) / 100);
+    return Math.round((itemsPrice * pct) / 100);
   }
   // fixed Toman — never more than the subtotal itself
-  return round2(Math.min(v, itemsPrice));
+  return Math.min(v, itemsPrice);
 }
 
 /** Normalize a code for lookup: trim, uppercase, cap length. */

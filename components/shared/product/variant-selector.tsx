@@ -84,7 +84,7 @@ const VariantSelector = ({
     name: productName,
     nameFa,
     slug,
-    price: String(price),
+    price,
     image,
   };
 

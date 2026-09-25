@@ -70,18 +70,13 @@ export async function getMyCart() {
 
   if (!cart) return undefined;
 
-  // Convert Decimal values to strings for client components
+  // Money is whole Toman stored as Int, so the totals pass through as plain
+  // numbers — no Decimal stringification needed, and client components that
+  // format them keep working.
   return convertToPlainObject({
     ...cart,
     items: cart.items as CartItem[],
-    itemsPrice: cart.itemsPrice.toString(),
-    totalPrice: cart.totalPrice.toString(),
-    shippingPrice: cart.shippingPrice.toString(),
-    taxPrice: cart.taxPrice.toString(),
     couponCode: cart.couponCode ?? null,
-    // Defensive: rows in environments where the coupon migration has not
-    // run yet will not carry the field at all.
-    couponDiscount: cart.couponDiscount?.toString() ?? '0',
   });
 }
 
@@ -131,7 +126,7 @@ async function saveCart(params: {
         items: items as unknown as Prisma.InputJsonValue[],
         ...(await calcPrice(items, couponDiscountValue)),
         couponCode,
-        couponDiscount: couponDiscountValue.toFixed(2),
+        couponDiscount: couponDiscountValue,
       },
     });
   } else {
@@ -166,7 +161,7 @@ export async function addItemToCart(data: CartItem) {
 
     // Variant items check the variant's own stock, plain items the product's
     let availableStock = product.stock;
-    let serverPrice = product.price.toString();
+    let serverPrice = product.price;
     let serverImage = product.images[0] ?? item.image;
     if (item.variantId) {
       const variant = await prisma.productVariant.findUnique({
@@ -176,7 +171,7 @@ export async function addItemToCart(data: CartItem) {
         throw new Error(await msg('productNotFound'));
       }
       availableStock = variant.stock;
-      serverPrice = variant.price.toString();
+      serverPrice = variant.price;
       if (variant.image) serverImage = variant.image;
     }
     // Server is the price authority — client-sent price/display fields are
@@ -347,7 +342,7 @@ export async function applyCouponToCart(
       where: { id: cart.id },
       data: {
         couponCode: code,
-        couponDiscount: discount.toFixed(2),
+        couponDiscount: discount,
         ...totals,
       },
     });

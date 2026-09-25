@@ -169,7 +169,7 @@ async function main() {
           ...productData,
           // Required by the schema; overwritten by the derived values below
           stock: 0,
-          price: '0',
+          price: 0,
           categoryId: mainIdByName.get(p.category) ?? null,
           subCategoryId:
             subIdByPath.get(`${p.category}/${p.subCategory}`) ??
@@ -180,7 +180,7 @@ async function main() {
         },
       });
 
-      const variantRows: { price: string; compareAtPrice: string | null; stock: number }[] = [];
+      const variantRows: { price: number; compareAtPrice: number | null; stock: number }[] = [];
       const optionData = p.options ?? [];
       const comboMode = !!p.combos;
       const createdOptions: {

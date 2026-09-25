@@ -52,8 +52,8 @@ function parseCouponInput(input: CouponAdminInput) {
   return {
     code,
     type: input.type,
-    value: value.toFixed(2),
-    minCartTotal: minCartTotal.toFixed(2),
+    value,
+    minCartTotal,
     expiresAt,
     usageLimit,
     isActive: input.isActive,

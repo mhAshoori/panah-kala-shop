@@ -78,20 +78,24 @@ export async function createOrder() {
     // Server is the price authority: re-derive every item's price from the
     // DB. Cart rows are written by addItemToCart (which already overwrites
     // client prices), but stale or tampered cart rows must not survive here.
-    const pricedItems: CartItem[] = [];
+    // price is re-derived from the DB as a whole-Toman number, so it is
+    // narrowed from CartItem's string price at this boundary.
+    const pricedItems: (Omit<CartItem, 'price'> & { price: number })[] = [];
     for (const item of cart.items as CartItem[]) {
       const product = await prisma.product.findFirst({
         where: { id: item.productId },
         select: { price: true },
       });
       if (!product) continue;
-      let price = product.price.toString();
+      // Whole Toman integer money: the DB price goes into the order as a
+      // number, not a stringified Decimal, so OrderItem.price gets a real Int.
+      let price = Number(product.price);
       if (item.variantId) {
         const variant = await prisma.productVariant.findFirst({
           where: { id: item.variantId, productId: item.productId },
           select: { price: true },
         });
-        if (variant) price = variant.price.toString();
+        if (variant) price = Number(variant.price);
       }
       pricedItems.push({ ...item, price });
     }
@@ -190,7 +194,7 @@ export async function createOrder() {
         data: {
           ...order,
           couponCode,
-          couponDiscount: couponDiscountAmount.toFixed(2),
+          couponDiscount: couponDiscountAmount,
         },
       });
 
@@ -332,14 +336,14 @@ export async function reorderOrder(
       if (!product) continue;
 
       // Current price wins; stock checked on the variant or the product
-      let price = product.price.toString();
+      let price = product.price;
       let stock = product.stock;
       if (item.variantId) {
         const variant = await prisma.productVariant.findUnique({
           where: { id: item.variantId },
         });
         if (!variant || variant.productId !== product.id) continue;
-        price = variant.price.toString();
+        price = variant.price;
         stock = variant.stock;
       }
       if (stock < 1) continue;

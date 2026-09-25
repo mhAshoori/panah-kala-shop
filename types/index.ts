@@ -17,10 +17,9 @@ export type Product = z.infer<typeof insertProductSchema> & {
   subCategoryId?: string | null;
   subSubCategoryId?: string | null;
   createdAt: Date;
+  // Still Decimal: not money.
   rating: string;
   numReviews: number;
-  /** Original price when discounted; null/absent = no discount */
-  compareAtPrice?: string | null;
 };
 
 export type SignInForm = z.infer<typeof signInFormSchema>;
@@ -28,9 +27,8 @@ export type SignUpForm = z.infer<typeof signUpFormSchema>;
 export type Cart = z.infer<typeof insertCartSchema> & {
   id: string;
   createdAt: Date;
-  /** Applied coupon (normalized code) and its computed Toman discount */
+  /** Applied coupon (normalized code) */
   couponCode?: string | null;
-  couponDiscount?: string | null;
 };
 export type CartItem = z.infer<typeof cartItemSchema>;
 export type ShippingAddress = z.infer<typeof shippingAddressSchema>;

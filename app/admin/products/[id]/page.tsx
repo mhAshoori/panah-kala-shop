@@ -48,8 +48,10 @@ const UpdateProductPage = async (props: {
   }));
   const variants = (raw.variants ?? []).map((v) => ({
     key: '',
-    price: v.price,
-    compareAtPrice: v.compareAtPrice ?? '',
+    // The options editor works in form strings; the DB now stores whole-Toman
+    // integers, so stringify only at this boundary.
+    price: String(v.price),
+    compareAtPrice: v.compareAtPrice == null ? '' : String(v.compareAtPrice),
     stock: String(v.stock),
     combo: ((Array.isArray(v.options) ? v.options : []) as { valueId: string }[])
       .map((snap) => {

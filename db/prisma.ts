@@ -25,19 +25,10 @@ function createPrismaClient() {
     adapter: new PrismaPg({ connectionString: resolveDatabaseUrl() }),
   }).$extends({
     result: {
+      // Money is whole Toman as Int (005-money-int-migration): it survives
+      // JSON natively, so it needs no transform and passes through as a
+      // number. Only the remaining Decimal fields need stringifying.
       product: {
-        price: {
-          compute(product) {
-            return product.price.toString();
-          },
-        },
-        compareAtPrice: {
-          compute(product) {
-            return product.compareAtPrice === null
-              ? null
-              : product.compareAtPrice.toString();
-          },
-        },
         rating: {
           compute(product) {
             return product.rating.toString();
@@ -61,20 +52,6 @@ function createPrismaClient() {
         weightG: {
           compute(product) {
             return product.weightG === null ? null : product.weightG.toString();
-          },
-        },
-      },
-      productVariant: {
-        price: {
-          compute(variant) {
-            return variant.price.toString();
-          },
-        },
-        compareAtPrice: {
-          compute(variant) {
-            return variant.compareAtPrice === null
-              ? null
-              : variant.compareAtPrice.toString();
           },
         },
       },

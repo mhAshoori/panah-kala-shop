@@ -125,20 +125,20 @@ export function recomputeParent(variants: {
   compareAtPrice?: { toString(): string } | number | string | null;
   stock: number;
 }[]): {
-  price: string;
-  compareAtPrice: string | null;
+  price: number;
+  compareAtPrice: number | null;
   stock: number;
 } {
   if (variants.length === 0) {
-    return { price: '0', compareAtPrice: null, stock: 0 };
+    return { price: 0, compareAtPrice: null, stock: 0 };
   }
   const prices = variants.map((v) => Number(v.price));
   const compares = variants
     .map((v) => (v.compareAtPrice == null ? null : Number(v.compareAtPrice)))
     .filter((n): n is number => n != null);
   return {
-    price: Math.min(...prices).toString(),
-    compareAtPrice: compares.length ? Math.min(...compares).toString() : null,
+    price: Math.min(...prices),
+    compareAtPrice: compares.length ? Math.min(...compares) : null,
     stock: variants.reduce((sum, v) => sum + v.stock, 0),
   };
 }

@@ -32,7 +32,7 @@ const CouponBox = ({
   locale,
 }: {
   couponCode?: string | null;
-  couponDiscount?: string | null;
+  couponDiscount?: number | null;
   locale: string;
 }) => {
   const t = useTranslations('cart');

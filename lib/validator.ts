@@ -1,14 +1,24 @@
 import { z } from 'zod';
 import { PAYMENT_METHODS } from './constants';
-import { formatNumberWithDecimal } from './utils';
 
-// Make sure price is formatted with two decimal places
+// Money is whole Toman stored as a 32-bit integer: Toman has no commonly used
+// subunit, so a fractional price is not a value the store can hold. The upper
+// bound is the Postgres int4 ceiling, checked here so an over-large price fails
+// as a form error instead of an `integer out of range` error during checkout.
+const MAX_TOMAN = 2_147_483_647;
+
 const currency = z
   .string()
-  .refine(
-    (value) => /^\d+(\.\d{2})?$/.test(formatNumberWithDecimal(Number(value))),
-    'Price must have exactly two decimal places (e.g., 49.99)'
-  );
+  .refine((value) => /^\d+$/.test(value), 'Price must be a whole number of Toman')
+  .refine((value) => Number(value) <= MAX_TOMAN, 'Price is too large');
+
+// Computed money (cart totals, order totals) is produced server-side as
+// numbers, not submitted as form strings, so it validates as a number.
+const tomanAmount = z
+  .number()
+  .int('Amount must be a whole number of Toman')
+  .min(0, 'Amount cannot be negative')
+  .max(MAX_TOMAN, 'Amount is too large');
 
 // Schema for inserting a product
 export const insertProductSchema = z.object({
@@ -25,14 +35,16 @@ export const insertProductSchema = z.object({
   isFeatured: z.boolean(),
   banner: z.string().nullable(),
   codAvailable: z.boolean(),
-  price: currency,
+  // Validated as a whole-Toman string, then coerced to a number for the Int
+  // column — so the form contract stays string-based while the write is typed.
+  price: currency.transform((v) => Number(v)),
   // Original price for showing a discount; must be empty or > price
   compareAtPrice: z
     .union([currency, z.literal('')])
     .optional()
-    .transform((v) => v || null),
+    .transform((v) => (v === '' || v === undefined ? null : Number(v))),
   // Physical properties (cm / grams) — DB Decimals arrive as strings via the
-  // $extends transform (same as price); forms submit them as strings too.
+  // $extends transform; forms submit them as strings too.
   lengthCm: z.union([z.string(), z.number(), z.null()]).optional(),
   widthCm: z.union([z.string(), z.number(), z.null()]).optional(),
   heightCm: z.union([z.string(), z.number(), z.null()]).optional(),
@@ -77,11 +89,11 @@ export const variantInputSchema = z.object({
       z.string().regex(/^(\d+:\d+)(;\d+:\d+)*$/),
     ])
     .nullish(),
-  price: currency,
+  price: currency.transform((v) => Number(v)),
   compareAtPrice: z
     .union([currency, z.literal('')])
     .optional()
-    .transform((v) => v || null),
+    .transform((v) => (v === '' || v === undefined ? null : Number(v))),
   stock: z.coerce.number().int().min(0, 'Stock cannot be negative'),
   image: z.string().nullish(),
 });
@@ -158,16 +170,21 @@ export const cartItemSchema = z.object({
   slug: z.string().min(1, 'Slug is required'),
   qty: z.number().int().positive('Quantity must be a positive number'),
   image: z.string().min(1, 'Image is required'),
-  price: currency,
+  // Whole Toman integer. Cart rows are written by the server from DB prices,
+  // so this is a number end-to-end (JSON storage keeps it as a number too).
+  price: tomanAmount,
 });
 
 // Cart insertion schema
 export const insertCartSchema = z.object({
   items: z.array(cartItemSchema),
-  itemsPrice: currency,
-  totalPrice: currency,
-  shippingPrice: currency,
-  taxPrice: currency,
+  itemsPrice: tomanAmount,
+  totalPrice: tomanAmount,
+  shippingPrice: tomanAmount,
+  taxPrice: tomanAmount,
+  // Applied coupon (normalized code) and its computed Toman discount
+  couponCode: z.string().nullish(),
+  couponDiscount: tomanAmount.optional(),
   sessionCartId: z.string().min(1, 'Session cart id is required'),
   userId: z.string().optional().nullable(),
 });
@@ -250,10 +267,10 @@ export const paymentMethodSchema = z
 // Insert order schema
 export const insertOrderSchema = z.object({
   userId: z.string().min(1, 'User is required'),
-  itemsPrice: currency,
-  shippingPrice: currency,
-  taxPrice: currency,
-  totalPrice: currency,
+  itemsPrice: tomanAmount,
+  shippingPrice: tomanAmount,
+  taxPrice: tomanAmount,
+  totalPrice: tomanAmount,
   paymentMethod: z.string().refine(
     (data) => (PAYMENT_METHODS as readonly string[]).includes(data),
     { message: 'Invalid payment method' }
@@ -269,7 +286,7 @@ export const insertOrderItemSchema = z.object({
   slug: z.string(),
   image: z.string(),
   name: z.string(),
-  price: currency,
+  price: tomanAmount,
   qty: z.number(),
 });
 
