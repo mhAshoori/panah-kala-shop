@@ -190,18 +190,22 @@ const OptionsEditor = ({
       return next;
     });
 
-  // Per-row method and the value the admin actually typed in that row. Kept
-  // apart from `variants` because those two are DERIVED from the stored pair,
-  // and re-deriving them on every render would discard what was typed.
+  // Per-row method, the value the admin actually typed, and the BASE price.
+  // Kept apart from `variants` because the first two are DERIVED from the
+  // stored pair, and re-deriving on every render would discard what was typed.
+  // The base is the original price when the row is discounted and the selling
+  // price when it is not, mirroring the product form.
   const [rowMode, setRowMode] = useState<DiscountMethod[]>([]);
   const [rowValue, setRowValue] = useState<string[]>([]);
+  const [rowBase, setRowBase] = useState<string[]>([]);
 
-  // Seed both from the stored pair once, so a preloaded row opens showing the
-  // admin's own numbers rather than a re-derived guess.
+  // Seed all three from the stored pair once, so a preloaded row opens showing
+  // the admin's own numbers rather than a re-derived guess.
   const [seeded, setSeeded] = useState(false);
   if (!seeded && variants.length > 0) {
     setRowMode(variants.map((v) => modeOf(v)));
     setRowValue(variants.map((v) => valueForMode(v, modeOf(v))));
+    setRowBase(variants.map((v) => (v.compareAtPrice || v.price)));
     setSeeded(true);
   }
 
@@ -347,10 +351,8 @@ const OptionsEditor = ({
                         ف
                       </th>
                     )}
-                    <th className='p-2 text-start'>
-                      {t('price')}
-                    </th>
-                    <th className='p-2 text-start'>{t('discountPercent')}</th>
+                    <th className='p-2 text-start'>{t('basePrice')}</th>
+                    <th className='p-2 text-start'>{t('discountAmount')}</th>
                     <th className='p-2 text-start'>{t('stock')}</th>
                   </tr>
                 </thead>
@@ -402,37 +404,19 @@ const OptionsEditor = ({
                         </td>
                       )}
                       <td className='p-2'>
+                        {/* This column is the BASE price, matching the product
+                            form: the original price when the row is on sale,
+                            and the selling price when it is not. */}
                         <Input
                           type='number'
                           step='1'
                           min='1'
-                          value={alignedVariants[i].price}
-                          onChange={(e) => {
-                            const price = e.target.value;
-                            // Percent-mode rows re-derive the original price
-                            // from the discount still entered in THIS row, so
-                            // editing a price keeps its discount (FR-014).
-                            // Price-mode rows leave the pair alone: their
-                            // original price is the base field, edited above.
-                            if (modeOf(alignedVariants[i]) !== 'percent') {
-                              setVariant(i, { price });
-                              return;
-                            }
-                            const pct = derivePercent(
-                              alignedVariants[i].compareAtPrice,
-                              alignedVariants[i].price
-                            );
-                            if (pct == null) {
-                              setVariant(i, { price });
-                              return;
-                            }
-                            const sell = deriveSellPrice(price, pct);
-                            setVariant(i, {
-                              price,
-                              compareAtPrice:
-                                sell == null ? '' : String(price),
-                            });
-                          }}
+                          value={rowBase[i] ?? ''}
+                          onChange={(e) => setRowBase((prev) => {
+                            const next = [...prev];
+                            next[i] = e.target.value;
+                            return next;
+                          })}
                           placeholder='0'
                           className='w-28'
                         />
@@ -455,18 +439,23 @@ const OptionsEditor = ({
                                 next[i] = raw;
                                 return next;
                               });
-                              if (rowMode[i] === 'price') {
-                                setVariant(i, { compareAtPrice: raw });
+                              const base = rowBase[i] ?? '';
+                              if (base === '' || raw === '') {
+                                setVariant(i, { price: base, compareAtPrice: '' });
                                 return;
                               }
-                              // The row's ORIGINAL price is derived from its
-                              // selling price and the typed percentage.
-                              const sell = alignedVariants[i].price;
-                              const orig = deriveSellPrice(sell, raw);
-                              if (orig == null) return;
+                              if (rowMode[i] === 'price') {
+                                // Price mode: the typed value is the SELLING
+                                // price, the base column is the original.
+                                setVariant(i, { price: raw, compareAtPrice: base });
+                                return;
+                              }
+                              // Percent mode: the selling price is derived
+                              // from the base and the typed percentage.
+                              const sell = deriveSellPrice(base, raw);
                               setVariant(i, {
-                                price: String(orig),
-                                compareAtPrice: sell,
+                                price: sell == null ? base : String(sell),
+                                compareAtPrice: base,
                               });
                             }}
                             placeholder='0'
@@ -488,19 +477,18 @@ const OptionsEditor = ({
                             }
                             onClick={() => {
                               const v = alignedVariants[i];
+                              const base = rowBase[i] ?? '';
                               const next: DiscountMethod =
                                 rowMode[i] === 'price' ? 'percent' : 'price';
-                              // Carry the numbers across the switch (FR-021).
+                              // Carry the pair across the switch so nothing is
+                              // retyped (FR-021): percent mode gets the
+                              // percentage the pair implies, price mode the
+                              // selling price.
                               const carried =
-                                rowValue[i] && v.price
+                                base && v.compareAtPrice
                                   ? rowMode[i] === 'price'
-                                    ? String(
-                                        derivePercent(
-                                          v.compareAtPrice || v.price,
-                                          v.price
-                                        ) ?? ''
-                                      )
-                                    : v.compareAtPrice
+                                    ? String(derivePercent(base, v.price) ?? '')
+                                    : v.price
                                   : '';
                               setRowMode((prev) => {
                                 const next2 = [...prev];

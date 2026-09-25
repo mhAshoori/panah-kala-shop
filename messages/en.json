@@ -463,6 +463,8 @@
     "discountNotLower": "The discounted price must be lower than the price before discount",
     "discountedPriceDerived": "Discounted price: {value} Toman",
     "discountPercentDerived": "Discount percent: {value}%",
+    "basePrice": "Base price",
+    "discountAmount": "Discount",
     "stock": "Stock",
     "lengthCm": "Length (cm)",
     "widthCm": "Width (cm)",

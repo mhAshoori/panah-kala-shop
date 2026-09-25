@@ -463,6 +463,8 @@
     "discountNotLower": "قیمت تخفیف‌خورده باید کمتر از قیمت قبل از تخفیف باشد",
     "discountedPriceDerived": "قیمت تخفیف‌خورده: {value} تومان",
     "discountPercentDerived": "درصد تخفیف: {value}٪",
+    "basePrice": "قیمت پایه",
+    "discountAmount": "تخفیف",
     "stock": "موجودی",
     "lengthCm": "طول (سانتی‌متر)",
     "widthCm": "عرض (سانتی‌متر)",

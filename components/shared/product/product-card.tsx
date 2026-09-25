@@ -45,20 +45,22 @@ const ProductCard = async ({ product }: { product: Product }) => {
           sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
           className='object-cover transition-transform duration-500 group-hover:scale-105'
         />
-        {discount && (
-          <span className='absolute top-2 start-2 rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground'>
-            ٪{formatNumberLocale(discount.percent, locale)}
-          </span>
-        )}
         {/* A product whose purchasable variants disagree on discount must not
             show a single percentage — it would advertise a discount only some
-            combinations carry. The admin rule (FR-015) already nulls the
-            product-level compareAtPrice here, so `discount` is null and the
-            strike-through below self-suppresses; we only add the note. */}
-        {!discount && variantState === 'partialDiscount' && (
+            combinations carry. The note wins over the percentage badge, which
+            matters for rows saved before FR-015 nulled the product-level
+            compareAtPrice: those still carry a stale pair, and that stale
+            percentage is precisely the hallucination this state prevents. */}
+        {variantState === 'partialDiscount' ? (
           <span className='absolute top-2 start-2 rounded-full bg-destructive px-2 py-0.5 text-[0.65rem] font-bold text-destructive-foreground'>
             {t('discountSomeVariants')}
           </span>
+        ) : (
+          discount && (
+            <span className='absolute top-2 start-2 rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground'>
+              ٪{formatNumberLocale(discount.percent, locale)}
+            </span>
+          )
         )}
         {product.stock === 0 && (
           <div className='absolute inset-0 flex items-center justify-center bg-background/60'>
@@ -79,7 +81,10 @@ const ProductCard = async ({ product }: { product: Product }) => {
         <div className='mt-auto flex items-center justify-between gap-2 pt-1'>
           {product.stock > 0 ? (
             <div className='flex flex-col gap-0.5'>
-              {discount && (
+              {/* No struck-through original in the partial state: there is no
+                  single product price to strike through, and the stored
+                  product-level pair may be stale (see the badge branch). */}
+              {discount && variantState !== 'partialDiscount' && (
                 <span className='text-xs text-muted-foreground line-through'>
                   {formatNumberLocale(Number(product.compareAtPrice), locale)}
                 </span>

@@ -444,6 +444,7 @@ export async function getFilteredProducts({
     orderBy,
     take: limit,
     skip: (safePage - 1) * limit,
+    include: { variants: { select: { price: true, compareAtPrice: true } } },
   });
 
   const dataCount = await prisma.product.count({ where });
