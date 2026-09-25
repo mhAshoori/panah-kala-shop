@@ -111,17 +111,23 @@ const VariantSelector = ({
             <div key={option.id}>
               <p className='mb-2 flex items-center gap-1.5 text-sm font-medium'>
                 <span>{option.nameFa}:</span>
-                {/* The chosen colour is named by a small dot, not by text. The
-                    swatch itself already shows the colour; repeating the name
-                    here made the row read like a sentence. */}
+                {/* Dot AND name: the dot is a quick visual echo of the swatch,
+                    the name is what actually tells the shopper which design or
+                    colour is selected. The swatches themselves stay
+                    name-free, as asked. */}
                 {isColor ? (
-                  selectedValue?.hex && (
-                    <span
-                      aria-hidden
-                      className='size-2.5 rounded-full ring-1 ring-border'
-                      style={{ background: selectedValue.hex }}
-                    />
-                  )
+                  <>
+                    {selectedValue?.hex && (
+                      <span
+                        aria-hidden
+                        className='size-2.5 rounded-full ring-1 ring-border'
+                        style={{ background: selectedValue.hex }}
+                      />
+                    )}
+                    <span className='font-normal text-muted-foreground'>
+                      {selectedValue?.valueFa}
+                    </span>
+                  </>
                 ) : (
                   <span className='text-muted-foreground'>
                     {selectedValue?.valueFa}
@@ -172,14 +178,14 @@ const VariantSelector = ({
                         // colour disc. The white gap is what makes a black and
                         // a white swatch read as two circles rather than one
                         // being a hole in the page.
-                        'relative flex size-9 items-center justify-center rounded-full bg-background ring-1 transition-all',
+                        'relative flex size-11 items-center justify-center rounded-full bg-background ring-1 transition-all',
                         isSelected
                           ? 'ring-primary ring-2'
                           : 'ring-border hover:ring-primary/50'
                       )}
                     >
                       <span
-                        className='size-5 rounded-full ring-1 ring-black/10'
+                        className='size-7 rounded-full ring-1 ring-black/10'
                         style={{ background: v.hex ?? '#888888' }}
                       />
                       {/* Check sits on the disc, not the puck, so it reads as
@@ -187,7 +193,7 @@ const VariantSelector = ({
                           focused". */}
                       {isSelected && (
                         <Check
-                          className='pointer-events-none absolute size-4 text-white mix-blend-difference'
+                          className='pointer-events-none absolute size-5 text-white mix-blend-difference'
                           strokeWidth={3}
                         />
                       )}
