@@ -6,16 +6,22 @@
 
 ## Summary
 
-Convert all 20 money columns across six Prisma models from
+Convert all 17 money columns across six Prisma models from
 `Decimal @db.Decimal(12, 2)` to `Int` (32-bit), so money is stored as whole
 Toman — the currency has no commonly used subunit, so a two-decimal money column
 can only ever hold an impossible value. The conversion is a single hand-authored
 SQL migration, guarded by a read-only pre-flight audit that proves it lossless
-before it runs. The store's `$extends` stringification, the discount helpers, the
-SEO Toman→IRR conversion, the ZarinPal integration and the money formatters are
-all verified to work unchanged; the actual diff is the schema, the eight
-`.toFixed(2)` money writes that would otherwise silently coerce, one validator
-regex, and a small set of conservative arithmetic tests.
+before it runs. The discount helpers, the SEO Toman→IRR conversion, the ZarinPal
+integration and the money formatters are all verified to work unchanged; the
+actual diff is the schema, the eight `.toFixed(2)` money writes that would
+otherwise silently coerce, one validator regex, and a small set of conservative
+arithmetic tests.
+
+**Post-implementation note**: the `$extends` stringification did *not* survive
+unchanged. Its runtime behaviour was fine, but its inferred type kept `price`
+as `string` while the schema said `number`, breaking every consumer — so the
+money entries were removed and prices now reach the client as plain numbers.
+See R-003.
 
 ## Technical Context
 
@@ -37,7 +43,7 @@ shrinks the rows; JS `number` summation stays exact far below
 **Constraints**: A single migration file, applied with `npx prisma migrate deploy`
 — `db push` is forbidden by constitution VI. Migrations are hand-authored because
 Prisma 7's `--create-only` is unreliable here. Money must never round silently.
-**Scale/Scope**: 20 columns, 6 models, 5 write sites, 7 test files, 1 seed file.
+**Scale/Scope**: 17 money columns, 6 models, 5 write sites, 7 test files, 1 seed file.
 A solo-maintained store with real order history — conservative diff, loud
 failures, no silent coercion.
 
@@ -53,7 +59,7 @@ failures, no silent coercion.
 | IV. Bilingual Completeness (NON-NEGOTIABLE) | PASS | No new user-facing string. The validator's English error message changes to describe whole Toman; both message files are untouched because this text is a zod schema message, not a UI string. Verified: no `messages/*.json` key is affected. |
 | V. Deployment & Ops Guardrails | PASS | Migration is a single file applied by the existing `migrate deploy` step in `docs/DEPLOYMENT.md`. No new deploy step. |
 | VI. Data Layer Discipline | PASS, strengthened | Hand-authored SQL folder, `migrate deploy` only, `prisma generate` after the schema edit. Adds a read-only pre-flight audit before the destructive step. |
-| VII. Efficiency & Simplicity | PASS | Smallest correct diff. `$extends` untouched, `round2` untouched, `lib/discount.ts` / `lib/seo.ts` / `lib/zarinpal.ts` / `lib/persian.ts` untouched — all verified unnecessary rather than assumed. |
+| VII. Efficiency & Simplicity | PASS | Smallest correct diff. `round2` untouched, `lib/discount.ts` / `lib/seo.ts` / `lib/zarinpal.ts` / `lib/persian.ts` untouched — all verified unnecessary rather than assumed. **Corrected post-implementation:** the `$extends` money transform was *not* unnecessary and had to be removed (R-003), so the "shortest diff" conclusion was optimistic by four entries. |
 
 **Complexity Tracking**: no violations — no exception table required.
 
@@ -81,18 +87,18 @@ specs/005-money-int-migration/
 
 ```text
 prisma/
-├── schema.prisma                        # 20 money columns: Decimal -> Int
+├── schema.prisma                        # 17 money columns: Decimal -> Int
 └── migrations/
     └── <timestamp>_money_to_integer/
-        └── migration.sql                 # single file, 20 ALTERs, 4 DEFAULT round-trips
+        └── migration.sql                 # single file, 17 ALTERs, 4 DEFAULT round-trips
 db/
-├── prisma.ts                            # UNCHANGED — transform still valid for Int
+├── prisma.ts                            # money transform entries REMOVED (see R-003)
 ├── sample-data.ts                       # price/compareAtPrice: string -> number, drop .00
 └── seed.ts                              # variant row types
 lib/
 ├── validator.ts                         # currency: 2-decimal regex -> whole-number + max
 ├── cart/pricing.ts                      # drop 4x .toFixed(2); return integers
-├── coupon.ts                            # UNCHANGED — round2 is already half-up
+├── coupon.ts                            # round2 -> Math.round (whole Toman)
 ├── discount.ts                          # UNCHANGED — Math.floor/Math.round already correct
 ├── seo.ts                               # UNCHANGED — Toman x10 IRR unaffected
 ├── persian.ts                           # UNCHANGED — maximumFractionDigits: 0
@@ -121,17 +127,19 @@ endpoint, or public contract (see "Interface Contracts" below).
 ### Data model
 
 Recorded in [data-model.md](data-model.md): a column-by-column conversion table
-for all 20 money columns, the four defaulted columns needing
+for all 17 money columns, the four defaulted columns needing
 `DROP DEFAULT`/`SET DEFAULT`, the five non-money `Decimal` columns explicitly
 out of scope, and the new validation rules.
 
 ### Interface contracts
 
-None. This feature introduces no external interface. The money contract between
-server and client is unchanged in *type* (prices still arrive as `string`, because
-the `$extends` transform is retained per R-003) and unchanged in *meaning* (Toman
-integer). No public API, no route, no serialized contract, no CLI surface is
-added or altered. Server-action input validation is tightened, not extended.
+None. This feature introduces no external interface. **Corrected
+post-implementation**: the money contract between server and client did *not*
+stay unchanged in type — prices now arrive as `number` rather than `string`,
+because the `$extends` money transform had to be removed (R-003). It is
+unchanged in *meaning* (Toman integer) and no public API, route, serialized
+contract, or CLI surface was added or altered. Server-action input validation is
+tightened, not extended.
 
 ### Conservative testing plan
 
@@ -159,7 +167,7 @@ Two classes of test matter, and the distinction is the whole point:
 | 7 | Loop: recomputed badge **never exceeds** typed percent | The precise meaning of "never overstates" |
 
 Plus a **read-only pre-flight audit** (R-002) run before the migration: any
-fractional value across the 20 columns, and any order whose recorded total does
+fractional value across the 17 columns, and any order whose recorded total does
 not balance. Zero rows ⇒ migration provably lossless. Non-zero ⇒ stop and
 reconcile. This replaces a migration test, which would only be testing Postgres's
 `round()`.
@@ -186,4 +194,5 @@ bisect lands on a diagnosable failure:
 | Silent type desync | generated Prisma client | Medium — isolated in commit 2 |
 | Test churn | 6 test files | Low — loud failures, then additions |
 | Seed data | `sample-data.ts`, `seed.ts` | Low |
-| Verified unchanged | `prisma.ts`, `discount.ts`, `seo.ts`, `persian.ts`, `utils.ts`, `zarinpal.ts`, `coupon.ts` | None — explicitly checked, not assumed |
+| Verified unchanged | `discount.ts`, `seo.ts`, `persian.ts`, `utils.ts`, `zarinpal.ts` | None — explicitly checked, not assumed |
+| **Plan was wrong** | `prisma.ts` (money transform removed), `coupon.ts` (`round2` → `Math.round`) | Runtime reasoning in R-003/R-005 held; the transform's *inferred type* did not, and coupon rounding needed whole-Toman `Math.round` once inputs stopped being decimal. Both corrected in `research.md` and here. |
