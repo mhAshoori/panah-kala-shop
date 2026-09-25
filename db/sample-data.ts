@@ -29,14 +29,14 @@ export type SampleUser = {
 const users: SampleUser[] = [
   {
     name: 'Admin',
-    email: 'admin@example.com',
+    email: 'admin@panahkalashop.com',
     password: hashSync('123456', 10),
     role: 'admin',
     mobile: '+989120000001',
   },
   {
     name: 'Jane',
-    email: 'jane@example.com',
+    email: 'user@panahkalashop.com',
     password: hashSync('123456', 10),
     role: 'user',
     mobile: '+989120000002',
@@ -124,7 +124,11 @@ const design = (value: string, valueFa: string): SampleOptionValue => ({
   value,
   valueFa,
 });
-
+// Prices are the SELLING price (Product.price) and compareAtPrice is the
+// original. The admin form derives compareAtPrice from a base price plus a
+// percentage, so these pairs are what that derivation produces: 9% off
+// 96,000 gives 96,000 -> 87,361, and so on. Reversed pairs would be invalid —
+// compareAtPrice must be strictly greater than price.
 const products: SampleProduct[] = [
   // 1 — نوشت‌افزار > خودکار
   {
@@ -134,8 +138,8 @@ const products: SampleProduct[] = [
     category: 'Stationery',
     categoryFa: 'نوشت‌افزار',
     subCategory: 'Pens',
-    description: 'Smooth-writing ballpoint pen, model G-2501. Available in three colors.',
-    descriptionFa: 'خودکار گازی با نوشتاری روان، مدل G-2501. مناسب استفاده روزمره در مدرسه و محل کار.',
+    description: 'Smooth-writing ballpoint pen, model G-2501, in three colors across five designs.',
+    descriptionFa: 'خودکار گازی با نوشتاری روان، مدل G-2501، در سه رنگ و پنج طرح. مناسب استفاده روزمره در مدرسه و محل کار.',
     images: [
       asset('products/initial-products/imgs/khodkar-testgood-1-2-abi.webp'),
       asset('products/initial-products/imgs/khodkar-testgood-2-2-abi.webp'),
@@ -154,13 +158,40 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.blue, C.red, C.black],
-        variants: [
-          { price: 59000, stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-abi.webp') },
-          { price: 59000, stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-ghermez.webp') },
-          { price: 59000, stock: 100, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-meshki.webp') },
-        ],
+        values: [C.red, C.skyBlue, C.lightBrown, C.black],
+        variants: [],
       },
+      {
+        name: 'design',
+        nameFa: 'طرح',
+        values: [
+          design('Design 1', 'طرح آدمک'),
+          design('Design 2', 'طرح کودک'),
+          design('Design 3', 'طرح گربه'),
+          design('Design 4', 'طرح ایموجی'),
+          design('Design 5', 'طرح ستاره'),
+        ],
+        variants: [],
+      },
+    ],
+    // 3 colors × 5 designs = 15 combinations, all at the same price, so the
+    // product-level discount is honest and every row agrees on the ratio.
+    combos: [
+      { options: [0, 0], price: 96000, compareAtPrice: 105600, stock: 8, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-ghermez.webp') },
+      { options: [0, 1], price: 96000, compareAtPrice: 105600, stock: 15, image: asset('products/initial-products/imgs/khodkar-testgood-1-2-abi.webp') },
+      { options: [0, 2], price: 96000, compareAtPrice: 105600, stock: 12, image: asset('products/initial-products/imgs/khodkar-testgood-2-2-abi.webp') },
+      { options: [0, 3], price: 96000, compareAtPrice: 105600, stock: 16, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-meshki.webp') },
+      { options: [0, 4], price: 96000, compareAtPrice: 105600, stock: 15, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-ghermez.webp') },
+      { options: [1, 0], price: 96000, compareAtPrice: 105600, stock: 8, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-abi.webp') },
+      { options: [1, 1], price: 96000, compareAtPrice: 105600, stock: 15, image: asset('products/initial-products/imgs/khodkar-testgood-2-2-abi.webp') },
+      { options: [1, 2], price: 96000, compareAtPrice: 105600, stock: 12, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-abi.webp') },
+      { options: [1, 3], price: 96000, compareAtPrice: 105600, stock: 16, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-meshki.webp') },
+      { options: [1, 4], price: 96000, compareAtPrice: 105600, stock: 15, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-abi.webp') },
+      { options: [2, 0], price: 96000, compareAtPrice: 105600, stock: 8, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-ghermez.webp') },
+      { options: [2, 1], price: 96000, compareAtPrice: 105600, stock: 15, image: asset('products/initial-products/imgs/khodkar-testgood-1-2-abi.webp') },
+      { options: [2, 2], price: 96000, compareAtPrice: 105600, stock: 12, image: asset('products/initial-products/imgs/khodkar-testgood-2-2-abi.webp') },
+      { options: [2, 3], price: 96000, compareAtPrice: 105600, stock: 16, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-meshki.webp') },
+      { options: [2, 4], price: 96000, compareAtPrice: 105600, stock: 15, image: asset('products/initial-products/imgs/khodkar-testgood-1-1-abi.webp') },
     ],
   },
   // 2 — نوشت‌افزار > دفتر
@@ -171,8 +202,8 @@ const products: SampleProduct[] = [
     category: 'Stationery',
     categoryFa: 'نوشت‌افزار',
     subCategory: 'Notebooks',
-    description: '80-sheet notebook with the Golbarg cover design.',
-    descriptionFa: 'دفتر ۸۰ برگ با طرح گلبرگ روی جلد؛ کاغذ باکیفیت و صحافی محکم.',
+    description: '80-sheet notebook with the Golbarg cover design, in five colors.',
+    descriptionFa: 'دفتر ۸۰ برگ با طرح گلبرگ روی جلد، در پنج رنگ؛ کاغذ باکیفیت و صحافی محکم.',
     images: [
       asset('products/initial-products/seed-data/daftar-golbarg-abi-nafti-1.jpg'),
       asset('products/initial-products/seed-data/daftar-golbarg-yashmi-1.jpg'),
@@ -193,14 +224,13 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.blue, C.jade, C.purple, C.orange,C.skyBlue,C.green],
+        values: [C.lightBrown, C.yellow, C.white, C.purple, C.skyBlue],
         variants: [
-          { price: 199000, stock: 2 },
-          { price: 199000, stock: 2 },
-          { price: 199000, stock: 2 },
-          { price: 199000, stock: 2 },
-          { price: 199000, stock: 2 },
-          { price: 199000, stock: 2 },
+          { price: 199000, compareAtPrice: 218900, stock: 5 },
+          { price: 199000, compareAtPrice: 218900, stock: 5 },
+          { price: 199000, compareAtPrice: 218900, stock: 5 },
+          { price: 199000, compareAtPrice: 218900, stock: 5 },
+          { price: 199000, compareAtPrice: 218900, stock: 5 },
         ],
       },
     ],
@@ -213,8 +243,8 @@ const products: SampleProduct[] = [
     category: 'Stationery',
     categoryFa: 'نوشت‌افزار',
     subCategory: 'Pencils',
-    description: 'HB pencil with three different printed patterns.',
-    descriptionFa: 'مداد HB با سه طرح متفاوت روی بدنه؛ مغز تراش‌خور استاندارد.',
+    description: 'HB pencil in seven colors, one design per color.',
+    descriptionFa: 'مداد HB در هفت رنگ، هر رنگ با طرح مخصوص خود؛ مغز تراش‌خور استاندارد.',
     images: [
       asset('products/initial-products/seed-data/medad-hb-1.jpg'),
       asset('products/initial-products/imgs/medad-1-1-kaleh-ghermez.jpg'),
@@ -237,20 +267,25 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.multicolor],
-        variants: [], // single color; combos below carry the variants
+        values: [
+          C.red,
+          C.skyBlue,
+          C.pink,
+          C.lightYellow,
+          C.green,
+          C.gray,
+          C.purple,
+        ],
+        variants: [
+          { price: 139000, compareAtPrice: 152900, stock: 2 },
+          { price: 139000, compareAtPrice: 152900, stock: 2 },
+          { price: 139000, compareAtPrice: 152900, stock: 3 },
+          { price: 139000, compareAtPrice: 152900, stock: 2 },
+          { price: 139000, compareAtPrice: 152900, stock: 2 },
+          { price: 139000, compareAtPrice: 152900, stock: 2 },
+          { price: 139000, compareAtPrice: 152900, stock: 2 },
+        ],
       },
-      {
-        name: 'design',
-        nameFa: 'طرح',
-        values: [design('Design 1', 'طرح آدمک'), design('Design 2', 'طرح کودک'), design('Design 3', 'طرح گربه'), design('Design 4', 'طرح ایموجی')],
-      },
-    ],
-    combos: [
-      { options: [0, 0], price: 49000, stock: 10, image: asset('products/initial-products/seed-data/medad-hb-1.jpg') },
-      { options: [0, 1], price: 49000, stock: 10, image: asset('products/initial-products/imgs/medad-1-1-kaleh-ghermez.jpg') },
-      { options: [0, 2], price: 49000, stock: 10, image: asset('products/initial-products/imgs/medad-2-1-kaleh-siah.jpg') },
-      { options: [0, 3], price: 49000, stock: 10, image: asset('products/initial-products/imgs/medad-2-3-kaleh-siah.jpg') },
     ],
   },
   // 4 — نوشت‌افزار > پاک کن
@@ -261,8 +296,8 @@ const products: SampleProduct[] = [
     category: 'Stationery',
     categoryFa: 'نوشت‌افزار',
     subCategory: 'Erasers',
-    description: 'Funny eraser, "Kachol Sho" series, three different designs.',
-    descriptionFa: 'پاک کن فانی سری «کچل شو» در سه طرح متفاوت؛ پاک‌کنندگی ملایم بدون آسیب به کاغذ.',
+    description: 'Funny eraser, "Kachol Sho" series, in three colors.',
+    descriptionFa: 'پاک‌کن فانی سری «کچل شو» در سه رنگ؛ پاک‌کنندگی ملایم بدون آسیب به کاغذ.',
     images: [
       asset('products/initial-products/imgs/pak-kon-1-1-all-kachal-sho.webp'),
       asset('products/initial-products/imgs/pak-kon-1-2-all-kachal-sho.webp'),
@@ -280,19 +315,13 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.multicolor],
-        variants: [], // single color; combos below carry the variants
+        values: [C.yellow, C.skyBlue, C.pink],
+        variants: [
+          { price: 290000, compareAtPrice: 318900, stock: 4, image: asset('products/initial-products/imgs/pak-kon-1-1-all-kachal-sho.webp') },
+          { price: 290000, compareAtPrice: 318900, stock: 3, image: asset('products/initial-products/imgs/pak-kon-1-2-all-kachal-sho.webp') },
+          { price: 290000, compareAtPrice: 318900, stock: 6, image: asset('products/initial-products/imgs/pak-kon-1-3-all-kachal-sho.webp') },
+        ],
       },
-      {
-        name: 'design',
-        nameFa: 'طرح',
-        values: [design('Design 1', 'طرح ۱'), design('Design 2', 'طرح ۲'), design('Design 3', 'طرح ۳')],
-      },
-    ],
-    combos: [
-      { options: [0, 0], price: 99000, stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-1-all-kachal-sho.webp') },
-      { options: [0, 1], price: 99000, stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-2-all-kachal-sho.webp') },
-      { options: [0, 2], price: 99000, stock: 2, image: asset('products/initial-products/imgs/pak-kon-1-3-all-kachal-sho.webp') },
     ],
   },
   // 5 — نوشت‌افزار > مداد نوکی
@@ -303,8 +332,8 @@ const products: SampleProduct[] = [
     category: 'Stationery',
     categoryFa: 'نوشت‌افزار',
     subCategory: 'Mechanical Pencils',
-    description: '0.7mm mechanical pencil, "Bare Naghala" series, four colors.',
-    descriptionFa: 'مداد نوکی ۰٫۷ میلی‌متری سری «بره ناقلا» در چهار رنگ؛ همراه نوک محافظ.',
+    description: '0.7mm mechanical pencil, "Bare Naghala" series, six colors.',
+    descriptionFa: 'مداد نوکی ۰٫۷ میلی‌متری سری «بره ناقلا» در شش رنگ؛ همراه نوک محافظ.',
     images: [asset('products/initial-products/imgs/medad-noki-1-1-barreh-naghola.webp')],
     brand: 'Panah Kala',
     rating: '0',
@@ -318,197 +347,19 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.purple, C.skyBlue, C.pink, C.white],
+        values: [C.gray, C.purple, C.skyBlue, C.blue, C.green, C.black],
         variants: [
-          { price: 99000, stock: 10 },
-          { price: 99000, stock: 10 },
-          { price: 99000, stock: 10 },
-          { price: 99000, stock: 10 },
+          { price: 2609130, compareAtPrice: 2999000, stock: 1 },
+          { price: 2609130, compareAtPrice: 2999000, stock: 1 },
+          { price: 2609130, compareAtPrice: 2999000, stock: 1 },
+          { price: 2609130, compareAtPrice: 2999000, stock: 1 },
+          { price: 2609130, compareAtPrice: 2999000, stock: 1 },
+          { price: 2609130, compareAtPrice: 2999000, stock: 1 },
         ],
       },
     ],
   },
-  // 6 — نوشت‌افزار > مداد نوکی
-  {
-    name: 'Mermaid Mechanical Pencil 0.5',
-    nameFa: 'مداد نوکی پری دریایی 0.5',
-    slug: 'mermaid-pencil-05',
-    category: 'Stationery',
-    categoryFa: 'نوشت‌افزار',
-    subCategory: 'Mechanical Pencils',
-    description: '0.5mm mechanical pencil, "Mermaid" series, four colors.',
-    descriptionFa: 'مداد نوکی ۰٫۵ میلی‌متری سری «پری دریایی» در چهار رنگ؛ مناسب نوشتاری دقیق.',
-    images: [asset('products/initial-products/imgs/medad-noki-2-1-pari-daryaii.webp')],
-    brand: 'Panah Kala',
-    rating: '0',
-    numReviews: 0,
-    isFeatured: false,
-    lengthCm: '14.20',
-    widthCm: '1.00',
-    heightCm: '1.00',
-    weightG: '10.00',
-    options: [
-      {
-        name: 'color',
-        nameFa: 'رنگ',
-        values: [C.blue, C.pink, C.green, C.yellow],
-        variants: [
-          { price: 99000, stock: 5 },
-          { price: 99000, stock: 5 },
-          { price: 99000, stock: 5 },
-          { price: 99000, stock: 5 },
-        ],
-      },
-    ],
-  },
-  // 7 — نوشت‌افزار > جامدادی
-  {
-    name: 'Fluffy Bunny Pencil Case',
-    nameFa: 'جامدادی پشمالو مدل خرگوشی',
-    slug: 'fluffy-bunny-pencilcase',
-    category: 'Stationery',
-    categoryFa: 'نوشت‌افزار',
-    subCategory: 'Pencil Cases',
-    description: 'Fluffy bunny pencil case, three colors.',
-    descriptionFa: 'جامدادی پشمالو با طرح خرگوش در سه رنگ؛ جادار و نرم.',
-    images: [
-      asset('products/initial-products/seed-data/jamedadi-soorati-1.jpg'),
-      asset('products/initial-products/seed-data/jamedadi-banafsh-1.jpg'),
-      asset('products/initial-products/seed-data/jamedadi-soorati-1.jpg'),
-      asset('products/initial-products/seed-data/jamedadi-posht1.jpg'),
-      
-      asset('products/initial-products/imgs/jamedadi-all-1.jpg'),
-      asset('products/initial-products/imgs/jamedadi-all-2.jpg'),
-      asset('products/initial-products/imgs/jamedadi-all-3.jpg'),
-      asset('products/initial-products/imgs/jamedadi-all-4.jpg'),
-      asset('products/initial-products/imgs/jamedadi-all-5.jpg'),
-    ],
-    brand: 'Panah Kala',
-    rating: '0',
-    numReviews: 0,
-    isFeatured: false,
-    lengthCm: '20.00',
-    widthCm: '9.00',
-    heightCm: '5.00',
-    weightG: '90.00',
-    options: [
-      {
-        name: 'color',
-        nameFa: 'رنگ',
-        values: [C.pink, C.skyBlue, C.purple],
-        variants: [
-          { price: 699000, stock: 4, image: asset('products/initial-products/seed-data/jamedadi-soorati-1.jpg') },
-          { price: 699000, stock: 4, image: asset('products/initial-products/seed-data/jamedadi-soorati-1.jpg') },
-          { price: 699000, stock: 4, image: asset('products/initial-products/seed-data/jamedadi-banafsh-1.jpg') },
-        ],
-      },
-    ],
-  },
-  // 8 — نوشت‌افزار > مداد تراش
-  {
-    name: 'Pastel Pencil Sharpener',
-    nameFa: 'مداد تراش پاستیلی',
-    slug: 'pastel-sharpener',
-    category: 'Stationery',
-    categoryFa: 'نوشت‌افزار',
-    subCategory: 'Sharpeners',
-    description: 'Pastel-colored pencil sharpener, three colors.',
-    descriptionFa: 'مداد تراش پاستیلی در سه رنگ؛ تیغه فولادی با ظرف جمع‌آوری تراشه.',
-    images: [
-      asset('products/initial-products/seed-data/medad-tarash-1.jpg'),
-      asset('products/initial-products/imgs/medad-tarash-1.jpg'),
-    ],
-    brand: 'Panah Kala',
-    rating: '0',
-    numReviews: 0,
-    isFeatured: false,
-    lengthCm: '4.50',
-    widthCm: '2.50',
-    heightCm: '2.00',
-    weightG: '15.00',
-    options: [
-      {
-        name: 'color',
-        nameFa: 'رنگ',
-        values: [C.pink, C.skyBlue, C.lightYellow, C.purple, C.green],
-        variants: [
-          { price: 39000, stock: 10 },
-          { price: 39000, stock: 10 },
-          { price: 39000, stock: 10 },
-          { price: 39000, stock: 10 },
-          { price: 39000, stock: 10 },
-        ],
-      },
-    ],
-  },
-  // 9 — نوشت‌افزار > استیکی نوت
-  {
-    name: 'Fantasy Sticky Notes',
-    nameFa: 'استیکی نوت طرح فانتزی چند رنگ',
-    slug: 'fantasy-sticky-notes',
-    category: 'Stationery',
-    categoryFa: 'نوشت‌افزار',
-    subCategory: 'Sticky Notes',
-    description: 'Multi-color fantasy sticky notes pad.',
-    descriptionFa: 'پد استیکی نوت طرح فانتزی چند رنگ؛ چسب مناسب و جداشدن آسان از سطح.',
-    images: [
-      asset('products/initial-products/seed-data/sticky-note-fantasy-1.jpg'),
-      asset('products/initial-products/imgs/sticky-note-1-1.jpg'),
-      asset('products/initial-products/imgs/sticky-note-1-2.jpg'),
-      asset('products/initial-products/imgs/sticky-note-1-3.jpg'),
-      asset('products/initial-products/imgs/sticky-note-1-4.jpg'),
-    ],
-    brand: 'Panah Kala',
-    rating: '0',
-    numReviews: 0,
-    isFeatured: false,
-    lengthCm: '7.60',
-    widthCm: '7.60',
-    heightCm: '0.50',
-    weightG: '25.00',
-    options: [
-      {
-        name: 'color',
-        nameFa: 'رنگ',
-        values: [design('Multicolor', 'چند رنگ')],
-        variants: [{ price: 299000, stock: 10 }],
-      },
-    ],
-  },
-  // 10 — نوشت‌افزار > دفتر
-  {
-    name: 'Fantasy Elastic Notebook 80 Sheets',
-    nameFa: 'دفتر فانتری کش دار ۸۰ برگ',
-    slug: 'fantasy-elastic-notebook-80',
-    category: 'Stationery',
-    categoryFa: 'نوشت‌افزار',
-    subCategory: 'Notebooks',
-    description: '80-sheet notebook with elastic closure, fantasy design.',
-    descriptionFa: 'دفتر ۸۰ برگ با بند کشی و طرح فانتزی؛ مناسب یادداشت‌ روزانه.',
-    images: [
-      asset('products/initial-products/seed-data/daftar-fantasy-1.jpg'),
-      asset('products/initial-products/imgs/daftar-fantesi-1.jpg'),
-      asset('products/initial-products/imgs/daftar-fantesi-2.jpg'),
-      asset('products/initial-products/imgs/daftar-fantesi-3.jpg'),
-    ],
-    brand: 'Panah Kala',
-    rating: '0',
-    numReviews: 0,
-    isFeatured: false,
-    lengthCm: '21.00',
-    widthCm: '14.50',
-    heightCm: '1.00',
-    weightG: '200.00',
-    options: [
-      {
-        name: 'color',
-        nameFa: 'رنگ',
-        values: [design('black with flowers', 'مشکی گل دار')],
-        variants: [{ price: 299000, stock: 5 }],
-      },
-    ],
-  },
-  // 11 — کیف > کوله پشتی
+  // 6 — کیف > کوله پشتی
   {
     name: 'Fluffy Bunny Backpack',
     nameFa: 'کیف کوله پشتی خرگوشی پشمالو',
@@ -522,7 +373,7 @@ const products: SampleProduct[] = [
       asset('products/initial-products/seed-data/kif-pashmaloo-keremi-1.jpg'),
       asset('products/initial-products/seed-data/kif-pashmaloo-keremi-2.jpg'),
       asset('products/initial-products/seed-data/kif-pashmaloo-keremi-3.jpg'),
-      
+
       asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-1.jpg'),
       asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-2.jpg'),
       asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-3.jpg'),
@@ -542,15 +393,15 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.lightYellow, C.skyBlue],
+        values: [C.skyBlue, C.lightYellow],
         variants: [
-          { price: 3299000, stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-keremi-1.jpg') },
-          { price: 3299000, stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-1.jpg') },
+          { price: 2097900, compareAtPrice: 2590000, stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-1.jpg') },
+          { price: 2097900, compareAtPrice: 2590000, stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-keremi-1.jpg') },
         ],
       },
     ],
   },
-  // 12 — کیف > کوله پشتی
+  // 7 — کیف > کوله پشتی
   {
     name: 'Teddy Bear Backpack',
     nameFa: 'کیف کوله پشتی خرسی',
@@ -576,7 +427,7 @@ const products: SampleProduct[] = [
       asset('products/initial-products/seed-data/kif-khersi-meshki-1.jpg'),
       asset('products/initial-products/seed-data/kif-khersi-meshki-2.jpg'),
       asset('products/initial-products/seed-data/kif-khersi-meshki-3.jpg'),
-      
+
       asset('products/initial-products/imgs/kif-sadeh-1-1-ghermez.jpg'),
       asset('products/initial-products/imgs/kif-sadeh-2-1-keremi.jpg'),
       asset('products/initial-products/imgs/kif-sadeh-2-1-keremi.jpg'),
@@ -594,19 +445,164 @@ const products: SampleProduct[] = [
       {
         name: 'color',
         nameFa: 'رنگ',
-        values: [C.lightBrown, C.pink, C.jigari, C.black],
+        values: [C.lightBrown, C.black, C.gray, C.pink],
         variants: [
-          { price: 1999000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-keremi-1.jpg') },
-          { price: 1999000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-soorati-1.jpg') },
-          { price: 1999000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-jigari-1.jpg') },
-          { price: 1999000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-meshki-1.jpg') },
+          { price: 1910090, compareAtPrice: 2099000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-keremi-1.jpg') },
+          { price: 1910090, compareAtPrice: 2099000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-meshki-1.jpg') },
+          { price: 1910090, compareAtPrice: 2099000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-keremi-2.jpg') },
+          { price: 1910090, compareAtPrice: 2099000, stock: 1, image: asset('products/initial-products/seed-data/kif-khersi-soorati-1.jpg') },
         ],
       },
     ],
   },
-  // 13 — کیف > کوله پشتی
-// this porduct has 2 colors: lightBrown and the yellow, the color lightBrown has 5 designs and the yellow has 1 design. so i want to show the user if he chooses the first color, he must see the related designs and if he chooses the yellow, he must see the other design related
-
+  // 8 — نوشت‌افزار > پاک کن
+  {
+    name: 'Eraser 3 Designs Multicolor',
+    nameFa: 'پاک‌کن چهار طرح رنگی',
+    slug: 'eraser-3-designs-multicolor',
+    category: 'Stationery',
+    categoryFa: 'نوشت‌افزار',
+    subCategory: 'Erasers',
+    description: 'Multicolor eraser available in four printed designs.',
+    descriptionFa: 'پاک‌کن چند رنگ با چهار طرح چاپی روی بدنه.',
+    images: [
+      asset('products/initial-products/imgs/pak-kon-1-1-all-kachal-sho.webp'),
+      asset('products/initial-products/imgs/pak-kon-1-2-all-kachal-sho.webp'),
+      asset('products/initial-products/imgs/pak-kon-1-3-all-kachal-sho.webp'),
+    ],
+    brand: 'Panah Kala',
+    rating: '0',
+    numReviews: 0,
+    isFeatured: false,
+    lengthCm: '4.00',
+    widthCm: '2.00',
+    heightCm: '0.90',
+    weightG: '12.00',
+    options: [
+      {
+        name: 'color',
+        nameFa: 'رنگ',
+        values: [C.multicolor],
+        variants: [], // single color; combos below carry the variants
+      },
+      {
+        name: 'design',
+        nameFa: 'طرح',
+        values: [
+          design('Design 1', 'طرح ۱'),
+          design('Design 2', 'طرح ۲'),
+          design('Design 3', 'طرح ۳'),
+          design('Design 4', 'طرح ۴'),
+        ],
+      },
+    ],
+    combos: [
+      { options: [0, 0], price: 19900, compareAtPrice: 21900, stock: 36, image: asset('products/initial-products/imgs/pak-kon-1-1-all-kachal-sho.webp') },
+      { options: [0, 1], price: 19900, compareAtPrice: 21900, stock: 36, image: asset('products/initial-products/imgs/pak-kon-1-2-all-kachal-sho.webp') },
+      { options: [0, 2], price: 19900, compareAtPrice: 21900, stock: 36, image: asset('products/initial-products/imgs/pak-kon-1-3-all-kachal-sho.webp') },
+      { options: [0, 3], price: 19900, compareAtPrice: 21900, stock: 36, image: asset('products/initial-products/imgs/pak-kon-1-1-all-kachal-sho.webp') },
+    ],
+  },
+  // 9 — نوشت‌افزار > مداد تراش
+  {
+    name: 'Pastel Pencil Sharpener',
+    nameFa: 'مداد تراش پاستیلی',
+    slug: 'pastel-sharpener',
+    category: 'Stationery',
+    categoryFa: 'نوشت‌افزار',
+    subCategory: 'Sharpeners',
+    description: 'Pastel-colored pencil sharpener in five designs.',
+    descriptionFa: 'مداد تراش پاستیلی در پنج طرح؛ تیغه فولادی با ظرف جمع‌آوری تراشه.',
+    images: [
+      asset('products/initial-products/seed-data/medad-tarash-1.jpg'),
+      asset('products/initial-products/imgs/medad-tarash-1.jpg'),
+    ],
+    brand: 'Panah Kala',
+    rating: '0',
+    numReviews: 0,
+    isFeatured: false,
+    lengthCm: '4.50',
+    widthCm: '2.50',
+    heightCm: '2.00',
+    weightG: '15.00',
+    options: [
+      {
+        name: 'color',
+        nameFa: 'رنگ',
+        values: [C.multicolor],
+        variants: [], // single color; combos below carry the variants
+      },
+      {
+        name: 'design',
+        nameFa: 'طرح',
+        values: [
+          design('Adhesive', 'چسبدار'),
+          design('Full Size', 'درشت'),
+          design('Slim', 'باریک'),
+          design('Two Hole', 'سوراخ‌دار'),
+          design('Pencil Box', 'مدادی'),
+        ],
+      },
+    ],
+    combos: [
+      { options: [0, 0], price: 10900, compareAtPrice: 11900, stock: 19 },
+      { options: [0, 1], price: 10900, compareAtPrice: 11900, stock: 19 },
+      { options: [0, 2], price: 10900, compareAtPrice: 11900, stock: 19 },
+      { options: [0, 3], price: 10900, compareAtPrice: 11900, stock: 31 },
+      { options: [0, 4], price: 10900, compareAtPrice: 11900, stock: 19 },
+    ],
+  },
+  // 10 — نوشت‌افزار > دفتر
+  {
+    name: 'Fantasy Elastic Notebook 80 Sheets',
+    nameFa: 'دفتر فانتری کش دار ۸۰ برگ',
+    slug: 'fantasy-elastic-notebook-80',
+    category: 'Stationery',
+    categoryFa: 'نوشت‌افزار',
+    subCategory: 'Notebooks',
+    description: '80-sheet notebook with elastic closure, in three fantasy designs.',
+    descriptionFa: 'دفتر ۸۰ برگ با بند کشی در سه طرح فانتزی؛ مناسب یادداشت روزانه.',
+    images: [
+      asset('products/initial-products/seed-data/daftar-fantasy-1.jpg'),
+      asset('products/initial-products/imgs/daftar-fantesi-1.jpg'),
+      asset('products/initial-products/imgs/daftar-fantesi-2.jpg'),
+      asset('products/initial-products/imgs/daftar-fantesi-3.jpg'),
+    ],
+    brand: 'Panah Kala',
+    rating: '0',
+    numReviews: 0,
+    isFeatured: false,
+    lengthCm: '21.00',
+    widthCm: '14.50',
+    heightCm: '1.00',
+    weightG: '200.00',
+    options: [
+      {
+        name: 'color',
+        nameFa: 'رنگ',
+        values: [C.multicolor],
+        variants: [], // single color; combos below carry the variants
+      },
+      {
+        name: 'design',
+        nameFa: 'طرح',
+        values: [
+          design('Black with Flowers', 'مشکی گل‌دار'),
+          design('Red Plain', 'قرمز ساده'),
+          design('White Plain', 'سفید ساده'),
+        ],
+      },
+    ],
+    combos: [
+      { options: [0, 0], price: 159000, compareAtPrice: 174900, stock: 3 },
+      { options: [0, 1], price: 159000, compareAtPrice: 174900, stock: 2 },
+      { options: [0, 2], price: 159000, compareAtPrice: 174900, stock: 4 },
+    ],
+  },
+  // 11 — کیف > کوله پشتی
+  // قهوه‌ای ۴ طرح، زرد ۱ طرح — the yellow designs are not sold, which is what
+  // makes the product-level discount honest: only the four brown combinations
+  // exist, and all four carry the same ratio.
   {
     name: 'Fantasy Backpack',
     nameFa: 'کیف کوله پشتی طرح فانتزی',
@@ -614,10 +610,11 @@ const products: SampleProduct[] = [
     category: 'Bags',
     categoryFa: 'کیف',
     subCategory: 'Backpacks',
-    description: 'Fantasy-print backpack in two colors: light brown (5 designs) and yellow (1 design).',
-    descriptionFa: 'کوله پشتی با چاپ فانتزی در دو رنگ: قهوه‌ای روشن (۵ طرح) و زرد (۱ طرح). دوخت مقاوم و زیپ روان.',
+    description:
+      'Fantasy-print backpack in two colors: light brown (4 designs) and yellow (1 design).',
+    descriptionFa:
+      'کوله پشتی با چاپ فانتزی در دو رنگ: قهوه‌ای (۴ طرح) و زرد (۱ طرح). دوخت مقاوم و زیپ روان.',
     images: [
-
       asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-1.jpg'),
       asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-2.jpg'),
       asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-3.jpg'),
@@ -641,7 +638,7 @@ const products: SampleProduct[] = [
       asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-1.jpg'),
       asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-2.jpg'),
       asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-3.jpg'),
-      
+
       asset('products/initial-products/imgs/kif-aroosak-dar-2-1.jpg'),
       asset('products/initial-products/imgs/kif-aroosak-dar-3-1.jpg'),
       asset('products/initial-products/imgs/kif-aroosak-dar-3-2.jpg'),
@@ -668,18 +665,62 @@ const products: SampleProduct[] = [
       {
         name: 'design',
         nameFa: 'طرح',
-        values: [design('Design 1', 'طرح ۱'), design('Design 2', 'طرح ۲'), design('Design 3', 'طرح ۳'), design('Design 4', 'طرح ۴'), design('Design 5', 'طرح ۵')],
+        values: [
+          design('Design 1', 'طرح ۱'),
+          design('Design 2', 'طرح ۲'),
+          design('Design 3', 'طرح ۳'),
+          design('Design 4', 'طرح ۴'),
+          design('Design 5', 'طرح ۵'),
+        ],
         variants: [],
       },
     ],
-    // رنگ: قهوه‌ای ۵ طرح، زرد طرح ۱ — explicit combos, not full cartesian
     combos: [
-      { options: [0, 0], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-1.jpg') },
-      { options: [0, 1], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-2-1.jpg') },
-      { options: [0, 2], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-3-1.jpg') },
-      { options: [0, 3], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-4-1.jpg') },
-      { options: [0, 4], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-5-2.jpg') },
-      { options: [1, 0], price: 2199000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-1.jpg') },
+      { options: [0, 0], price: 96000, compareAtPrice: 105600, stock: 8, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-1.jpg') },
+      { options: [0, 1], price: 96000, compareAtPrice: 105600, stock: 9, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-2-1.jpg') },
+      { options: [0, 2], price: 96000, compareAtPrice: 105600, stock: 8, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-3-1.jpg') },
+      { options: [0, 3], price: 96000, compareAtPrice: 105600, stock: 7, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-4-1.jpg') },
+      { options: [1, 0], price: 96000, compareAtPrice: 105600, stock: 8, image: asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-1.jpg') },
+    ],
+  },
+  // 12 — کیف > کوله پشتی
+  {
+    name: 'Sareh Bag',
+    nameFa: 'کوله پشتی طرح ساحل و فیوز',
+    slug: 'sareh-bag',
+    category: 'Bags',
+    categoryFa: 'کیف',
+    subCategory: 'Backpacks',
+    description: 'Backpack printed with beach and fuse designs, in five colors.',
+    descriptionFa: 'کوله پشتی با چاپ طرح ساحل و فیوز، در پنج رنگ. جادار با جیب جانبی.',
+    images: [
+      asset('products/initial-products/seed-data/kif-khersi-soorati-1.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-keremi-1.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-jigari-1.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-meshki-1.jpg'),
+      asset('products/initial-products/seed-data/kif-khersi-keremi-2.jpg'),
+    ],
+    brand: 'Panah Kala',
+    rating: '0',
+    numReviews: 0,
+    isFeatured: false,
+    lengthCm: '29.00',
+    widthCm: '12.00',
+    heightCm: '36.00',
+    weightG: '460.00',
+    options: [
+      {
+        name: 'color',
+        nameFa: 'رنگ',
+        values: [C.pink, C.gray, C.black, C.skyBlue, C.lightBrown],
+        variants: [
+          { price: 3399000, compareAtPrice: 3738900, stock: 20, image: asset('products/initial-products/seed-data/kif-khersi-soorati-1.jpg') },
+          { price: 3399000, compareAtPrice: 3738900, stock: 24, image: asset('products/initial-products/seed-data/kif-khersi-keremi-1.jpg') },
+          { price: 3399000, compareAtPrice: 3738900, stock: 23, image: asset('products/initial-products/seed-data/kif-khersi-jigari-1.jpg') },
+          { price: 3399000, compareAtPrice: 3738900, stock: 110, image: asset('products/initial-products/seed-data/kif-khersi-meshki-1.jpg') },
+          { price: 3399000, compareAtPrice: 3738900, stock: 100, image: asset('products/initial-products/seed-data/kif-khersi-keremi-2.jpg') },
+        ],
+      },
     ],
   },
 ];

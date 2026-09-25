@@ -323,7 +323,7 @@ certbot renew --dry-run
 
 Your app already has the full chain built in; turn it on:
 
-1. Sign in as admin (`admin@example.com` / `123456` — **change this password now**: Admin → Users → edit).
+1. Sign in as admin (`admin@panahkalashop.com` / `123456` — **change this password now**: Admin → Users → edit).
 2. Admin → **Homepage** → SEO section → enable **"حالت تعمیرات: خروج از نتایج گوگل (noindex)"**.
 3. Save.
 

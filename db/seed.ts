@@ -311,7 +311,7 @@ async function main() {
         data: {
           userId: u.id,
           isDefault: true,
-          fullName: u.email === 'admin@example.com' ? 'مدیر سیستم' : 'Jan Doe',
+          fullName: u.email === 'admin@panahkalashop.com' ? 'مدیر سیستم' : 'Jan Doe',
           streetAddress: 'خیابان ولیعصر، پلاک ۱',
           city: 'تهران',
           province: 'تهران',

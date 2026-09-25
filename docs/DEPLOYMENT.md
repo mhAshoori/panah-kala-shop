@@ -282,7 +282,7 @@ Open `https://your-domain.ir` — the site must be live.
 | Sample data | Seeded (fake products) is fine | Reset DB before real launch: drop + recreate the DB, `npx prisma migrate deploy` (do NOT re-seed) |
 | ZarinPal | `ZARINPAL_SANDBOX=true` | Real merchant id + `ZARINPAL_SANDBOX=false` |
 | SMS.ir | `SMSIR_API_KEY` + `SMSIR_LINE_NUMBER` (raw text OTP works without template approval) | Add `SMSIR_OTP_TEMPLATE_ID` once SMS.ir approves the template |
-| Admin password | Seeded `admin@example.com / 123456` — **change immediately** | — |
+| Admin password | Seeded `admin@panahkalashop.com / 123456` — **change immediately** | — |
 | Dev codes | With `SMSIR_API_KEY` set, the `123456`/`456789` master codes are **disabled automatically** | — |
 
 **Change the admin password right after first login** (Admin → users, or profile).
