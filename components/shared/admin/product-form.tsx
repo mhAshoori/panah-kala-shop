@@ -113,8 +113,10 @@ const ProductForm = ({
     categories.find((c) => c.id === subId) ??
     categories.find((c) => c.id === mainId);
 
+  // De-dupe initial images: seed data / older rows can carry identical URLs
+  // (React keys are the URL itself).
   const [images, setImages] = useState<string[]>(
-    product?.images ?? productDefaultValues.images
+    Array.from(new Set(product?.images ?? productDefaultValues.images))
   );
   const [imageUrl, setImageUrl] = useState('');
   const [isFeatured, setIsFeatured] = useState(
@@ -217,7 +219,7 @@ const ProductForm = ({
     setMainId(initialMain || '');
     setSubId(initialSub?.id ?? '');
     setSubSubId(initialSubSub?.id ?? '');
-    setImages(product?.images ?? productDefaultValues.images);
+    setImages(Array.from(new Set(product?.images ?? productDefaultValues.images)));
     setIsFeatured(product?.isFeatured ?? productDefaultValues.isFeatured);
     setCodAvailable(product?.codAvailable ?? productDefaultValues.codAvailable);
     setBanner(product?.banner ?? '');
