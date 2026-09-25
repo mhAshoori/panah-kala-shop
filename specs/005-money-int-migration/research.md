@@ -76,29 +76,43 @@ question into a yes/no gate.
 
 ---
 
-## R-003: The `$extends` money transform stays
+## R-003: The `$extends` money transform ~~stays~~ — **CORRECTED during implementation**
 
-**Decision**: Leave `db/prisma.ts:28-80` completely untouched — all of it.
+**Original decision (WRONG)**: Leave `db/prisma.ts:28-80` completely untouched.
 
-**Rationale**: the transform calls `.toString()` on `price` and `compareAtPrice`
-for Product and ProductVariant. Prisma returns `int4` as a plain JS `number`
-(verified: no `BigInt` in the generated model types), and
-`Number.prototype.toString()` exists, so the transform keeps working unchanged.
-Its declared return type is `string` before and after, so **no client-visible
-TypeScript type changes anywhere**. The transform exists because Prisma `Decimal`
-does not survive JSON; with Int it is a harmless no-op that also keeps strings
-flowing to components that already handle them.
+**Why the original reasoning looked right**: the transform calls `.toString()` on
+`price` and `compareAtPrice` for Product and ProductVariant. Prisma returns
+`int4` as a plain JS `number` (verified: no `BigInt` in the generated model
+types), and `Number.prototype.toString()` exists, so the transform keeps working
+at runtime. Its declared return type is `string` before and after, so the
+original conclusion was "no client-visible type changes anywhere".
+
+**Why it was wrong**: that reasoning was about *runtime behaviour* and said
+nothing about the transform's *inferred* TypeScript type. Prisma's
+`$extends` result transform types each field from its `compute` return type, so
+`price` kept resolving to `string` while the schema declared `number`. Every
+`Product` and `Cart` consumer then failed to typecheck: `Type 'string' is not
+assignable to type 'number'`. Sixteen errors, spreading through pages,
+components, actions and tests as the stricter types were propagated.
+
+**Corrected decision**: remove the money entries (`price` and `compareAtPrice`
+for both `product` and `productVariant`) from the transform. Keep the five
+non-money `Decimal` fields (`rating`, `lengthCm`, `widthCm`, `heightCm`,
+`weightG`), which still stringify and still need it.
+
+**What this actually costs**: prices now reach client components as `number`
+rather than `string`. The churn was real but mechanical — `getDiscount` and
+`formatCurrency` already accepted `string | number`, and the formatters use
+`Intl.NumberFormat` with `maximumFractionDigits: 0`, so display was already
+integer-safe. A benefit: it deletes the "Decimal doesn't survive JSON" hazard
+the transform existed to work around, since `Int` is JSON-native.
 
 The five non-money `Decimal` fields (`rating`, `lengthCm`, `widthCm`, `heightCm`,
 `weightG`) keep the transform because they stay `Decimal` per the spec.
 
 **Alternatives considered**:
-- *Delete the money blocks, let Int pass through as `number`* — this is the
-  "cleanup" move, but it flips `product.price` from `string` to `number` across
-  every client component for **zero functional gain**, and would force signature
-  changes in `lib/discount.ts`, `lib/seo.ts`, and every product component.
-  Rejected: large diff, no behavioural benefit, violates the "shortest working
-  diff" principle.
+- *Keep the money blocks as no-ops* — rejected; see above. The type mismatch is
+  not a no-op, it breaks every consumer.
 - *Delete the whole transform* — impossible; the non-money Decimals still need it.
 
 ---
@@ -123,6 +137,20 @@ Sites (all money writes, all must change):
 | `lib/actions/cart.actions.ts:350` | `discount.toFixed(2)` |
 | `lib/actions/order.actions.ts:193` | `couponDiscountAmount.toFixed(2)` |
 | `lib/actions/coupon.actions.ts:55-56` | `value.toFixed(2)`, `minCartTotal.toFixed(2)` |
+
+**Added during implementation — four more string round-trips the `.toFixed(2)`
+framing missed.** Each was a `Decimal.toString()` that had to become a number:
+
+| Site | Was |
+|---|---|
+| `lib/actions/cart.actions.ts` `getMyCart` | four totals `.toString()` |
+| `lib/actions/cart.actions.ts` `addItemToCart` | two `serverPrice` assignments |
+| `lib/actions/order.actions.ts` | one buy-again price, plus the `pricedItems` loop |
+| `lib/variants.ts:140-141` `recomputeParent` | `price` and `compareAtPrice` `.toString()` |
+
+`recomputeParent` matters most: its `.toString()` would have kept
+`variants.test.ts` **green** on a broken write path — exactly the "tests pass
+while the migration is wrong" case this feature was scoped to catch.
 
 Separately, `lib/validator.ts:6-12` defines `currency` to accept
 `/^\d+(\.\d{2})?$/` and its error message literally reads *"Price must have

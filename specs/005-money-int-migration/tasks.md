@@ -44,9 +44,9 @@ line, no comment blocks (matching `20260914090000_order_inbox_fields`).
 **Purpose**: Establish the safety gate. Nothing destructive happens until the
 store is proven to hold no fractional Toman.
 
-- [ ] T001 Create the pre-flight fractional-value audit as a runnable script at `scripts/audit-fractional-money.sql` containing the 17-column `information_schema`-independent UNION query and the order-balance query from [data-model.md](../005-money-int-migration/data-model.md) §3; each SELECT is one line per the migration convention
-- [ ] T002 [P] Run `npx prisma db execute --stdin --schema prisma/schema.prisma < scripts/audit-fractional-money.sql` against the dev database and record the output in the commit message — **every count must be 0 and the order-balance query must return no rows**; if any row is non-zero, STOP and reconcile that data by hand before continuing (R-002)
-- [ ] T003 Capture the pre-migration money snapshot for later comparison: `SELECT count(*), sum("totalPrice") FROM "Order"; SELECT count(*), sum("price") FROM "OrderItem"; SELECT count(*), sum("price") FROM "Product";` — write the result to `scripts/audit-fractional-money.baseline.txt` so SC-005 ("orders identical in value to before") is checkable after the migration
+- [X] T001 Create the pre-flight fractional-value audit as a runnable script at `scripts/audit-fractional-money.sql` containing the 17-column `information_schema`-independent UNION query and the order-balance query from [data-model.md](../005-money-int-migration/data-model.md) §3; each SELECT is one line per the migration convention
+- [X] T002 [P] Run `npx prisma db execute --stdin --schema prisma/schema.prisma < scripts/audit-fractional-money.sql` against the dev database and record the output in the commit message — **every count must be 0 and the order-balance query must return no rows**; if any row is non-zero, STOP and reconcile that data by hand before continuing (R-002)
+- [X] T003 Capture the pre-migration money snapshot for later comparison: `SELECT count(*), sum("totalPrice") FROM "Order"; SELECT count(*), sum("price") FROM "OrderItem"; SELECT count(*), sum("price") FROM "Product";` — write the result to `scripts/audit-fractional-money.baseline.txt` so SC-005 ("orders identical in value to before") is checkable after the migration
 
 **Checkpoint**: T002 and T003 pass → the conversion is provably lossless. If
 either fails, halt this feature; do not proceed to Phase 2.
@@ -62,19 +62,23 @@ is reviewable on its own and revertable without stranding other work.
 only task in the feature that cannot be undone by `git revert` alone — the
 database itself is rewritten.
 
-- [ ] T004 Convert the 17 money columns from `Decimal @db.Decimal(12, 2)` to `Int` in `prisma/schema.prisma`: Product `price` (line 76, keep `@default(0)`), `compareAtPrice` (77, `Int?`); ProductVariant `price` (141), `compareAtPrice` (142, `Int?`); Cart `itemsPrice`/`shippingPrice`/`taxPrice`/`totalPrice` (158-161) and `couponDiscount` (163, keep `@default(0)`); Order `itemsPrice`/`shippingPrice`/`taxPrice`/`totalPrice` (175-178) and `couponDiscount` (180, keep `@default(0)`); OrderItem `price` (208); Coupon `value` (342) and `minCartTotal` (344, keep `@default(0)`) — **do NOT touch** `rating` (78), `lengthCm` (85), `widthCm` (86), `heightCm` (87), `weightG` (88)
-- [ ] T005 Author `prisma/migrations/<timestamp>_money_to_integer/migration.sql` with all 17 ALTERs in ONE file using `USING round("col"::numeric, 0)::integer`; the 4 defaulted columns (`Product.price`, `Cart.couponDiscount`, `Order.couponDiscount`, `Coupon.minCartTotal`) need `DROP DEFAULT` before and `SET DEFAULT 0` after, because the `USING` expression is not applied to a column's default value; one statement per line (R-001)
-- [ ] T006 [P] Update `CLAUDE.md` to replace the "Money values are Prisma Decimals exposed as strings" line (~line 43) with the integer-money rule, preserving the "treat money as Toman in the UI" and "IRR ×10 in JSON-LD" parts which remain true; this is a documentation correction and is independent of the migration itself
-- [ ] T007 Apply the migration with `npx prisma migrate deploy`, then IMMEDIATELY run `npx prisma generate` — `migrate deploy` does not regenerate the client, and a stale client keeps deserializing the new integer columns as decimals, which is the quietest failure mode in this change
-- [ ] T008 [P] Verify the conversion landed: re-run the `information_schema` query from quickstart.md Scenario 4 and confirm all 17 columns report `data_type = 'integer'` while `Product.rating` and the four dimension columns still report `numeric`
-- [ ] T009 [P] Re-run `scripts/audit-fractional-money.sql` and confirm output is identical to T002 (all zeros) — the conversion is idempotent by construction, satisfying SC-006
-- [ ] T010 Verify order history is preserved: compare the T003 baseline (`count(*)` and `sum(...)` per table) against the same query post-migration; the counts must match exactly and the sums must differ by less than 1 Toman per fractional row found in T002 (which is zero), satisfying FR-011 and SC-002
+- [X] T004 Convert the 17 money columns from `Decimal @db.Decimal(12, 2)` to `Int` in `prisma/schema.prisma`: Product `price` (line 76, keep `@default(0)`), `compareAtPrice` (77, `Int?`); ProductVariant `price` (141), `compareAtPrice` (142, `Int?`); Cart `itemsPrice`/`shippingPrice`/`taxPrice`/`totalPrice` (158-161) and `couponDiscount` (163, keep `@default(0)`); Order `itemsPrice`/`shippingPrice`/`taxPrice`/`totalPrice` (175-178) and `couponDiscount` (180, keep `@default(0)`); OrderItem `price` (208); Coupon `value` (342) and `minCartTotal` (344, keep `@default(0)`) — **do NOT touch** `rating` (78), `lengthCm` (85), `widthCm` (86), `heightCm` (87), `weightG` (88)
+- [X] T005 Author `prisma/migrations/<timestamp>_money_to_integer/migration.sql` with all 17 ALTERs in ONE file using `USING round("col"::numeric, 0)::integer`; the 4 defaulted columns (`Product.price`, `Cart.couponDiscount`, `Order.couponDiscount`, `Coupon.minCartTotal`) need `DROP DEFAULT` before and `SET DEFAULT 0` after, because the `USING` expression is not applied to a column's default value; one statement per line (R-001)
+- [X] T006 [P] Update `CLAUDE.md` to replace the "Money values are Prisma Decimals exposed as strings" line (~line 43) with the integer-money rule, preserving the "treat money as Toman in the UI" and "IRR ×10 in JSON-LD" parts which remain true; this is a documentation correction and is independent of the migration itself
+- [X] T007 Apply the migration with `npx prisma migrate deploy`, then IMMEDIATELY run `npx prisma generate` — `migrate deploy` does not regenerate the client, and a stale client keeps deserializing the new integer columns as decimals, which is the quietest failure mode in this change
+- [X] T008 [P] Verify the conversion landed: re-run the `information_schema` query from quickstart.md Scenario 4 and confirm all 17 columns report `data_type = 'integer'` while `Product.rating` and the four dimension columns still report `numeric`
+- [X] T009 [P] Re-run `scripts/audit-fractional-money.sql` and confirm output is identical to T002 (all zeros) — the conversion is idempotent by construction, satisfying SC-006
+- [X] T010 Verify order history is preserved: compare the T003 baseline (`count(*)` and `sum(...)` per table) against the same query post-migration; the counts must match exactly and the sums must differ by less than 1 Toman per fractional row found in T002 (which is zero), satisfying FR-011 and SC-002
 
-**Checkpoint**: `npx tsc --noEmit` — it is expected to still pass here,
-because the `$extends` transform in `db/prisma.ts` calls `.toString()` and
-`Number.prototype.toString()` exists, and its return type stays `string`. That
-same fact is why **no client-visible type changes anywhere**, and why
-`db/prisma.ts` is deliberately untouched (R-003).
+**Checkpoint**: `npx tsc --noEmit`. **Note — this prediction was wrong.** It was
+expected to pass here, on the reasoning that the `$extends` transform's
+`.toString()` keeps working on a number and its return type stays `string`, so
+no client-visible type would change (R-003). In fact the transform's *inferred*
+type stayed `string` while the schema said `number`, so every `Product` and
+`Cart` consumer broke. The transform's money entries had to be removed (done in
+T020's commit), after which prices reach the client as plain numbers. R-003's
+"leave `db/prisma.ts` untouched" was correct about runtime behaviour and wrong
+about types.
 
 ---
 
@@ -93,19 +97,19 @@ stays reachable and FR-001/FR-006/FR-009 are all false.
 
 ### Tests for User Story 1 (write FIRST, they must fail)
 
-- [ ] T011 [P] [US1] Add the no-residual invariant to `__tests__/lib/cart/pricing.test.ts`: for each existing `calcPrice` case, assert `Number(result.itemsPrice) + Number(result.shippingPrice) + Number(result.taxPrice) === Number(result.totalPrice)` AND that all four are `Number.isInteger` — this is the SC-004 check and it must fail while `calcPrice` returns `.toFixed(2)` strings
-- [ ] T012 [P] [US1] Add the rounds-to-zero boundary to `__tests__/lib/coupon.test.ts`: `expect(couponDiscount('percent', 1, 10)).toBe(0)` and `expect(couponDiscount('percent', 15, 999999)).toBe(150000)` (replacing the current `149999.85` expectation at line 100, whose comment says "2dp is correct for money" — that assumption is exactly what this feature reverses)
-- [ ] T013 [P] [US1] Add integer-write assertions to `__tests__/lib/variants.test.ts`: `recomputeParent` must return **numbers**, not strings — `expect(recomputeParent([])).toEqual({ price: 0, compareAtPrice: null, stock: 0 })` and update the `compareAtPrice = lowest non-null` case (line ~135) to expect `150000` as a number; note `lib/variants.ts:140-141` currently calls `.toString()`, which is why these tests stay green after T004 and must be tightened deliberately
-- [ ] T014 [P] [US1] Add the fractional-refusal test to `__tests__/lib/validator.test.ts`: `insertProductSchema.parse({ ...validProduct, price: '100.5' })` throws, `'100'` passes, and `price: '2147483648'` throws (the int4 ceiling) — covers FR-008 and FR-002; update the existing "normalizes integer prices to two decimals" test (line ~44) and the `validProduct` fixture at line 24, which currently uses `price: '50000000.00'`
+- [X] T011 [P] [US1] Add the no-residual invariant to `__tests__/lib/cart/pricing.test.ts`: for each existing `calcPrice` case, assert `Number(result.itemsPrice) + Number(result.shippingPrice) + Number(result.taxPrice) === Number(result.totalPrice)` AND that all four are `Number.isInteger` — this is the SC-004 check and it must fail while `calcPrice` returns `.toFixed(2)` strings
+- [X] T012 [P] [US1] Add the rounds-to-zero boundary to `__tests__/lib/coupon.test.ts`: `expect(couponDiscount('percent', 1, 10)).toBe(0)` and `expect(couponDiscount('percent', 15, 999999)).toBe(150000)` (replacing the current `149999.85` expectation at line 100, whose comment says "2dp is correct for money" — that assumption is exactly what this feature reverses)
+- [X] T013 [P] [US1] Add integer-write assertions to `__tests__/lib/variants.test.ts`: `recomputeParent` must return **numbers**, not strings — `expect(recomputeParent([])).toEqual({ price: 0, compareAtPrice: null, stock: 0 })` and update the `compareAtPrice = lowest non-null` case (line ~135) to expect `150000` as a number; note `lib/variants.ts:140-141` currently calls `.toString()`, which is why these tests stay green after T004 and must be tightened deliberately
+- [X] T014 [P] [US1] Add the fractional-refusal test to `__tests__/lib/validator.test.ts`: `insertProductSchema.parse({ ...validProduct, price: '100.5' })` throws, `'100'` passes, and `price: '2147483648'` throws (the int4 ceiling) — covers FR-008 and FR-002; update the existing "normalizes integer prices to two decimals" test (line ~44) and the `validProduct` fixture at line 24, which currently uses `price: '50000000.00'`
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] Remove the four `.toFixed(2)` stringifications in `lib/cart/pricing.ts:35-38` and return integers; `taxPrice` at line 31 must keep rounding because the tax *rate* is fractional (`TAX_RATE = 0.09` in `lib/constants.ts:11`), so use `Math.round` there — this is why `round2` is kept rather than deleted
-- [ ] T016 [P] [US1] Remove `couponDiscountValue.toFixed(2)` at `lib/actions/cart.actions.ts:134` and `discount.toFixed(2)` at `lib/actions/cart.actions.ts:350`
-- [ ] T017 [P] [US1] Remove `couponDiscountAmount.toFixed(2)` at `lib/actions/order.actions.ts:193`
-- [ ] T018 [P] [US1] Remove `value.toFixed(2)` and `minCartTotal.toFixed(2)` at `lib/actions/coupon.actions.ts:55-56`
-- [ ] T019 [US1] Tighten the `currency` validator in `lib/validator.ts:6-12`: change the regex from `/^\d+(\.\d{2})?$/` to `/^\d+$/` and add a numeric maximum of `2147483647`; the current error message reads "Price must have exactly two decimal places (e.g., 49.99)" and must be rewritten to describe whole Toman, since fractional prices are currently the intended input (FR-008, FR-002)
-- [ ] T020 [US1] Change `recomputeParent` in `lib/variants.ts:130-145` to return `price: number` and `compareAtPrice: number | null` instead of `.toString()` results, including the empty-list case that currently returns `price: '0'`; verify every caller in `lib/actions/product.actions.ts` and the admin variant editor still compiles, since this widens a return type that was previously `string`
+- [X] T015 [US1] Remove the four `.toFixed(2)` stringifications in `lib/cart/pricing.ts:35-38` and return integers; `taxPrice` at line 31 must keep rounding because the tax *rate* is fractional (`TAX_RATE = 0.09` in `lib/constants.ts:11`), so use `Math.round` there — this is why `round2` is kept rather than deleted
+- [X] T016 [P] [US1] Remove `couponDiscountValue.toFixed(2)` at `lib/actions/cart.actions.ts:134` and `discount.toFixed(2)` at `lib/actions/cart.actions.ts:350`
+- [X] T017 [P] [US1] Remove `couponDiscountAmount.toFixed(2)` at `lib/actions/order.actions.ts:193`
+- [X] T018 [P] [US1] Remove `value.toFixed(2)` and `minCartTotal.toFixed(2)` at `lib/actions/coupon.actions.ts:55-56`
+- [X] T019 [US1] Tighten the `currency` validator in `lib/validator.ts:6-12`: change the regex from `/^\d+(\.\d{2})?$/` to `/^\d+$/` and add a numeric maximum of `2147483647`; the current error message reads "Price must have exactly two decimal places (e.g., 49.99)" and must be rewritten to describe whole Toman, since fractional prices are currently the intended input (FR-008, FR-002)
+- [X] T020 [US1] Change `recomputeParent` in `lib/variants.ts:130-145` to return `price: number` and `compareAtPrice: number | null` instead of `.toString()` results, including the empty-list case that currently returns `price: '0'`; verify every caller in `lib/actions/product.actions.ts` and the admin variant editor still compiles, since this widens a return type that was previously `string`
 
 **Checkpoint**: T015–T020 complete, then `npm test` — T011–T014 now pass,
 proving money no longer round-trips through a fractional string. This is the MVP.
@@ -125,14 +129,14 @@ entered (quickstart.md Scenarios 6 and 7).
 
 ### Tests for User Story 2
 
-- [ ] T021 [P] [US2] Update `__tests__/lib/seo.test.ts`: the `product` fixture at line 79 uses `price: '68500000.00'` and the test at line ~91 feeds a fractional `price: '1234567.89'` asserting `12345679`; change both to whole-Toman values and keep asserting the ×10 IRR relationship, which is unchanged by this feature (FR-015)
-- [ ] T022 [P] [US2] Add a whole-Toman display case to `__tests__/lib/discount.test.ts`: `expect(getDiscount('100', '111')).toEqual({ percent: 9, saveAmount: 11 })` — this locks the known badge/typed disagreement so no later "fix" moves it silently (R-006, R-007 check 1)
+- [X] T021 [P] [US2] Update `__tests__/lib/seo.test.ts`: the `product` fixture at line 79 uses `price: '68500000.00'` and the test at line ~91 feeds a fractional `price: '1234567.89'` asserting `12345679`; change both to whole-Toman values and keep asserting the ×10 IRR relationship, which is unchanged by this feature (FR-015)
+- [X] T022 [P] [US2] Add a whole-Toman display case to `__tests__/lib/discount.test.ts`: `expect(getDiscount('100', '111')).toEqual({ percent: 9, saveAmount: 11 })` — this locks the known badge/typed disagreement so no later "fix" moves it silently (R-006, R-007 check 1)
 
 ### Implementation for User Story 2
 
-- [ ] T023 [US2] Change `SampleVariant.price`, `SampleVariant.compareAtPrice` and `SampleCombo.price` in `db/sample-data.ts:53,64,94-97` from `string` to `number` and strip the `.00` suffix from all 13 products' values; leave `rating` and the dimension fields as `string` because those columns stay `Decimal`
-- [ ] T024 [US2] Update `db/seed.ts:183` (`variantRows.price: string`) and the `productVariant.create` calls at lines 233 and 276 to pass integers, so the seed does not rely on Prisma silently coercing a string through the rounding assignment cast
-- [ ] T025 [US2] Run `npm run db:seed` and confirm all 13 products with per-variant prices load with no type errors (quickstart.md Scenario 13)
+- [X] T023 [US2] Change `SampleVariant.price`, `SampleVariant.compareAtPrice` and `SampleCombo.price` in `db/sample-data.ts:53,64,94-97` from `string` to `number` and strip the `.00` suffix from all 13 products' values; leave `rating` and the dimension fields as `string` because those columns stay `Decimal`
+- [X] T024 [US2] Update `db/seed.ts:183` (`variantRows.price: string`) and the `productVariant.create` calls at lines 233 and 276 to pass integers, so the seed does not rely on Prisma silently coercing a string through the rounding assignment cast
+- [X] T025 [US2] Run `npm run db:seed` and confirm all 13 products with per-variant prices load with no type errors (quickstart.md Scenario 13)
 
 **Checkpoint**: US1 + US2 complete → a product priced in whole Toman renders
 and checks out with that exact value.
@@ -151,11 +155,11 @@ stored integers (quickstart.md Scenarios 7 and 12).
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Verify (do not modify) that `lib/persian.ts:23-25` and `lib/utils.ts:64-72` `formatCurrency` already drop fractions via `maximumFractionDigits: 0`; if either can emit a decimal for an integer input, fix it — otherwise record "verified unchanged" in the commit body (FR-010)
-- [ ] T027 [P] [US3] Verify (do not modify) that `lib/pay/zarinpal.ts:32,78` send `amount: Math.round(...)` with `currency: 'IRT'`, and that `lib/actions/payment.actions.ts:43,139` both read the same `order.totalPrice` column so request and verify amounts cannot diverge (a divergence returns ZarinPal code `-50`); record "verified unchanged" in the commit body
-- [ ] T028 [P] [US3] Verify (do not modify) that `lib/seo.ts:73,114` still apply `Math.round(Number(price) * 10)` for the Toman→IRR conversion, and that `lib/discount.ts:24,27` keep `Math.floor` for percent and `Math.round` for savings; record "verified unchanged" in the commit body
-- [ ] T029 [US3] Manually confirm via the running dev server that the AI assistant reports the same whole Toman price the storefront shows, and that the JSON-LD block reports that value ×10 in `IRR` (quickstart.md Scenario 12, FR-012)
-- [ ] T030 [US3] Check `lib/actions/user.actions.ts:879-887` where a `SUM` result is assigned into a field typed `totalSpent: string` via a `JSON.parse(JSON.stringify(...))` round-trip that currently stringifies a Decimal; with Int it becomes a JS `number`, so correct the declared type rather than relying on the JSON round-trip (no behavioural change, the Persian formatter renders either)
+- [X] T026 [P] [US3] Verify (do not modify) that `lib/persian.ts:23-25` and `lib/utils.ts:64-72` `formatCurrency` already drop fractions via `maximumFractionDigits: 0`; if either can emit a decimal for an integer input, fix it — otherwise record "verified unchanged" in the commit body (FR-010)
+- [X] T027 [P] [US3] Verify (do not modify) that `lib/pay/zarinpal.ts:32,78` send `amount: Math.round(...)` with `currency: 'IRT'`, and that `lib/actions/payment.actions.ts:43,139` both read the same `order.totalPrice` column so request and verify amounts cannot diverge (a divergence returns ZarinPal code `-50`); record "verified unchanged" in the commit body
+- [X] T028 [P] [US3] Verify (do not modify) that `lib/seo.ts:73,114` still apply `Math.round(Number(price) * 10)` for the Toman→IRR conversion, and that `lib/discount.ts:24,27` keep `Math.floor` for percent and `Math.round` for savings; record "verified unchanged" in the commit body
+- [X] T029 [US3] Manually confirm via the running dev server that the AI assistant reports the same whole Toman price the storefront shows, and that the JSON-LD block reports that value ×10 in `IRR` (quickstart.md Scenario 12, FR-012)
+- [X] T030 [US3] Check `lib/actions/user.actions.ts:879-887` where a `SUM` result is assigned into a field typed `totalSpent: string` via a `JSON.parse(JSON.stringify(...))` round-trip that currently stringifies a Decimal; with Int it becomes a JS `number`, so correct the declared type rather than relying on the JSON round-trip (no behavioural change, the Persian formatter renders either)
 
 **Checkpoint**: all three stories independently verifiable.
 
@@ -163,9 +167,9 @@ stored integers (quickstart.md Scenarios 7 and 12).
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T031 Run the full pre-commit gate: `npx tsc --noEmit && npm run lint && npm test && npm run build` — all four must pass
+- [X] T031 Run the full pre-commit gate: `npx tsc --noEmit && npm run lint && npm test && npm run build` — all four must pass
 - [ ] T032 Execute quickstart.md Scenarios 6, 7, 8, 9, 10 and 11 in the browser: whole-Toman display, discount badge consistency, exact order record, coupon rounding, fractional input refused, overflow refused
-- [ ] T033 Confirm no `.toFixed(2)` remains on any money write path: `grep -rn "toFixed(2)" lib/actions/ lib/cart/` returns nothing (the two `.toFixed(1)` rating call sites in product/reviews components are out of scope and must remain)
+- [X] T033 Confirm no `.toFixed(2)` remains on any money write path: `grep -rn "toFixed(2)" lib/actions/ lib/cart/` returns nothing (the two `.toFixed(1)` rating call sites in product/reviews components are out of scope and must remain)
 - [ ] T034 [P] Update `docs/DEPLOYMENT.md` if it describes the migration step, to note that this migration rewrites money columns under `ACCESS EXCLUSIVE` and should be run outside sale hours
 - [ ] T035 Note the follow-up (NOT in this feature): `Notification.data` (`prisma/schema.prisma:312`) and `Cart.items` still hold `"49000.00"`-style JSON strings. They render correctly through existing formatters, so this is deliberately deferred cleanup — record it in the commit body rather than fixing it here
 
