@@ -6,6 +6,7 @@ import { Plus, Trash2, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { deriveCompareAtPrice, percentToDiscount } from '@/lib/discount-math';
 import { Card, CardContent } from '@/components/ui/card';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { cartesian } from '@/lib/variants';
@@ -308,7 +309,7 @@ const OptionsEditor = ({
                     <th className='p-2 text-start'>
                       {t('price')}
                     </th>
-                    <th className='p-2 text-start'>{t('compareAtPrice')}</th>
+                    <th className='p-2 text-start'>{t('discountPercent')}</th>
                     <th className='p-2 text-start'>{t('stock')}</th>
                   </tr>
                 </thead>
@@ -365,21 +366,62 @@ const OptionsEditor = ({
                           step='1'
                           min='1'
                           value={alignedVariants[i].price}
-                          onChange={(e) => setVariant(i, { price: e.target.value })}
+                          onChange={(e) => {
+                            const price = e.target.value;
+                            // Re-derive the stored price-before-discount from
+                            // the percentage already shown, so editing a
+                            // variant's price keeps its discount (FR-017)
+                            // instead of leaving a stale pair.
+                            const pct = percentToDiscount(
+                              alignedVariants[i].price,
+                              alignedVariants[i].compareAtPrice
+                            );
+                            const derived = deriveCompareAtPrice(price, pct);
+                            setVariant(i, {
+                              price,
+                              ...(derived.ok
+                                ? {
+                                    compareAtPrice:
+                                      derived.compareAtPrice != null
+                                        ? String(derived.compareAtPrice)
+                                        : '',
+                                  }
+                                : {}),
+                            });
+                          }}
                           placeholder='0'
                           className='w-28'
                         />
                       </td>
                       <td className='p-2'>
+                        {/* Variant discount is entered as a percentage and
+                            derived independently of every other variant —
+                            nothing cascades from the product or a sibling. */}
                         <Input
                           type='number'
                           step='1'
-                          min='1'
-                          value={alignedVariants[i].compareAtPrice}
-                          onChange={(e) =>
-                            setVariant(i, { compareAtPrice: e.target.value })
+                          min='0'
+                          max='99'
+                          value={
+                            percentToDiscount(
+                              alignedVariants[i].price,
+                              alignedVariants[i].compareAtPrice
+                            ) ?? ''
                           }
-                          className='w-28'
+                          onChange={(e) => {
+                            const result = deriveCompareAtPrice(
+                              alignedVariants[i].price,
+                              e.target.value
+                            );
+                            setVariant(i, {
+                              compareAtPrice:
+                                result.ok && result.compareAtPrice != null
+                                  ? String(result.compareAtPrice)
+                                  : '',
+                            });
+                          }}
+                          placeholder='0'
+                          className='w-20'
                         />
                       </td>
                       <td className='p-2'>

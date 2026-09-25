@@ -1,6 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  deriveCompareAtPrice,
+  percentToDiscount,
+} from '@/lib/discount-math';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useTranslations } from 'next-intl';
@@ -127,6 +131,27 @@ const ProductForm = ({
   );
   const [banner, setBanner] = useState(product?.banner ?? '');
 
+  // Discount is entered as a percentage; compareAtPrice is derived from it
+  // (lib/discount-math). Only the percentage is editable — the derived pair is
+  // shown read-only so the admin can see what the storefront will render.
+  // Pre-filled from the stored pair, so an existing discount is visible.
+  const [discountPercent, setDiscountPercent] = useState<string>(() => {
+    const p = percentToDiscount(product?.price ?? 0, product?.compareAtPrice);
+    return p === null ? '' : String(p);
+  });
+  const [priceValue, setPriceValue] = useState<string>(
+    product?.price != null ? String(product.price) : ''
+  );
+
+  const derived = useMemo(
+    () => deriveCompareAtPrice(priceValue, discountPercent),
+    [priceValue, discountPercent]
+  );
+  const derivedCompareAtPrice =
+    derived.ok && derived.compareAtPrice != null
+      ? String(derived.compareAtPrice)
+      : '';
+
   const action = type === 'Create' ? createProduct : updateProduct;
   const [state, formAction] = useActionState(action, {
     success: false,
@@ -213,13 +238,18 @@ const ProductForm = ({
       toast.error(t('atLeastOneImageRequired'));
       return;
     }
-    // Product price must be strictly positive; the browser's min='1' already
-    // covers this, but the check keeps the rule explicit next to the images
-    // gate so both live in one place.
-    const priceInput = formRef.current?.elements.namedItem('price');
-    if (priceInput instanceof HTMLInputElement && Number(priceInput.value) <= 0) {
+    // A discount that cannot be stored honestly must not be silently dropped:
+    // the derived hidden field would be empty and the product would save with
+    // no discount, which is the opposite of what the admin typed.
+    if (!derived.ok) {
       e.preventDefault();
-      toast.error(t('priceMustBePositive'));
+      toast.error(
+        derived.error === 'priceTooLow'
+          ? t('discountNeedsMinPrice')
+          : derived.error === 'percentOutOfRange'
+            ? t('discountPercentTooHigh')
+            : t('discountTooLarge')
+      );
       return;
     }
   };
@@ -244,6 +274,13 @@ const ProductForm = ({
     setIsFeatured(product?.isFeatured ?? productDefaultValues.isFeatured);
     setCodAvailable(product?.codAvailable ?? productDefaultValues.codAvailable);
     setBanner(product?.banner ?? '');
+    // price and the discount are controlled, so the DOM reset above does not
+    // touch them — reset explicitly or the derived pair survives a discard.
+    setPriceValue(product?.price != null ? String(product.price) : '');
+    setDiscountPercent(() => {
+      const p = percentToDiscount(product?.price ?? 0, product?.compareAtPrice);
+      return p === null ? '' : String(p);
+    });
     setIsDirty(false);
     setConfirmOpen(false);
     toast.info(tCommon('changesDiscarded'));
@@ -444,24 +481,44 @@ const ProductForm = ({
               type='number'
               step='1'
               min='1'
-              defaultValue={product?.price}
+              value={priceValue}
+              onChange={(e) => setPriceValue(e.target.value)}
               placeholder='0'
               required
             />
           </Field>
           <Field className='w-full'>
-            <FieldLabel htmlFor='compareAtPrice'>
-              {t('compareAtPrice')} ({tCommon('currency')})
-            </FieldLabel>
+            <FieldLabel htmlFor='discountPercent'>{t('discountPercent')}</FieldLabel>
             <Input
-              id='compareAtPrice'
-              name='compareAtPrice'
+              id='discountPercent'
               type='number'
               step='1'
-              min='1'
-              defaultValue={product?.compareAtPrice ?? ''}
-              placeholder={t('compareAtPriceHint')}
+              min='0'
+              max='99'
+              value={discountPercent}
+              onChange={(e) => setDiscountPercent(e.target.value)}
+              placeholder={t('discountPercentHint')}
             />
+            {/* Derived from the percentage above; the server reads this. */}
+            <input
+              type='hidden'
+              name='compareAtPrice'
+              value={derivedCompareAtPrice}
+            />
+            <p className='text-xs text-muted-foreground'>
+              {derivedCompareAtPrice
+                ? t('compareAtPriceDerived', { value: derivedCompareAtPrice })
+                : t('noDiscount')}
+            </p>
+            {!derived.ok && (
+              <p className='text-xs text-destructive'>
+                {derived.error === 'priceTooLow'
+                  ? t('discountNeedsMinPrice')
+                  : derived.error === 'percentOutOfRange'
+                    ? t('discountPercentTooHigh')
+                    : t('discountTooLarge')}
+              </p>
+            )}
           </Field>
           <Field className='w-full'>
             <FieldLabel htmlFor='stock'>{t('stock')}</FieldLabel>
