@@ -198,7 +198,7 @@ placeholder on its detail page.
   zero or less, MUST be refused with a field-specific message. The derived
   price-before-discount must also be refused if it would exceed the largest
   whole Toman value the store can hold (2,147,483,647), which occurs only for
-  extreme combinations — a 99% discount on a product priced above 21,473,836
+  extreme combinations — a 99% discount on a product priced above 21,474,836
   Toman.
 - **FR-012**: Derived money values MUST be whole Toman, rounded **down**, and the
   discount percentage shown to the administrator and on the storefront MUST be

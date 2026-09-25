@@ -149,7 +149,7 @@ helper:
 | 1 | `deriveCompareAtPrice(1000, 10) === 1111`, `(1000, 25) === 1333`, `(2000, 10) === 2222` | the floor rule; quoted values verified against the implementation |
 | 2 | percent `0`/empty → `null`; `100` and `120` rejected | FR-011 |
 | 3 | the 100 Toman floor refuses `(50, 10)` and accepts `(100, 1)` | R-001 rule 2 |
-| 4 | overflow refused above 21,473,836 Toman at 99% | FR-011 guard |
+| 4 | overflow refused above 21,474,836 Toman at 99% | FR-011 guard |
 | 5 | **the safety invariant**: across a price/percent matrix, the badge recomputed from the derived pair is **never greater** than the typed percent | the guarantee FR-013 makes, stated as an executable check |
 | 6 | `insertProductSchema` rejects blank / negative / non-integer `stock`, `price: 0`, and a variant `compareAtPrice <= price` | FR-005, FR-006, R-005 |
 
