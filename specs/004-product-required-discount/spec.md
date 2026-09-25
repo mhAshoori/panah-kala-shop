@@ -12,8 +12,8 @@
 - Q: When the price of an already-discounted product is edited, what should happen to the discount? → A: Keep the discount percentage and recompute the price-before-discount, so the storefront still shows the same percentage off.
 - Q: How should the discount control look in the product form? → A: A single discount percentage field; the price-before-discount and the final sale price are shown as derived, read-only values.
 - Q: For a product with variants, how do discounts apply to the variant prices? → A: Per-variant and independent — each variant keeps its own price and price-before-discount pair with its own discount, and nothing cascades from the product.
-- Q: When a percentage does not divide evenly, how should the stored numbers be rounded? → A: Round the money to two decimals and floor the displayed percentage, so the badge never overstates the discount. (Superseded by the money-storage answer below: money is whole Toman, rounded half-up.)
-- Q: Money is to be stored as whole Toman (integer) instead of a two-decimal value. Which integer type, and how does it round? → A: 32-bit integer; round half-up to whole Toman and floor the displayed percentage. The money storage change is specified separately (005-money-int-migration) and lands first; this feature assumes integer money.
+- Q: When a percentage does not divide evenly, how should the stored numbers be rounded? → A: Round the money to two decimals and floor the displayed percentage, so the badge never overstates the discount. (Superseded twice since: money is whole Toman, and the derived price-before-discount is floored — see the discount-rounding answer below.)
+- Q: Money is to be stored as whole Toman (integer) instead of a two-decimal value. Which integer type, and how does it round? → A: 32-bit integer. The money storage change is specified separately (005-money-int-migration) and landed first; this feature assumes integer money. (The half-up detail here was later superseded: the derived price-before-discount is floored, per the low-price answer below.)
 - Q: Coupon.value holds either a percentage or a Toman amount in one column. How should integer money handle it? → A: Keep it as a single integer column — both uses are already whole numbers, so the coupon model and its logic are unchanged.
 - Q: Whole Toman makes some discounts impossible to store exactly, so a derived badge can overstate the real saving at low prices. How should the admin form handle it? → A: Both — derive the price-before-discount by rounding DOWN so the badge can only ever understate, AND refuse discounts on products priced below 100 Toman (the price at which even a 1% discount still saves a whole Toman).
 
@@ -148,9 +148,9 @@ placeholder on its detail page.
   entirely: the price-before-discount is cleared with it, and the storefront stops
   showing a discount badge.
 - A price does not divide evenly by the discount percentage: the derived
-  price-before-discount is rounded half-up to whole Toman, and the percentage
-  shown on the storefront is rounded down so the badge never claims more than the
-  shopper actually saves.
+  price-before-discount is rounded **down** to whole Toman, and the percentage
+  shown on the storefront is also rounded down, so the badge can only ever
+  claim less than the real saving and never more.
 - A percentage is entered for a product that has multiple variants: the
   product-level discount applies only to the product-level price, and each variant
   keeps its own independent price pair and its own discount.
@@ -195,8 +195,12 @@ placeholder on its detail page.
   greater than the selling price; a zero, equal, or lower price-before-discount
   means "not discounted" and MUST NOT produce a discount badge.
 - **FR-011**: A discount percentage of 100 or more, or a resulting sale price of
-  zero or less, MUST be refused with a field-specific message.
-- **FR-012**: Derived money values MUST be whole Toman, rounded half-up, and the
+  zero or less, MUST be refused with a field-specific message. The derived
+  price-before-discount must also be refused if it would exceed the largest
+  whole Toman value the store can hold (2,147,483,647), which occurs only for
+  extreme combinations — a 99% discount on a product priced above 21,473,836
+  Toman.
+- **FR-012**: Derived money values MUST be whole Toman, rounded **down**, and the
   discount percentage shown to the administrator and on the storefront MUST be
   rounded down, so a displayed percentage never overstates the actual saving.
 - **FR-013**: The stored price and price-before-discount MUST be the single source
