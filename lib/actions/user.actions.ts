@@ -898,12 +898,13 @@ export async function getCustomerProfile(id: string) {
     orders: {
       id: string;
       createdAt: Date;
-      totalPrice: string;
+      // Whole Toman integer since 005-money-int-migration.
+      totalPrice: number;
       isPaid: boolean;
       isDelivered: boolean;
     }[];
     _count: { orders: number; reviews: number; addresses: number };
-    totalSpent: string;
+    totalSpent: number;
   };
 }
 

@@ -40,7 +40,7 @@ There is **no `[locale]` URL segment** and next-intl middleware is NOT used. The
 [proxy.ts](proxy.ts) (Next 16's middleware convention) only assigns the `sessionCartId` cookie for guest carts.
 
 ### Data layer
-Prisma 7 with **driver adapters** (`@prisma/adapter-pg`); client is generated to `lib/generated/prisma/` (not the default location). [db/prisma.ts](db/prisma.ts) appends `uselibpqcompat=true` for Neon URLs and guards a `globalThis` singleton — without it, HMR exhausts the connection pool (Neon free tier). `product.price/compareAtPrice/rating` are Decimal → exposed as strings via a `$extends` result transform; always treat money as strings/Toman in the UI (schema.org JSON-LD multiplies ×10 → IRR, see [lib/seo.ts](lib/seo.ts)).
+Prisma 7 with **driver adapters** (`@prisma/adapter-pg`); client is generated to `lib/generated/prisma/` (not the default location). [db/prisma.ts](db/prisma.ts) appends `uselibpqcompat=true` for Neon URLs and guards a `globalThis` singleton — without it, HMR exhausts the connection pool (Neon free tier). **Money is whole Toman stored as `Int`** (Toman has no commonly used subunit), so money reaches the client as a plain number — no `$extends` transform needed for it. Physical dimensions, weight and `rating` stay `Decimal` and are stringified by a `$extends` result transform. Never reintroduce `.toFixed(2)` on a money write: a fractional string would be silently coerced by the Int column. Schema.org JSON-LD multiplies ×10 → IRR, see [lib/seo.ts](lib/seo.ts).
 
 Deployed DB is Neon free tier (`DATABASE_URL` in `.env`, gitignored). Migrations are hand-authored folders under `prisma/migrations/` (Prisma 7 `--create-only` sometimes produces nothing; write `migration.sql` manually with one statement per line).
 
@@ -92,7 +92,7 @@ Jest 30 via `next/jest`, `testEnvironment: 'node'`, tests only under `__tests__/
 
 ### Key decisions
 - ZarinPal replaces PayPal/Stripe (user request). Toman in UI, IRR ×10 in JSON-LD.
-- Money values are Prisma Decimals exposed as **strings** via `$extends`; never do arithmetic on them client-side without conversion.
+- Money values are whole-Toman `Int` columns, passed to the client as **numbers**; the server re-validates them and never trusts client-sent prices.
 - AI: key stays in env only; model/base-URL/enabled are DB settings the admin can change without redeploy.
 - Migrations are hand-authored SQL folders (Prisma 7 `--create-only` is unreliable here).
 - Validation gate before every commit: `tsc --noEmit` → `lint` → `test` → `build`.
