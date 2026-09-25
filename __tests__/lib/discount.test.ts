@@ -57,11 +57,13 @@ describe('getDiscount', () => {
     expect(getDiscount(7, 8)).toEqual({ percent: 12, saveAmount: 1 });
   });
 
-  it('uses half-up rounding for the derived price-before-discount', () => {
-    // 999999 at 33% is exactly 1492535.82. Half-up gives 1492536, whose badge
-    // is 33; flooring would give 1492535, whose badge is 32 — an understatement.
-    expect(Math.round((999999 * 100) / (100 - 33))).toBe(1492536);
-    expect(getDiscount(999999, 1492536)?.percent).toBe(33);
+  it('floors the derived price-before-discount so the badge can only understate', () => {
+    // 999999 at 33% is exactly 1492535.82. Flooring gives 1492535, whose badge
+    // is 32; half-up would give 1492536, whose badge is 33. The spec chose
+    // floor deliberately: rounding down makes it impossible for the badge to
+    // overstate the real saving, and understating is the accepted cost.
+    expect(Math.floor((999999 * 100) / (100 - 33))).toBe(1492535);
+    expect(getDiscount(999999, 1492535)?.percent).toBe(32);
   });
 
   it('handles numeric inputs (DB Decimal converted)', () => {
