@@ -154,6 +154,14 @@ concurrent queries for the duration. Run it outside sale hours. After any
 schema change, `npx prisma generate` is required before the build — a stale
 client keeps deserializing new column types incorrectly.
 
+**Run it with `node .next/standalone/server.js`, not `npm run start`.** The
+project sets `output: 'standalone'` (gated off on Vercel, see
+`next.config.ts`), and `next start` warns that it "does not work with
+`output: standalone`". In practice it still serves, but it is not the supported
+path and it can diverge from what actually ships — the standalone server is
+what systemd and the VPS guide run. Verified 2026-09-25: both boot and serve,
+but only the standalone path is warning-free.
+
 Copy static assets into the standalone bundle:
 
 ```bash
