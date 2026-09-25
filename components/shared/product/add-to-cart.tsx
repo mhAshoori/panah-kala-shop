@@ -93,15 +93,21 @@ const AddToCart = ({
       </Button>
     </div>
   ) : (
-    <Button className='w-full' type='button' disabled={isPending} onClick={handleAddToCart}>
+    <Button
+      // The `destructive` variant is a 10% tint in this design system — right
+      // for an alert, wrong for a primary CTA. Solid fill here instead.
+      variant='destructive'
+      className='h-12 w-full rounded-xl bg-destructive text-base font-bold text-destructive-foreground hover:bg-destructive/90'
+      type='button'
+      disabled={isPending}
+      onClick={handleAddToCart}
+    >
       {isPending ? (
         <>
-          <Loader className='w-4 h-4 animate-spin' /> {t('adding')}
+          <Loader className='w-5 h-5 animate-spin' /> {t('adding')}
         </>
       ) : (
-        <>
-          <Plus className='w-4 h-4' /> {t('addToCart')}
-        </>
+        <>{t('addToCart')}</>
       )}
     </Button>
   );

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { Check } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -99,13 +100,35 @@ const VariantSelector = ({
     <Card className='w-auto max-w-full overflow-hidden lg:sticky lg:top-24'>
       <CardContent className='p-4 min-w-0 space-y-3'>
         {options.map((option, optIdx) => {
+          // A colour option is one whose values carry a hex. Rendering is keyed
+          // off the option, not off individual values, so a mixed set still
+          // draws as swatches instead of half-text half-discs.
           const isColor = option.values.some((v) => v.hex);
+          const selectedValue = option.values.find(
+            (v) => v.id === selection[option.id]
+          );
           return (
             <div key={option.id}>
-              <p className='mb-1.5 text-sm font-medium'>
-                {option.nameFa}: {option.values.find((v) => v.id === selection[option.id])?.valueFa}
+              <p className='mb-2 flex items-center gap-1.5 text-sm font-medium'>
+                <span>{option.nameFa}:</span>
+                {/* The chosen colour is named by a small dot, not by text. The
+                    swatch itself already shows the colour; repeating the name
+                    here made the row read like a sentence. */}
+                {isColor ? (
+                  selectedValue?.hex && (
+                    <span
+                      aria-hidden
+                      className='size-2.5 rounded-full ring-1 ring-border'
+                      style={{ background: selectedValue.hex }}
+                    />
+                  )
+                ) : (
+                  <span className='text-muted-foreground'>
+                    {selectedValue?.valueFa}
+                  </span>
+                )}
               </p>
-              <div className='flex flex-wrap gap-2'>
+              <div className='flex flex-wrap gap-2.5'>
                 {option.values.map((v) => {
                   const isSelected = selection[option.id] === v.id;
                   // First option (e.g. color) is always fully shown; deeper
@@ -117,6 +140,25 @@ const VariantSelector = ({
                   // hide values that can't combine with the rest of the
                   // selection instead of graying them out.
                   if (!available && !isSelected) return null;
+                  if (!isColor) {
+                    return (
+                      <button
+                        key={v.id}
+                        type='button'
+                        onClick={() => available && choose(option.id, v.id)}
+                        aria-pressed={isSelected}
+                        aria-label={v.valueFa}
+                        className={cn(
+                          'rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
+                          isSelected
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border hover:border-primary/50'
+                        )}
+                      >
+                        {v.valueFa}
+                      </button>
+                    );
+                  }
                   return (
                     <button
                       key={v.id}
@@ -126,21 +168,28 @@ const VariantSelector = ({
                       aria-label={v.valueFa}
                       title={v.valueFa}
                       className={cn(
-                        'rounded-full border transition-all',
+                        // White puck with a neutral ring, holding an inner
+                        // colour disc. The white gap is what makes a black and
+                        // a white swatch read as two circles rather than one
+                        // being a hole in the page.
+                        'relative flex size-9 items-center justify-center rounded-full bg-background ring-1 transition-all',
                         isSelected
-                          ? 'border-primary ring-2 ring-primary/30'
-                          : 'border-border hover:border-primary/50'
+                          ? 'ring-primary ring-2'
+                          : 'ring-border hover:ring-primary/50'
                       )}
                     >
-                      {isColor ? (
-                        <span
-                          className='block h-8 w-8 rounded-full'
-                          style={{ background: v.hex ?? '#888888' }}
+                      <span
+                        className='size-5 rounded-full ring-1 ring-black/10'
+                        style={{ background: v.hex ?? '#888888' }}
+                      />
+                      {/* Check sits on the disc, not the puck, so it reads as
+                          "this colour is chosen" rather than "this button is
+                          focused". */}
+                      {isSelected && (
+                        <Check
+                          className='pointer-events-none absolute size-4 text-white mix-blend-difference'
+                          strokeWidth={3}
                         />
-                      ) : (
-                        <span className='block px-3 py-1.5 text-sm'>
-                          {v.valueFa}
-                        </span>
                       )}
                     </button>
                   );
