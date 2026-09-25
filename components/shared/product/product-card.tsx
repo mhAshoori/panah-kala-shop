@@ -7,7 +7,7 @@ import { Link } from '@/i18n/navigation';
 import ProductPrice from '@/components/product/product-price';
 import StarRating from '@/components/shared/product/star-rating';
 import { getDiscount } from '@/lib/discount';
-import { classifyProduct } from '@/lib/discount-math';
+import { bestVariantPercent, classifyProduct } from '@/lib/discount-math';
 import { LOW_STOCK_THRESHOLD } from '@/lib/constants';
 import { formatNumberLocale } from '@/lib/persian';
 import type { Product } from '@/types';
@@ -24,6 +24,7 @@ const ProductCard = async ({ product }: { product: Product }) => {
   // product-level compareAtPrice in that case, so `discount` is null and the
   // strike-through self-suppresses — we only add the neutral note.
   const variantState = classifyProduct(product.variants ?? []);
+  const bestPercent = bestVariantPercent(product.variants ?? []);
   // Digikala-style urgency: low stock (not out, not plentiful)
   const lowStock =
     product.stock > 0 &&
@@ -53,7 +54,11 @@ const ProductCard = async ({ product }: { product: Product }) => {
             percentage is precisely the hallucination this state prevents. */}
         {variantState === 'partialDiscount' ? (
           <span className='absolute top-2 start-2 rounded-full bg-destructive px-2 py-0.5 text-[0.65rem] font-bold text-destructive-foreground'>
-            {t('discountSomeVariants')}
+            {bestPercent
+              ? t('discountSomeVariantsFrom', {
+                  percent: formatNumberLocale(bestPercent, locale),
+                })
+              : t('discountSomeVariants')}
           </span>
         ) : (
           discount && (

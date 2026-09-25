@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import ProductPrice from '@/components/product/product-price';
 import ProductImages from '@/components/product/product-images';
 import AddToCart from '@/components/shared/product/add-to-cart';
 import VariantSelector from '@/components/shared/product/variant-selector';
@@ -21,7 +20,11 @@ import { isProductFavorited } from '@/lib/actions/favorite.actions';
 import { Badge } from '@/components/ui/badge';
 import { formatNumberLocale } from '@/lib/persian';
 import { LOW_STOCK_THRESHOLD } from '@/lib/constants';
-import { getDiscount } from '@/lib/discount';
+import {
+  bestVariantPercent,
+  classifyProduct,
+} from '@/lib/discount-math';
+import PriceCard from '@/components/shared/product/price-card';
 import {
   breadcrumbJsonLd,
   buildAlternates,
@@ -118,7 +121,10 @@ const ProductDetailsPage = async (props: {
     }
   }
 
-  const discount = getDiscount(product.price, product.compareAtPrice);
+  // Computed once here and passed down, so the price card and the variant
+  // selector can never each decide for themselves what the discount is.
+  const variantState = classifyProduct(variants);
+  const bestPercent = bestVariantPercent(variants);
 
   // Load the visitor's cart so AddToCart can show +/- controls
   const cart = await getMyCart();
@@ -188,31 +194,18 @@ const ProductDetailsPage = async (props: {
                 {formatNumberLocale(product.numReviews, locale)} {t('reviews')}
               </span>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className='flex items-center gap-3'>
-                {discount && (
-                  <span className='rounded-full bg-destructive px-2 py-1 text-xs font-bold text-destructive-foreground'>
-                    ٪{formatNumberLocale(discount.percent, locale)}{' '}
-                    {t('discountOff')}
-                  </span>
-                )}
-                {discount && (
-                  <span className='text-sm text-muted-foreground line-through'>
-                    {formatNumberLocale(Number(product.compareAtPrice), locale)}
-                  </span>
-                )}
-              </div>
-              <ProductPrice
-                value={Number(product.price)}
-                className="w-fit rounded-full bg-primary/10 text-primary px-5 py-2"
-              />
-              {discount && (
-                <span className='text-xs text-green-600 dark:text-green-400'>
-                  {formatNumberLocale(discount.saveAmount, locale)}{' '}
-                  {tCommon('currency')} {t('discountSave')}
-                </span>
-              )}
-            </div>
+            {/* The one and only price block on this page. */}
+            <PriceCard
+              price={Number(product.price)}
+              compareAtPrice={
+                product.compareAtPrice == null
+                  ? null
+                  : Number(product.compareAtPrice)
+              }
+              variantState={variantState}
+              bestVariantPercent={bestPercent}
+              className='w-fit min-w-64'
+            />
           </div>
           <div className='mt-10'>
             <p className='font-semibold mb-2'>{t('description')}:</p>
@@ -267,12 +260,6 @@ const ProductDetailsPage = async (props: {
           ) : (
             <Card className='w-auto max-w-full overflow-hidden lg:sticky lg:top-24'>
               <CardContent className='p-4 min-w-0'>
-                <div className="mb-2 flex justify-between">
-                  <div>{t('details')}</div>
-                  <div>
-                    <ProductPrice value={Number(product.price)} />
-                  </div>
-                </div>
                 <div className="mb-2 flex justify-between">
                   <div>{t('status')}</div>
                   {product.stock > 0 ? (

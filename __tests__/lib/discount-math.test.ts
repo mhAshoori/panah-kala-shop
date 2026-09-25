@@ -1,4 +1,5 @@
 import {
+  bestVariantPercent,
   classifyProduct,
   derivePercent,
   deriveSellPrice,
@@ -238,6 +239,27 @@ describe('classifyProduct (quickstart Scenario 6)', () => {
         { price: 2000, compareAtPrice: 2500 },
       ])
     ).toBe('partialDiscount');
+  });
+});
+
+describe('bestVariantPercent', () => {
+  it('reports the strongest discount across the purchasable variants', () => {
+    // Reporting the strongest is a true statement about the product as a
+    // whole: some combination really is available at that discount. Reporting
+    // the product-level pair instead would advertise a number no single
+    // variant necessarily carries.
+    expect(
+      bestVariantPercent([
+        { price: 1979100, compareAtPrice: 2199000 },
+        { price: 1649250, compareAtPrice: 2199000 },
+        { price: 2199000, compareAtPrice: null },
+      ])
+    ).toBe(25);
+  });
+
+  it('returns null when nothing is discounted', () => {
+    expect(bestVariantPercent([{ price: 1000, compareAtPrice: null }])).toBeNull();
+    expect(bestVariantPercent([])).toBeNull();
   });
 });
 

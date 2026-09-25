@@ -115,6 +115,8 @@
     "goToCart": "مشاهده سبد خرید",
     "discountOff": "تخفیف",
     "discountSomeVariants": "تخفیف در برخی از تنوع‌ها",
+    "discountSomeVariantsFrom": "تخفیف در برخی تنوع‌ها از {percent}٪",
+    "selectedVariantPrice": "قیمت این تنوع:",
     "discountSave": "سود شما",
     "outOfStock": "ناموجود",
     "inStock": "موجود در انبار",

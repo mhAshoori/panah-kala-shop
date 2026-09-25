@@ -199,6 +199,27 @@ export function classifyProduct(variants: VariantPrice[]): DiscountState {
 }
 
 /**
+ * The strongest discount across the purchasable variants, as a percentage, or
+ * null when none is discounted.
+ *
+ * Used for the product page's "discount on some variations, from X%" note.
+ * Reporting the STRONGEST is a true statement about the product as a whole —
+ * some combination really is available at that discount — whereas reporting
+ * the product-level percentage would advertise a number no single variant
+ * necessarily carries.
+ */
+export function bestVariantPercent(variants: VariantPrice[]): number | null {
+  let best: number | null = null;
+  for (const v of variants) {
+    if (!hasDiscount(v)) continue;
+    const info = getDiscount(Number(v.price), Number(v.compareAtPrice));
+    if (!info) continue;
+    if (best === null || info.percent > best) best = info.percent;
+  }
+  return best;
+}
+
+/**
  * Advisory only — never a gate. True when a typed discount would round away to
  * less than a 1% saving, so the storefront badge would silently disappear.
  * Feature 004 refused this; the clarification chose a warning so the admin

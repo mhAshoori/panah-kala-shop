@@ -115,6 +115,8 @@
     "goToCart": "Go to cart",
     "discountOff": "OFF",
     "discountSomeVariants": "Discount on some variations",
+    "discountSomeVariantsFrom": "Discount on some variations from {percent}%",
+    "selectedVariantPrice": "This variation's price:",
     "discountSave": "You save",
     "outOfStock": "Out Of Stock",
     "inStock": "In Stock",
