@@ -157,21 +157,30 @@ const ProductForm = ({
         ? String(derivePercent(storedBase, storedPrice) ?? '')
         : storedPrice
   );
-  const [priceValue, setPriceValue] = useState<string>(storedPrice);
+  // The visible field is the BASE price whenever the product is on sale, so it
+  // must open showing the original price, not the selling one. Off sale the
+  // two are the same number and the field is just the price.
+  const [priceValue, setPriceValue] = useState<string>(
+    storedBase === '' ? storedPrice : storedBase
+  );
 
-  // The three numbers the storefront actually sees. In percent mode the
-  // selling price is derived; in price mode it is what the admin typed.
-  const derivedCompareAtPrice = useMemo(() => {
+  // The stored pair, derived from what the admin typed. The base field is
+  // always the ORIGINAL price when on sale, so it maps straight onto
+  // compareAtPrice; the selling price is what the storefront charges and is
+  // either derived (percent mode) or typed (price mode).
+  const derivedCompareAtPrice = onSale ? priceValue : '';
+  const derivedSellPrice = useMemo(() => {
     if (!onSale || discountValue === '') return '';
-    if (discountMode === 'price') return String(priceValue);
+    if (discountMode === 'price') return discountValue;
     const sell = deriveSellPrice(priceValue, discountValue);
     return sell == null ? '' : String(sell);
   }, [onSale, discountMode, discountValue, priceValue]);
 
-  // Read-only companion shown beside the method field.
+  // Read-only companion shown beside the method field: in price mode this is
+  // the percentage the typed selling price implies.
   const derivedPercent = useMemo(
-    () => derivePercent(priceValue, derivedCompareAtPrice),
-    [priceValue, derivedCompareAtPrice]
+    () => derivePercent(priceValue, derivedSellPrice),
+    [priceValue, derivedSellPrice]
   );
 
   // Advisory only (FR-018): a discount too small to badge is warned about in
@@ -314,8 +323,9 @@ const ProductForm = ({
     setBanner(product?.banner ?? '');
     // price and the discount are controlled, so the DOM reset above does not
     // touch them — reset explicitly or the derived pair survives a discard.
-    // Price mode shows the SELLING price in the method field, not the base.
-    setPriceValue(storedPrice);
+    // Same orientation as the mount: the field is the base when on sale, and
+    // price mode shows the SELLING price in the method field.
+    setPriceValue(storedBase === '' ? storedPrice : storedBase);
     setOnSale(storedBase !== '');
     setDiscountValue(() =>
       storedBase === ''
@@ -557,12 +567,13 @@ const ProductForm = ({
                 value={discountMode}
                 onValueChange={(v) => {
                   const next = v as DiscountMethod;
-                  // Carry the displayed numbers across the switch so nothing
-                  // is retyped, and the pair on screen is unchanged (FR-021).
+                  // Carry the pair across the switch so nothing is retyped and
+                  // the numbers on screen do not drift (FR-021): percent mode
+                  // gets the percentage, price mode the selling price.
                   setDiscountValue(
                     next === 'percent'
-                      ? String(derivePercent(priceValue, derivedCompareAtPrice) ?? '')
-                      : derivedCompareAtPrice
+                      ? String(derivePercent(priceValue, derivedSellPrice) ?? '')
+                      : derivedSellPrice
                   );
                   setDiscountMode(next);
                 }}
@@ -600,8 +611,16 @@ const ProductForm = ({
                 placeholder='0'
               />
               <input type='hidden' name='discountMode' value={discountMode} />
-              {/* The derived pair is what gets written; the server re-derives it
-                  from the two typed numbers and does not trust this field. */}
+              {/* The visible `price` field is the BASE (original) price, which
+                  is not what the Product.price column means. These hidden
+                  fields carry the pair the storefront actually reads. The
+                  server re-derives both from onSale/discountMode/discountValue
+                  and does not trust either of them (research.md R-009). */}
+              <input
+                type='hidden'
+                name='basePrice'
+                value={priceValue}
+              />
               <input
                 type='hidden'
                 name='compareAtPrice'
@@ -611,7 +630,7 @@ const ProductForm = ({
                 {discountMode === 'percent'
                   ? discountValue === ''
                     ? t('noDiscount')
-                    : t('discountedPriceDerived', { value: derivedCompareAtPrice || '—' })
+                    : t('discountedPriceDerived', { value: derivedSellPrice || '—' })
                   : discountValue === ''
                     ? t('noDiscount')
                     : t('discountPercentDerived', { value: derivedPercent ?? 0 })}

@@ -549,7 +549,12 @@ function derivePricePairFromForm(formData: FormData): {
   price: string;
   compareAtPrice: string;
 } {
-  const base = ((formData.get('price') as string | null) ?? '').trim();
+  // `basePrice` is the field the admin edits — the ORIGINAL price when on
+  // sale. It falls back to `price` for any caller that does not send it (the
+  // variant path, and any non-sale submission where the two are identical).
+  const base =
+    ((formData.get('basePrice') as string | null) ?? '').trim() ||
+    ((formData.get('price') as string | null) ?? '').trim();
 
   // Radix Switch posts 'on' when checked and nothing when it is not.
   const isOnSale = formData.get('onSale') === 'on';
