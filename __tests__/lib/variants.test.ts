@@ -136,14 +136,54 @@ describe('recomputeParent', () => {
     expect(r).toEqual({ price: 90000, compareAtPrice: null, stock: 5 });
   });
 
-  it('compareAtPrice = lowest non-null', () => {
+  it('keeps the product discount when every variant carries the same ratio', () => {
+    // 150000/100000, 180000/120000 and 165000/110000 are all 1.5x, so the
+    // product has a single honest discount and may advertise it.
     const r = recomputeParent([
       { price: 100000, compareAtPrice: 150000, stock: 1 },
-      { price: 120000, compareAtPrice: 200000, stock: 1 },
-      { price: 110000, compareAtPrice: null, stock: 1 },
+      { price: 120000, compareAtPrice: 180000, stock: 1 },
+      { price: 110000, compareAtPrice: 165000, stock: 1 },
     ]);
     expect(r.compareAtPrice).toBe(150000);
     expect(r.price).toBe(100000);
+  });
+
+  it('clears the product discount when only SOME variants are discounted', () => {
+    // This is the 004 analysis finding A-002. The old rule took
+    // min(compareAtPrice) over non-null values, so this produced
+    // {price: 100000, compareAtPrice: 150000} — a 33% product badge that only
+    // one of three purchasable variants actually carried.
+    const r = recomputeParent([
+      { price: 100000, compareAtPrice: 150000, stock: 1 },
+      { price: 120000, compareAtPrice: null, stock: 1 },
+    ]);
+    expect(r.compareAtPrice).toBeNull();
+    expect(r.price).toBe(100000);
+  });
+
+  it('clears the product discount when the ratios differ', () => {
+    const r = recomputeParent([
+      { price: 100000, compareAtPrice: 150000, stock: 1 },
+      { price: 120000, compareAtPrice: 200000, stock: 1 },
+      { price: 110000, compareAtPrice: 121000, stock: 1 },
+    ]);
+    expect(r.compareAtPrice).toBeNull();
+  });
+
+  it('stock still sums, and a uniform ratio keeps its discount', () => {
+    // Both are 1.5x, so the product discount is honest and survives.
+    const r = recomputeParent([
+      { price: 100000, compareAtPrice: 150000, stock: 2 },
+      { price: 120000, compareAtPrice: 180000, stock: 3 },
+    ]);
+    expect(r).toEqual({ price: 100000, compareAtPrice: 150000, stock: 5 });
+
+    // Differing ratios clear it, but the stock sum is unaffected either way.
+    const mixed = recomputeParent([
+      { price: 100000, compareAtPrice: 150000, stock: 2 },
+      { price: 120000, compareAtPrice: 121000, stock: 3 },
+    ]);
+    expect(mixed).toEqual({ price: 100000, compareAtPrice: null, stock: 5 });
   });
 
   it('handles the empty list', () => {

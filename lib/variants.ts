@@ -4,6 +4,8 @@
  * No Prisma/DB imports: stays client-safe and unit-testable.
  */
 
+import { variantsAgree } from './discount-math';
+
 export type OptionValueLite = {
   id: string;
   value: string;
@@ -118,7 +120,16 @@ export function cartesian<T>(valuesByOption: T[][]): T[][] {
 
 /**
  * Derived parent aggregates: Product.price = cheapest variant ("from" price),
- * compareAtPrice = lowest non-null variant compareAtPrice, stock = Σ variant.
+ * stock = Σ variant.
+ *
+ * compareAtPrice is only carried up when EVERY variant agrees on the same
+ * discount ratio; otherwise it is null. The previous rule took
+ * min(compareAtPrice) over the non-null values, so variants
+ * [{1000, 1111}, {1000, null}] produced a parent of {1000, 1111} — a product
+ * badge advertising a discount that only one of two purchasable variants
+ * carried. The min pairing is still correct inside the agreeing branch, because
+ * when all ratios match, min-of-originals sits against min-of-prices in the
+ * same proportion.
  */
 export function recomputeParent(variants: {
   price: { toString(): string } | number | string;
@@ -138,7 +149,11 @@ export function recomputeParent(variants: {
     .filter((n): n is number => n != null);
   return {
     price: Math.min(...prices),
-    compareAtPrice: compares.length ? Math.min(...compares) : null,
+    compareAtPrice: variantsAgree(variants)
+      ? compares.length
+        ? Math.min(...compares)
+        : null
+      : null,
     stock: variants.reduce((sum, v) => sum + v.stock, 0),
   };
 }

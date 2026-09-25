@@ -2,11 +2,16 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Plus, Trash2, X } from 'lucide-react';
+import { Percent, Tag, Plus, Trash2, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { deriveCompareAtPrice, percentToDiscount } from '@/lib/discount-math';
+import {
+  derivePercent,
+  deriveSellPrice,
+  resolveMode,
+  type DiscountMethod,
+} from '@/lib/discount-math';
 import { Card, CardContent } from '@/components/ui/card';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { cartesian } from '@/lib/variants';
@@ -27,6 +32,27 @@ export type AdminVariant = {
   price: string;
   compareAtPrice: string;
   stock: string;
+};
+
+// A fresh row, and the on-sale state pre-filled from a stored pair. The method
+// is re-derived rather than stored, matching the product-level rule (R-002).
+const blankVariant = (): AdminVariant => ({
+  key: '',
+  price: '',
+  compareAtPrice: '',
+  stock: '0',
+});
+
+const modeOf = (v: AdminVariant): DiscountMethod => {
+  const m = resolveMode(v.price, v.compareAtPrice);
+  return m === 'none' ? 'percent' : m;
+};
+
+const valueForMode = (v: AdminVariant, mode: DiscountMethod): string => {
+  if (!v.compareAtPrice) return '';
+  return mode === 'percent'
+    ? String(derivePercent(v.compareAtPrice, v.price) ?? '')
+    : v.price;
 };
 
 // 'optIdx:valIdx;...' signature → value-index-per-option number[] for
@@ -145,7 +171,7 @@ const OptionsEditor = ({
       const preloaded = rowBySignature.get(sig);
       if (preloaded) return { ...preloaded, combo };
       return {
-        ...(variants[i] ?? { key: '', price: '', compareAtPrice: '', stock: '0' }),
+        ...(variants[i] ?? blankVariant()),
         combo,
       };
     });
@@ -160,9 +186,24 @@ const OptionsEditor = ({
   const setVariant = (idx: number, patch: Partial<AdminVariant>) =>
     setVariants((prev) => {
       const next = [...prev];
-      next[idx] = { ...(next[idx] ?? { key: '', price: '', compareAtPrice: '', stock: '0' }), ...patch };
+      next[idx] = { ...(next[idx] ?? blankVariant()), ...patch };
       return next;
     });
+
+  // Per-row method and the value the admin actually typed in that row. Kept
+  // apart from `variants` because those two are DERIVED from the stored pair,
+  // and re-deriving them on every render would discard what was typed.
+  const [rowMode, setRowMode] = useState<DiscountMethod[]>([]);
+  const [rowValue, setRowValue] = useState<string[]>([]);
+
+  // Seed both from the stored pair once, so a preloaded row opens showing the
+  // admin's own numbers rather than a re-derived guess.
+  const [seeded, setSeeded] = useState(false);
+  if (!seeded && variants.length > 0) {
+    setRowMode(variants.map((v) => modeOf(v)));
+    setRowValue(variants.map((v) => valueForMode(v, modeOf(v))));
+    setSeeded(true);
+  }
 
   return (
     <div className='space-y-4'>
@@ -368,25 +409,28 @@ const OptionsEditor = ({
                           value={alignedVariants[i].price}
                           onChange={(e) => {
                             const price = e.target.value;
-                            // Re-derive the stored price-before-discount from
-                            // the percentage already shown, so editing a
-                            // variant's price keeps its discount (FR-017)
-                            // instead of leaving a stale pair.
-                            const pct = percentToDiscount(
-                              alignedVariants[i].price,
-                              alignedVariants[i].compareAtPrice
+                            // Percent-mode rows re-derive the original price
+                            // from the discount still entered in THIS row, so
+                            // editing a price keeps its discount (FR-014).
+                            // Price-mode rows leave the pair alone: their
+                            // original price is the base field, edited above.
+                            if (modeOf(alignedVariants[i]) !== 'percent') {
+                              setVariant(i, { price });
+                              return;
+                            }
+                            const pct = derivePercent(
+                              alignedVariants[i].compareAtPrice,
+                              alignedVariants[i].price
                             );
-                            const derived = deriveCompareAtPrice(price, pct);
+                            if (pct == null) {
+                              setVariant(i, { price });
+                              return;
+                            }
+                            const sell = deriveSellPrice(price, pct);
                             setVariant(i, {
                               price,
-                              ...(derived.ok
-                                ? {
-                                    compareAtPrice:
-                                      derived.compareAtPrice != null
-                                        ? String(derived.compareAtPrice)
-                                        : '',
-                                  }
-                                : {}),
+                              compareAtPrice:
+                                sell == null ? '' : String(price),
                             });
                           }}
                           placeholder='0'
@@ -394,35 +438,89 @@ const OptionsEditor = ({
                         />
                       </td>
                       <td className='p-2'>
-                        {/* Variant discount is entered as a percentage and
-                            derived independently of every other variant —
-                            nothing cascades from the product or a sibling. */}
-                        <Input
-                          type='number'
-                          step='1'
-                          min='0'
-                          max='99'
-                          value={
-                            percentToDiscount(
-                              alignedVariants[i].price,
-                              alignedVariants[i].compareAtPrice
-                            ) ?? ''
-                          }
-                          onChange={(e) => {
-                            const result = deriveCompareAtPrice(
-                              alignedVariants[i].price,
-                              e.target.value
-                            );
-                            setVariant(i, {
-                              compareAtPrice:
-                                result.ok && result.compareAtPrice != null
-                                  ? String(result.compareAtPrice)
-                                  : '',
-                            });
-                          }}
-                          placeholder='0'
-                          className='w-20'
-                        />
+                        {/* Each row's discount is independent: its own method,
+                            its own value, and nothing cascades from the
+                            product or a sibling (US2, FR-012). */}
+                        <div className='flex items-center gap-1.5'>
+                          <Input
+                            type='number'
+                            step='1'
+                            min='0'
+                            max={rowMode[i] === 'price' ? undefined : '99'}
+                            value={rowValue[i] ?? ''}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              setRowValue((prev) => {
+                                const next = [...prev];
+                                next[i] = raw;
+                                return next;
+                              });
+                              if (rowMode[i] === 'price') {
+                                setVariant(i, { compareAtPrice: raw });
+                                return;
+                              }
+                              // The row's ORIGINAL price is derived from its
+                              // selling price and the typed percentage.
+                              const sell = alignedVariants[i].price;
+                              const orig = deriveSellPrice(sell, raw);
+                              if (orig == null) return;
+                              setVariant(i, {
+                                price: String(orig),
+                                compareAtPrice: sell,
+                              });
+                            }}
+                            placeholder='0'
+                            className='w-20'
+                          />
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon'
+                            aria-label={
+                              rowMode[i] === 'price'
+                                ? t('discountByPercent')
+                                : t('discountByPrice')
+                            }
+                            title={
+                              rowMode[i] === 'price'
+                                ? t('discountByPercent')
+                                : t('discountByPrice')
+                            }
+                            onClick={() => {
+                              const v = alignedVariants[i];
+                              const next: DiscountMethod =
+                                rowMode[i] === 'price' ? 'percent' : 'price';
+                              // Carry the numbers across the switch (FR-021).
+                              const carried =
+                                rowValue[i] && v.price
+                                  ? rowMode[i] === 'price'
+                                    ? String(
+                                        derivePercent(
+                                          v.compareAtPrice || v.price,
+                                          v.price
+                                        ) ?? ''
+                                      )
+                                    : v.compareAtPrice
+                                  : '';
+                              setRowMode((prev) => {
+                                const next2 = [...prev];
+                                next2[i] = next;
+                                return next2;
+                              });
+                              setRowValue((prev) => {
+                                const next2 = [...prev];
+                                next2[i] = carried;
+                                return next2;
+                              });
+                            }}
+                          >
+                            {rowMode[i] === 'price' ? (
+                              <Percent className='h-4 w-4' />
+                            ) : (
+                              <Tag className='h-4 w-4' />
+                            )}
+                          </Button>
+                        </div>
                       </td>
                       <td className='p-2'>
                         <Input

@@ -7,6 +7,7 @@ import { Link } from '@/i18n/navigation';
 import ProductPrice from '@/components/product/product-price';
 import StarRating from '@/components/shared/product/star-rating';
 import { getDiscount } from '@/lib/discount';
+import { classifyProduct } from '@/lib/discount-math';
 import { LOW_STOCK_THRESHOLD } from '@/lib/constants';
 import { formatNumberLocale } from '@/lib/persian';
 import type { Product } from '@/types';
@@ -17,6 +18,12 @@ const ProductCard = async ({ product }: { product: Product }) => {
   const name = locale === 'fa' ? product.nameFa : product.name;
   const category = locale === 'fa' ? product.categoryFa : product.category;
   const discount = getDiscount(product.price, product.compareAtPrice);
+  // A product whose purchasable variants disagree on discount must not show a
+  // single percentage: it would advertise a discount that only some
+  // combinations carry. The admin rule (FR-015) already nulls the
+  // product-level compareAtPrice in that case, so `discount` is null and the
+  // strike-through self-suppresses — we only add the neutral note.
+  const variantState = classifyProduct(product.variants ?? []);
   // Digikala-style urgency: low stock (not out, not plentiful)
   const lowStock =
     product.stock > 0 &&
@@ -41,6 +48,16 @@ const ProductCard = async ({ product }: { product: Product }) => {
         {discount && (
           <span className='absolute top-2 start-2 rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground'>
             ٪{formatNumberLocale(discount.percent, locale)}
+          </span>
+        )}
+        {/* A product whose purchasable variants disagree on discount must not
+            show a single percentage — it would advertise a discount only some
+            combinations carry. The admin rule (FR-015) already nulls the
+            product-level compareAtPrice here, so `discount` is null and the
+            strike-through below self-suppresses; we only add the note. */}
+        {!discount && variantState === 'partialDiscount' && (
+          <span className='absolute top-2 start-2 rounded-full bg-destructive px-2 py-0.5 text-[0.65rem] font-bold text-destructive-foreground'>
+            {t('discountSomeVariants')}
           </span>
         )}
         {product.stock === 0 && (

@@ -51,7 +51,8 @@ export const insertProductSchema = z.object({
   price: currency
     .transform((v) => Number(v))
     .refine((v) => v > 0, 'Price must be greater than zero'),
-  // Original price for showing a discount; must be empty or > price
+  // The ORIGINAL price, reconstructed server-side from the two numbers the
+  // admin typed (see derivePricePairFromForm). Must be empty or > price.
   compareAtPrice: z
     .union([currency, z.literal('')])
     .optional()

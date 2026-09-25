@@ -13,6 +13,7 @@ import {
   productOptionsPayloadSchema,
 } from '../validator';
 import { buildVariantKey, cartesian, recomputeParent } from '../variants';
+import { deriveSellPrice } from '../discount-math';
 import { recordStockEventIfLow } from '../stock-events';
 import { filterVisibleCategories } from '../category-visibility';
 import type { ActionState } from '@/types';
@@ -22,6 +23,7 @@ export async function getLatestProducts() {
   const data = await prisma.product.findMany({
     take: LATEST_PRODUCTS_LIMIT,
     orderBy: { createdAt: 'desc' },
+    include: { variants: { select: { price: true, compareAtPrice: true } } },
   });
 
   return convertToPlainObject(data);
@@ -47,6 +49,7 @@ export async function getRelatedProducts(
     where: { category, id: { not: productId } },
     orderBy: [{ isFeatured: 'desc' }, { numReviews: 'desc' }],
     take: Math.min(Math.max(limit, 1), 12),
+    include: { variants: { select: { price: true, compareAtPrice: true } } },
   });
   return convertToPlainObject(data);
 }
@@ -57,6 +60,7 @@ export async function getFeaturedProducts() {
     where: { isFeatured: true },
     take: LATEST_PRODUCTS_LIMIT,
     orderBy: { createdAt: 'desc' },
+    include: { variants: { select: { price: true, compareAtPrice: true } } },
   });
 
   return convertToPlainObject(data);
@@ -69,6 +73,7 @@ export async function getBestSellers(limit: number) {
     where: { numSales: { gt: 0 } },
     orderBy: [{ numSales: 'desc' }, { rating: 'desc' }],
     take,
+    include: { variants: { select: { price: true, compareAtPrice: true } } },
   });
   if (data.length >= take) return convertToPlainObject(data);
 
@@ -77,6 +82,7 @@ export async function getBestSellers(limit: number) {
     where: { numSales: 0 },
     orderBy: [{ rating: 'desc' }, { numReviews: 'desc' }],
     take: take - data.length,
+    include: { variants: { select: { price: true, compareAtPrice: true } } },
   });
   return convertToPlainObject([...data, ...fill]);
 }
@@ -287,6 +293,7 @@ export async function getProductsByCategorySlug({
     orderBy,
     take: limit,
     skip: (page - 1) * limit,
+    include: { variants: { select: { price: true, compareAtPrice: true } } },
   });
 
   const dataCount = await prisma.product.count({ where });
@@ -526,10 +533,59 @@ export async function getProductById(productId: string) {
   return convertToPlainObject(data);
 }
 
+// Reconstruct the stored price pair from what the admin actually typed.
+//
+// The form's `price` field is the BASE (original) price whenever the product is
+// on sale — that is the whole point of the single base-price field. But the
+// stored columns are the opposite orientation: `price` is what the shopper
+// pays, `compareAtPrice` is the original. So in percent mode the typed base
+// becomes compareAtPrice and the DERIVED selling price becomes price; in price
+// mode the typed value is the selling price and the base is unchanged.
+//
+// Both values are recomputed here rather than read from the client, so a
+// tampered hidden field cannot reach either Int column (research.md R-009,
+// FR-028).
+function derivePricePairFromForm(formData: FormData): {
+  price: string;
+  compareAtPrice: string;
+} {
+  const base = ((formData.get('price') as string | null) ?? '').trim();
+
+  // Radix Switch posts 'on' when checked and nothing when it is not.
+  const isOnSale = formData.get('onSale') === 'on';
+  const mode = formData.get('discountMode') === 'price' ? 'price' : 'percent';
+  const value = ((formData.get('discountValue') as string | null) ?? '').trim();
+
+  if (!isOnSale || value === '' || base === '') {
+    return { price: base, compareAtPrice: '' };
+  }
+
+  if (mode === 'price') {
+    const sell = Number(value);
+    // A non-whole or non-positive selling price is refused by the validator;
+    // returning it verbatim keeps that error message the one the admin sees.
+    return {
+      price: Number.isInteger(sell) && sell > 0 ? String(sell) : value,
+      compareAtPrice: base,
+    };
+  }
+
+  const pct = Number(value);
+  if (!Number.isInteger(pct) || pct < 0) {
+    return { price: base, compareAtPrice: value };
+  }
+  const sell = deriveSellPrice(base, pct);
+  // No honest selling price exists (e.g. a discount too small to represent):
+  // store the base as the price with no discount, which is the honest
+  // outcome (FR-019) rather than inventing a wrong number.
+  return { price: sell == null ? base : String(sell), compareAtPrice: base };
+}
+
 // Build a product payload from FormData (shared by create/update)
 function productDataFromFormData(formData: FormData) {
   const imagesRaw = formData.get('images') as string | null;
   const banner = (formData.get('banner') as string | null)?.trim() || null;
+  const derived = derivePricePairFromForm(formData);
   const dim = (key: string) => {
     const raw = (formData.get(key) as string | null)?.trim() || '';
     return raw === '' ? null : raw;
@@ -545,8 +601,8 @@ function productDataFromFormData(formData: FormData) {
     description: formData.get('description') as string,
     descriptionFa: formData.get('descriptionFa') as string,
     stock: Number(formData.get('stock')),
-    price: formData.get('price') as string,
-    compareAtPrice: ((formData.get('compareAtPrice') as string | null)?.trim() || '') as string,
+    price: derived.price,
+    compareAtPrice: derived.compareAtPrice,
     images: imagesRaw ? (JSON.parse(imagesRaw) as string[]) : [],
     isFeatured: formData.get('isFeatured') === 'on',
     banner,

@@ -44,13 +44,17 @@ export type DiscountMethod = 'percent' | 'price';
 /** The three states a product listing can be in with respect to its variants. */
 export type DiscountState = 'noDiscount' | 'uniformDiscount' | 'partialDiscount';
 
+// Accepts `{ toString(): string }` as well as a plain number/string: Prisma
+// hands back Decimal columns in that shape, so callers reading straight from
+// the database can pass rows through unconverted.
 export type VariantPrice = {
-  price: number | string;
-  compareAtPrice?: number | string | null;
+  price: number | string | { toString(): string };
+  compareAtPrice?: number | string | { toString(): string } | null;
 };
 
-const toNumber = (v: number | string | null | undefined): number =>
-  v == null || v === '' ? NaN : Number(v);
+const toNumber = (
+  v: number | string | { toString(): string } | null | undefined
+): number => (v == null || v === '' ? NaN : Number(v));
 
 const hasDiscount = (v: VariantPrice): boolean => {
   const price = toNumber(v.price);

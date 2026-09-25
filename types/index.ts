@@ -20,6 +20,9 @@ export type Product = z.infer<typeof insertProductSchema> & {
   // Still Decimal: not money.
   rating: string;
   numReviews: number;
+  // Populated only by the listing queries (research.md R-005), so the card can
+  // tell a uniform discount from a partial one. Never part of the insert shape.
+  variants?: { price: number; compareAtPrice: number | null }[];
 };
 
 export type SignInForm = z.infer<typeof signInFormSchema>;

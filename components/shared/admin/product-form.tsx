@@ -2,8 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  deriveCompareAtPrice,
-  percentToDiscount,
+  derivePercent,
+  deriveSellPrice,
+  resolveMode,
+  type DiscountMethod,
+  warnsSmallDiscount,
 } from '@/lib/discount-math';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
@@ -31,6 +34,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import {
   Card,
   CardContent,
@@ -131,26 +136,56 @@ const ProductForm = ({
   );
   const [banner, setBanner] = useState(product?.banner ?? '');
 
-  // Discount is entered as a percentage; compareAtPrice is derived from it
-  // (lib/discount-math). Only the percentage is editable — the derived pair is
-  // shown read-only so the admin can see what the storefront will render.
-  // Pre-filled from the stored pair, so an existing discount is visible.
-  const [discountPercent, setDiscountPercent] = useState<string>(() => {
-    const p = percentToDiscount(product?.price ?? 0, product?.compareAtPrice);
-    return p === null ? '' : String(p);
+  // Discount input model (feature 006). The admin types ONE number: the base
+  // price. The on-sale switch and the method control decide which of the
+  // remaining two numbers is editable and which is derived read-only.
+  //
+  // Pre-filled from the stored pair via resolveMode, so a saved discount
+  // reopens showing the admin's own numbers rather than a re-derived guess.
+  const storedPrice = product?.price != null ? String(product.price) : '';
+  const storedBase =
+    product?.compareAtPrice != null ? String(product.compareAtPrice) : '';
+  const [onSale, setOnSale] = useState<boolean>(storedBase !== '');
+  const [discountMode, setDiscountMode] = useState<DiscountMethod>(() => {
+    const m = resolveMode(storedPrice, storedBase);
+    return m === 'none' ? 'percent' : m;
   });
-  const [priceValue, setPriceValue] = useState<string>(
-    product?.price != null ? String(product.price) : ''
+  const [discountValue, setDiscountValue] = useState<string>(() =>
+    storedBase === ''
+      ? ''
+      : discountMode === 'percent'
+        ? String(derivePercent(storedBase, storedPrice) ?? '')
+        : storedPrice
+  );
+  const [priceValue, setPriceValue] = useState<string>(storedPrice);
+
+  // The three numbers the storefront actually sees. In percent mode the
+  // selling price is derived; in price mode it is what the admin typed.
+  const derivedCompareAtPrice = useMemo(() => {
+    if (!onSale || discountValue === '') return '';
+    if (discountMode === 'price') return String(priceValue);
+    const sell = deriveSellPrice(priceValue, discountValue);
+    return sell == null ? '' : String(sell);
+  }, [onSale, discountMode, discountValue, priceValue]);
+
+  // Read-only companion shown beside the method field.
+  const derivedPercent = useMemo(
+    () => derivePercent(priceValue, derivedCompareAtPrice),
+    [priceValue, derivedCompareAtPrice]
   );
 
-  const derived = useMemo(
-    () => deriveCompareAtPrice(priceValue, discountPercent),
-    [priceValue, discountPercent]
+  // Advisory only (FR-018): a discount too small to badge is warned about in
+  // the panel, never blocked. The admin is told; the value they typed is what
+  // is stored.
+  const smallDiscountWarning = useMemo(
+    () => onSale && discountMode === 'percent' && warnsSmallDiscount(priceValue, discountValue),
+    [onSale, discountMode, priceValue, discountValue]
   );
-  const derivedCompareAtPrice =
-    derived.ok && derived.compareAtPrice != null
-      ? String(derived.compareAtPrice)
-      : '';
+
+  // Price mode needs no resync when the base price changes: the base field is
+  // the ORIGINAL price and the method field holds the SELLING price, so
+  // editing either leaves the other valid. Percent mode likewise — the selling
+  // price is derived from base and percent on every keystroke (FR-014).
 
   const action = type === 'Create' ? createProduct : updateProduct;
   const [state, formAction] = useActionState(action, {
@@ -238,19 +273,22 @@ const ProductForm = ({
       toast.error(t('atLeastOneImageRequired'));
       return;
     }
-    // A discount that cannot be stored honestly must not be silently dropped:
-    // the derived hidden field would be empty and the product would save with
-    // no discount, which is the opposite of what the admin typed.
-    if (!derived.ok) {
-      e.preventDefault();
-      toast.error(
-        derived.error === 'priceTooLow'
-          ? t('discountNeedsMinPrice')
-          : derived.error === 'percentOutOfRange'
-            ? t('discountPercentTooHigh')
-            : t('discountTooLarge')
-      );
-      return;
+    // Outright-invalid discounts are refused here for immediate feedback; the
+    // server re-derives and re-checks regardless (FR-017, FR-028). The
+    // sub-1% case is deliberately NOT in this branch: it is advisory only, and
+    // blocking it here is exactly what FR-019 forbids.
+    if (onSale && discountValue !== '') {
+      const p = Number(discountValue);
+      if (discountMode === 'percent' && (!Number.isInteger(p) || p >= 100)) {
+        e.preventDefault();
+        toast.error(t('discountPercentTooHigh'));
+        return;
+      }
+      if (discountMode === 'price' && Number(discountValue) >= Number(priceValue)) {
+        e.preventDefault();
+        toast.error(t('discountNotLower'));
+        return;
+      }
     }
   };
 
@@ -276,11 +314,16 @@ const ProductForm = ({
     setBanner(product?.banner ?? '');
     // price and the discount are controlled, so the DOM reset above does not
     // touch them — reset explicitly or the derived pair survives a discard.
-    setPriceValue(product?.price != null ? String(product.price) : '');
-    setDiscountPercent(() => {
-      const p = percentToDiscount(product?.price ?? 0, product?.compareAtPrice);
-      return p === null ? '' : String(p);
-    });
+    // Price mode shows the SELLING price in the method field, not the base.
+    setPriceValue(storedPrice);
+    setOnSale(storedBase !== '');
+    setDiscountValue(() =>
+      storedBase === ''
+        ? ''
+        : discountMode === 'percent'
+          ? String(derivePercent(storedBase, storedPrice) ?? '')
+          : storedPrice
+    );
     setIsDirty(false);
     setConfirmOpen(false);
     toast.info(tCommon('changesDiscarded'));
@@ -473,7 +516,7 @@ const ProductForm = ({
           </Field>
           <Field className='w-full'>
             <FieldLabel htmlFor='price'>
-              {t('price')} ({tCommon('currency')})
+              {onSale ? t('originalPrice') : t('price')} ({tCommon('currency')})
             </FieldLabel>
             <Input
               id='price'
@@ -488,38 +531,96 @@ const ProductForm = ({
             />
           </Field>
           <Field className='w-full'>
-            <FieldLabel htmlFor='discountPercent'>{t('discountPercent')}</FieldLabel>
-            <Input
-              id='discountPercent'
-              type='number'
-              step='1'
-              min='0'
-              max='99'
-              value={discountPercent}
-              onChange={(e) => setDiscountPercent(e.target.value)}
-              placeholder={t('discountPercentHint')}
-            />
-            {/* Derived from the percentage above; the server reads this. */}
-            <input
-              type='hidden'
-              name='compareAtPrice'
-              value={derivedCompareAtPrice}
-            />
-            <p className='text-xs text-muted-foreground'>
-              {derivedCompareAtPrice
-                ? t('compareAtPriceDerived', { value: derivedCompareAtPrice })
-                : t('noDiscount')}
-            </p>
-            {!derived.ok && (
-              <p className='text-xs text-destructive'>
-                {derived.error === 'priceTooLow'
-                  ? t('discountNeedsMinPrice')
-                  : derived.error === 'percentOutOfRange'
-                    ? t('discountPercentTooHigh')
-                    : t('discountTooLarge')}
-              </p>
-            )}
+            <FieldLabel htmlFor='onSale'>{t('onSale')}</FieldLabel>
+            <div className='flex items-center gap-2 pt-1'>
+              <Switch
+                id='onSale'
+                checked={onSale}
+                onCheckedChange={(checked) => {
+                  setOnSale(checked);
+                  if (!checked) setDiscountValue('');
+                }}
+              />
+              <span className='text-sm text-muted-foreground'>
+                {onSale ? t('onSaleYes') : t('onSaleNo')}
+              </span>
+            </div>
+            {/* Mirror the switch as an explicit 'on' / '' field. Radix posts
+                'on' through a bubble input, but the server's branch should
+                not depend on that internal. */}
+            <input type='hidden' name='onSale' value={onSale ? 'on' : ''} />
           </Field>
+          {onSale && (
+            <Field className='w-full'>
+              <FieldLabel>{t('discountMethod')}</FieldLabel>
+              <RadioGroup
+                value={discountMode}
+                onValueChange={(v) => {
+                  const next = v as DiscountMethod;
+                  // Carry the displayed numbers across the switch so nothing
+                  // is retyped, and the pair on screen is unchanged (FR-021).
+                  setDiscountValue(
+                    next === 'percent'
+                      ? String(derivePercent(priceValue, derivedCompareAtPrice) ?? '')
+                      : derivedCompareAtPrice
+                  );
+                  setDiscountMode(next);
+                }}
+                className='grid gap-2'
+              >
+                <div className='flex items-center gap-2'>
+                  <RadioGroupItem value='percent' id='discountModePercent' />
+                  <FieldLabel htmlFor='discountModePercent' className='font-normal'>
+                    {t('discountByPercent')}
+                  </FieldLabel>
+                </div>
+                <div className='flex items-center gap-2'>
+                  <RadioGroupItem value='price' id='discountModePrice' />
+                  <FieldLabel htmlFor='discountModePrice' className='font-normal'>
+                    {t('discountByPrice')}
+                  </FieldLabel>
+                </div>
+              </RadioGroup>
+            </Field>
+          )}
+          {onSale && (
+            <Field className='w-full'>
+              <FieldLabel htmlFor='discountValue'>
+                {discountMode === 'percent' ? t('discountPercent') : t('discountedPrice')}
+              </FieldLabel>
+              <Input
+                id='discountValue'
+                name='discountValue'
+                type='number'
+                step='1'
+                min='0'
+                max={discountMode === 'percent' ? '99' : undefined}
+                value={discountValue}
+                onChange={(e) => setDiscountValue(e.target.value)}
+                placeholder='0'
+              />
+              <input type='hidden' name='discountMode' value={discountMode} />
+              {/* The derived pair is what gets written; the server re-derives it
+                  from the two typed numbers and does not trust this field. */}
+              <input
+                type='hidden'
+                name='compareAtPrice'
+                value={derivedCompareAtPrice}
+              />
+              <p className='text-xs text-muted-foreground'>
+                {discountMode === 'percent'
+                  ? discountValue === ''
+                    ? t('noDiscount')
+                    : t('discountedPriceDerived', { value: derivedCompareAtPrice || '—' })
+                  : discountValue === ''
+                    ? t('noDiscount')
+                    : t('discountPercentDerived', { value: derivedPercent ?? 0 })}
+              </p>
+              {smallDiscountWarning && (
+                <p className='text-xs text-destructive'>{t('discountNeedsMinPrice')}</p>
+              )}
+            </Field>
+          )}
           <Field className='w-full'>
             <FieldLabel htmlFor='stock'>{t('stock')}</FieldLabel>
             <Input
