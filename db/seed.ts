@@ -164,12 +164,16 @@ async function main() {
     for (const [index, p] of sampleData.products.entries()) {
       // subCategory is seed-only routing info, not a Product column
       const { subCategory: _subCategory, combos: _combos, ...productData } = p;
+      const hasVariants = p.options.length > 0;
       const product = await prisma.product.create({
         data: {
           ...productData,
-          // Required by the schema; overwritten by the derived values below
-          stock: 0,
-          price: 0,
+          // Required by the schema. A product with options has both derived
+          // from its variants below; one with NO options carries its own, so
+          // fall back to those or it would seed as an unsellable price 0.
+          stock: hasVariants ? 0 : (p.stock ?? 0),
+          price: hasVariants ? 0 : (p.price ?? 0),
+          compareAtPrice: hasVariants ? null : (p.compareAtPrice ?? null),
           categoryId: mainIdByName.get(p.category) ?? null,
           subCategoryId:
             subIdByPath.get(`${p.category}/${p.subCategory}`) ??
