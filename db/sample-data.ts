@@ -641,10 +641,12 @@ const products: SampleProduct[] = [
     descriptionFa:
       'این کوله پشتی با طرح ملایم گل‌های ریز، پاپیونی و خال‌خالی، روی پارچه‌ی مخمل کبریتی بادوام، برای استفاده‌ی روزانه در مدرسه یا مسافرت طراحی شده و در عین کاربردی بودن، ظاهری شیک و متفاوت داره. به زیپ جلوی اون، یه آویز عروسکی خرس پشمالو با گردنبند مروارید وصل شده که حس دوست‌داشتنی و شخصی‌سازی‌شده‌ای به کوله می‌بخشه. فضای داخلی جادارش، جای کافی برای کتاب، دفتر و وسایل شخصی فراهم می‌کنه. جیب جلوی زیپ‌دار و جیب‌های کناری کشی برای دسترسی سریع به وسایل کوچک و بطری آب در نظر گرفته شده، و بندهای قابل تنظیم به همراه پشتی طراحی‌شده برای راحتی، حمل روزانه رو بدون فشار به شانه و کمر ممکن می‌کنه. در مجموع گزینه‌ای مناسب هم برای استفاده‌ی شخصی و هم برای هدیه دادن به کسانی است که به ظاهر ظریف و کیفیت وسایلشان اهمیت می‌دهند.',
     images: [
-      asset('products/initial-products/seed-data/kif-khargooshi-1-1.jpg'),
-      asset('products/initial-products/seed-data/kif-khargooshi-1-2.jpg'),
-      asset('products/initial-products/seed-data/kif-pashmaloo-keremi-1.jpg'),
-      asset('products/initial-products/seed-data/kif-pashmaloo-keremi-2.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-1.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-2-1.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-3-1.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-4-1.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-5-2.jpg'),
+      asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-1.jpg'),
     ],
     brand: 'Panah Kala',
     rating: '0',
@@ -675,12 +677,14 @@ const products: SampleProduct[] = [
       },
     ],
     combos: [
-      { options: [0, 0], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-khargooshi-1-1.jpg') },
-      { options: [0, 1], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-khargooshi-1-2.jpg') },
-      { options: [0, 2], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-pashmaloo-keremi-1.jpg') },
-      { options: [0, 3], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-pashmaloo-keremi-2.jpg') },
-      { options: [0, 4], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-khargooshi-1-1.jpg') },
-      { options: [0, 5], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-khargooshi-1-2.jpg') },
+      // Value order: 0 چهارخونه, 1 گل‌ریز, 2 خال‌دار, 3 گل‌دار, 4 پاپیون‌دار, 5 زرد خال‌دار.
+      // گل‌دار has no photo of its own yet and reuses keremi-2-1 until one is uploaded.
+      { options: [0, 0], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-1-1.jpg') },
+      { options: [0, 1], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-4-1.jpg') },
+      { options: [0, 2], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-3-1.jpg') },
+      { options: [0, 3], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-2-1.jpg') },
+      { options: [0, 4], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-keremi-5-2.jpg') },
+      { options: [0, 5], price: 2399000, stock: 1, image: asset('products/initial-products/seed-data/kif-aroosk-dar-zard-1-1.jpg') },
     ],
   },
   // 13 — کیف > کوله پشتی
@@ -696,12 +700,8 @@ const products: SampleProduct[] = [
     descriptionFa:
       'این کوله پشتی با طرح چهارخانه‌ی ملایم و جنس بادوام، برای استفاده‌ی روزانه در مدرسه یا مسافرت طراحی شده و در عین کاربردی بودن، ظاهری دوست‌داشتنی و متفاوت داره. روی بدنه‌ی اون، یک عروسک پشمالو با گوش‌های نرم و کلاه نارنجی‌رنگ قرار گرفته که با جزئیاتی مثل دکمه‌های قلب و نشان خنده تکمیل شده. فضای داخلی جادارش، جای کافی برای کتاب، دفتر و وسایل شخصی فراهم می‌کند، دو جیب جلوی پشمالو با درپوش برای دسترسی سریع به وسایل کوچک در نظر گرفته شده، و بند‌های قابل تنظیم به همراه پشتی طراحی‌شده برای راحتی، حمل روزانه را بدون فشار به شانه و کمر ممکن می‌کنه. در مجموع گزینه‌ای مناسب هم برای استفاده‌ی شخصی و هم برای هدیه دادن به کودکان و نوجوانانی که به ظاهر و کیفیت وسایلشان اهمیت می‌دهند.',
     images: [
-      asset('products/initial-products/seed-data/kif-pashmaloo-keremi-1.jpg'),
-      asset('products/initial-products/seed-data/kif-pashmaloo-keremi-2.jpg'),
-      asset('products/initial-products/seed-data/kif-pashmaloo-keremi-3.jpg'),
-      asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-1.jpg'),
-      asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-2.jpg'),
-      asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-3.jpg'),
+      asset('products/initial-products/imgs/kif-khargooshi-1-1.jpg'),
+      asset('products/initial-products/imgs/kif-khargooshi-1-2.jpg'),
     ],
     brand: 'Panah Kala',
     rating: '0',
@@ -717,8 +717,8 @@ const products: SampleProduct[] = [
         nameFa: 'رنگ',
         values: [C.skyBlue, C.lightYellow],
         variants: [
-          { price: 2590000, stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-abi-roushan-1.jpg') },
-          { price: 2590000, stock: 2, image: asset('products/initial-products/seed-data/kif-pashmaloo-keremi-1.jpg') },
+          { price: 2590000, stock: 2, image: asset('products/initial-products/imgs/kif-khargooshi-1-1.jpg') },
+          { price: 2590000, stock: 2, image: asset('products/initial-products/imgs/kif-khargooshi-1-2.jpg') },
         ],
       },
     ],
