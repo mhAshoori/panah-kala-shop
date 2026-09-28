@@ -60,6 +60,14 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   trailingSlash: false,
+  // Lets the dev server serve its own JS chunks to a browser that reached it
+  // by the VPS IP rather than by localhost. Next blocks those as cross-origin
+  // by default, so hitting http://87.248.152.8:3000 in dev left the page
+  // without its hydration JS — it rendered, but nothing was interactive and
+  // hot reload never arrived. Dev-only: it has no effect on `next start`.
+  // The dev server is not internet-facing on this box; the deploy runs behind
+  // Nginx, and this key is ignored in production builds.
+  allowedDevOrigins: ['87.248.152.8', 'localhost'],
   // No `output: "standalone"`. It and `next start` are mutually exclusive: with
   // standalone set, `next start` serves no page HTML and no static assets, and
   // the site comes up as a blank page while the server reports "Ready". Plain
