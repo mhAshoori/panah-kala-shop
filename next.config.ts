@@ -43,10 +43,13 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   trailingSlash: false,
-  // Standalone server.js for the VPS deploy (docs/DEPLOYMENT.md). Vercel
-  // builds the app itself — standalone there breaks output tracing
-  // (missing .next/next-server.js.nft.json) so it stays off on Vercel.
-  ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
+  // No `output: "standalone"`. It and `next start` are mutually exclusive: with
+  // standalone set, `next start` serves no page HTML and no static assets, and
+  // the site comes up as a blank page while the server reports "Ready". Plain
+  // `next start` is what the VPS deploy guide and its systemd unit run, and
+  // the build then includes everything it needs. Standalone would save some
+  // memory but costs copying `public/` and `.next/static` into the build on
+  // every deploy — a step that silently reintroduces the blank page if missed.
   // Admin edits (homepage blocks, products, orders) must show up on the
   // storefront immediately — kill the client Router Cache's 30s hold on
   // dynamic pages so soft navigation always re-fetches fresh RSC payloads.

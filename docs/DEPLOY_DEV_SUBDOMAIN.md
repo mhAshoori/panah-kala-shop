@@ -266,7 +266,13 @@ systemctl status panah          # expect "active (running)"
 journalctl -u panah -f          # live logs — Ctrl+C to exit
 ```
 
-If the VPS has 2+ GB RAM you can also use the standalone build for lower memory (`output: "standalone"` is already in the config) — but `npm start` is the safe default; switch only when comfortable.
+`npm start` is the only supported way to run this build. Do NOT enable
+`output: "standalone"` in `next.config.ts`: the two are mutually exclusive, and
+with standalone set `next start` serves no page HTML and no static assets — the
+server reports "Ready in …" and the browser gets a blank page. If you ever want
+standalone for its lower memory use, you must also copy `public/` and
+`.next/static` into `.next/standalone/` on every deploy and run
+`node .next/standalone/server.js` instead of `npm start`.
 
 ---
 

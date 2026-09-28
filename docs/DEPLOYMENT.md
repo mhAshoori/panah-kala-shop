@@ -154,20 +154,12 @@ concurrent queries for the duration. Run it outside sale hours. After any
 schema change, `npx prisma generate` is required before the build — a stale
 client keeps deserializing new column types incorrectly.
 
-**Run it with `node .next/standalone/server.js`, not `npm run start`.** The
-project sets `output: 'standalone'` (gated off on Vercel, see
-`next.config.ts`), and `next start` warns that it "does not work with
-`output: standalone`". In practice it still serves, but it is not the supported
-path and it can diverge from what actually ships — the standalone server is
-what systemd and the VPS guide run. Verified 2026-09-25: both boot and serve,
-but only the standalone path is warning-free.
-
-Copy static assets into the standalone bundle:
-
-```bash
-cp -r .next/static .next/standalone/.next/static
-cp -r public .next/standalone/public
-```
+**Run it with `npm run start`.** The project does not set
+`output: 'standalone'` (see `next.config.ts`): the two are mutually exclusive,
+and with standalone set `next start` serves no page HTML and no static assets —
+the server reports "Ready" and the browser gets a blank page. That
+combination was tried on the VPS on 2026-09-28 and it does not serve; the
+"in practice it still serves" note that used to stand here was wrong.
 
 Optional — load sample data so the pre-launch site isn't empty (run ONCE, only while in noindex phase):
 
@@ -178,8 +170,8 @@ npm run db:seed
 Smoke-test manually before wiring systemd:
 
 ```bash
-cd .next/standalone
-PORT=3000 HOSTNAME=127.0.0.1 node server.js
+npm run build
+npm run start
 # curl http://127.0.0.1:3000 — expect HTML, then Ctrl+C
 ```
 
@@ -192,15 +184,15 @@ Exit back to root (`exit`), then:
 ```bash
 cat > /etc/systemd/system/panah.service <<'EOF'
 [Unit]
-Description=Panah Kala (Next.js standalone)
+Description=Panah Kala (Next.js)
 After=network.target postgresql.service
 Wants=postgresql.service
 
 [Service]
 User=panah
-WorkingDirectory=/home/panah/app/panah-kala-shop/.next/standalone
+WorkingDirectory=/home/panah/app/panah-kala-shop
 EnvironmentFile=/home/panah/app/panah-kala-shop/.env
-ExecStart=/usr/bin/node server.js
+ExecStart=/usr/bin/npm run start
 Environment=PORT=3000
 Environment=HOSTNAME=127.0.0.1
 Environment=NODE_ENV=production
@@ -311,8 +303,6 @@ git pull
 npm ci
 npx prisma migrate deploy
 npm run build
-cp -r .next/static .next/standalone/.next/static
-cp -r public .next/standalone/public
 exit
 systemctl restart panah
 ```
