@@ -5,6 +5,19 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 // Security headers (Iranian market: E-Namad + Google reCAPTCHA allowed for
 // future use; relaxed image sources for product image URLs)
+//
+// `upgrade-insecure-requests` and HSTS are HTTPS-only, so they are emitted
+// ONLY when NEXT_PUBLIC_SITE_URL is https. Served over plain http (the dev
+// box, or a VPS hitting the app port directly), upgrade-insecure-requests
+// rewrites every `http://` URL in the page to `https://` — including the
+// `/_next/image?...` optimizer calls — and the browser then tries a TLS
+// handshake against a plaintext port. Every image fails with
+// ERR_SSL_PROTOCOL_ERROR while the HTML itself looks fine, which is exactly
+// the "site loads but nothing renders" symptom.
+const siteIsHttps = (process.env.NEXT_PUBLIC_SITE_URL ?? '').startsWith(
+  'https://'
+);
+
 const securityHeaders = [
   { key: "X-DNS-Prefetch-Control", value: "on" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
@@ -14,10 +27,14 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
   },
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload",
-  },
+  ...(siteIsHttps
+    ? [
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=63072000; includeSubDomains; preload",
+        },
+      ]
+    : []),
   {
     key: "Content-Security-Policy",
     // Nonce-free CSP (keeps static rendering + CDN caching; per Next docs).
@@ -36,7 +53,7 @@ const securityHeaders = [
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      "upgrade-insecure-requests",
+      ...(siteIsHttps ? ["upgrade-insecure-requests"] : []),
     ].join("; "),
   },
 ];
