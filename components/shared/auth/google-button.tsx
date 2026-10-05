@@ -3,6 +3,10 @@
 // Google OAuth button — rendered on the sign-in and sign-up forms only when
 // the server has GOOGLE_CLIENT_ID/SECRET configured. Starts the Auth.js
 // OAuth flow; callbackUrl keeps the user on their intended destination.
+//
+// Defaults to /user/profile so a shopper arriving without one completes the
+// same profile step whichever way they authenticated — same as phone and
+// email sign-up, which both land there regardless of the callbackUrl.
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -11,7 +15,11 @@ import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
-const GoogleButton = ({ callbackUrl = '/' }: { callbackUrl?: string }) => {
+const GoogleButton = ({
+  callbackUrl = '/user/profile',
+}: {
+  callbackUrl?: string;
+}) => {
   const t = useTranslations('auth');
   const [pending, setPending] = useState(false);
 

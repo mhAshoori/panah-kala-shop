@@ -32,6 +32,7 @@ import { OTP_TTL_MS } from '@/auth';
 import { generateOtpCode } from '@/lib/otp';
 import { isSmsConfigured, sendVerificationSms } from '@/lib/sms/smsir';
 import { checkSmsOtp } from '@/lib/sms/verify-otp';
+import { OTP_RESEND_COOLDOWN_SECONDS } from '@/lib/constants';
 import { issueContactCode, validateContactChange } from '../contact';
 import type { ContactType } from '../contact';
 import { sendEmail } from '@/lib/email/mailer';
@@ -592,7 +593,25 @@ export async function requestPhoneOtp(
       };
     }
 
-    // Real gateway when configured, fixed master code otherwise. Valid 5 min.
+    // Resend cool-down, separate from the bucket above: with codes living only
+    // 2 minutes, two mistyped attempts can exhaust a 3-per-10-minutes limit
+    // and lock a shopper out of a legitimate retry. This one paces resends
+    // without consuming their request budget.
+    const cooldown = rateLimit(
+      `otpcooldown:${phone}`,
+      1,
+      OTP_RESEND_COOLDOWN_SECONDS * 1000
+    );
+    if (!cooldown.allowed) {
+      return {
+        success: false,
+        message: await withActionMessage('tooManyAttempts', {
+          seconds: cooldown.retryAfterSeconds ?? OTP_RESEND_COOLDOWN_SECONDS,
+        }),
+      };
+    }
+
+    // Real gateway when configured, fixed master code otherwise.
     const code = isSmsConfigured() ? generateOtpCode() : '123456';
     const sent = await sendVerificationSms(phone, code);
     if (!sent.ok) {

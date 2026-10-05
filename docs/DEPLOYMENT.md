@@ -292,6 +292,44 @@ Open `https://your-domain.ir` — the site must be live.
 4. Test: sign in with phone → you must receive the code by SMS.
 5. Later, request an OTP template containing `{CODE}`; when approved add `SMSIR_OTP_TEMPLATE_ID` and restart — the app switches to the template path automatically and falls back to bulk if the template send ever fails.
 
+### Code lifetime and resend
+
+A verification code is valid for **2 minutes**, counted from the moment the SMS was
+sent. The countdown the shopper sees is derived from the same constant the server
+enforces, so the displayed value cannot drift from the real one. After expiry the
+resend button unlocks, then waits out a 30-second cool-down before the next code.
+Each new code replaces the previous one — only the newest works.
+
+`NEXT_PUBLIC_SITE_URL` must be set to the live origin with no trailing slash. It is
+the source for the OAuth callback below, and a wrong value breaks Google sign-in
+only (not the rest of the site), which makes it easy to miss.
+
+---
+
+## 9b. Google OAuth redirect URI (do this once, in the Google console — the code cannot do it for you)
+
+Auth.js sends `{site origin}/api/auth/callback/google` as the `redirect_uri`.
+Google compares it **literally** against the registered list, so registering only
+the origin (`https://panahkalashop.com`) fails with `redirect_uri_mismatch`.
+
+In the OAuth client → **Authorized redirect URIs**, add exactly:
+
+```text
+https://panahkalashop.com/api/auth/callback/google
+```
+
+In **Authorized JavaScript origins**, add:
+
+```text
+https://panahkalashop.com
+https://www.panahkalashop.com
+```
+
+Changes to a Google client's redirect URIs can take a few minutes to propagate.
+Test by signing in with Google and confirming you land on `/user/profile`. If it
+still fails, check that `NEXT_PUBLIC_SITE_URL` on the VPS matches the origin you
+are actually visiting, then `sudo systemctl restart panah`.
+
 ---
 
 ## 10. Updates (every deploy)

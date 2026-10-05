@@ -205,7 +205,7 @@ const SignUpForm = ({
               <span className='text-xs text-muted-foreground'>{t('or')}</span>
               <span className='h-px flex-1 bg-border' />
             </div>
-            <GoogleButton callbackUrl={callbackUrl} />
+            <GoogleButton callbackUrl='/user/profile' />
           </>
         )}
         <p className='text-sm text-center text-muted-foreground'>
