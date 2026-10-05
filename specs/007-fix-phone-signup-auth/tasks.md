@@ -126,7 +126,22 @@ description: "Task list for 007-fix-phone-signup-auth"
 
 - [X] T031 Run the full validation gate: `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`. Confirm no new failures against the T002 baseline
 - [X] T032 [P] Update `docs/DEPLOYMENT.md` with the Google OAuth redirect URI requirement (`https://panahkalashop.com/api/auth/callback/google` under Authorized redirect URIs) and the note that `NEXT_PUBLIC_SITE_URL` drives it, plus the SMS.ir 2-minute code lifetime and resend cool-down
-- [ ] T033 Run the quickstart.md regression sweep: password sign-in, password reset, profile contact change, guest cart merge, admin access, RTL layout at mobile width
+- [X] T033 **Partially verified by the user in a browser**, 2026-10-05:
+  - quickstart Scenario 4 (real SMS, phone `9150695425`): sign-up completed and the shopper was
+    signed in. This is the only scenario that proves the defect is fixed — the local master-code
+    path cannot, which is why it is the one that mattered.
+  - Confirmed serving the new code: `otpCountdown`, `changeNumber`, `resendCode` and `otpExpired`
+    all present in the rendered `/sign-up` and `/sign-in` HTML.
+
+  **Still unverified — run these before considering the feature closed:**
+  - [ ] Scenario 5 — expired code rejected with the *expired* message, wrong code with a *different*
+        one (FR-006 requires the two are distinguishable)
+  - [ ] Scenario 7 — every FR-009 failure path reports its own specific message, none generic or blank
+  - [ ] Re-run the sign-up flow twice to confirm the same number is not reusable and a second
+        registration is refused as "account exists"
+  - [ ] Scenario 8 — email sign-up and password sign-in unaffected by the shared session path
+  - [ ] Scenario 6 — Google OAuth, blocked on the console-side redirect URI registration
+  - [ ] RTL layout of both auth pages at mobile width
 - [X] T034 [P] Verify message parity with `__tests__/messages.test.ts` — nine new keys present in both catalogues
 - [X] T035 Run `git diff --cached` and `git status` to confirm no credentials were staged: the Google client ID/secret and SMS.ir API key must remain environment-only and never enter version control (constitution III)
 
