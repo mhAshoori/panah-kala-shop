@@ -204,7 +204,12 @@
     "changeNumber": "تغییر شماره",
     "otpCountdown": "اعتبار کد: {time}",
     "googleSignInFailed": "ورود با گوگل انجام نشد. لطفاً دوباره تلاش کنید.",
-    "googleSignInUnavailable": "ورود با گوگل در حال حاضر در دسترس نیست. از شماره موبایل یا ایمیل استفاده کنید."
+    "googleSignInUnavailable": "ورود با گوگل در حال حاضر در دسترس نیست. از شماره موبایل یا ایمیل استفاده کنید.",
+    "phoneCheckFailed": "بررسی این شماره ممکن نشد. لطفاً دوباره تلاش کنید.",
+    "accountBanned": "حساب شما مسدود شده است.",
+    "smsSendFailed": "ارسال پیامک ناموفق بود. لطفاً دوباره تلاش کنید.",
+    "signedInSuccess": "با موفقیت وارد شدید.",
+    "signedUpSuccess": "حساب شما با موفقیت ساخته شد."
   },
   "checkout": {
     "shippingAddress": "آدرس تحویل",

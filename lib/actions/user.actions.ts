@@ -32,6 +32,7 @@ import { OTP_TTL_MS } from '@/auth';
 import { generateOtpCode } from '@/lib/otp';
 import { isSmsConfigured, sendVerificationSms } from '@/lib/sms/smsir';
 import { checkSmsOtp } from '@/lib/sms/verify-otp';
+import type { PhoneAccountStatus } from '@/lib/phone-otp-intent';
 import { OTP_RESEND_COOLDOWN_SECONDS } from '@/lib/constants';
 import { issueContactCode, validateContactChange } from '../contact';
 import type { ContactType } from '../contact';
@@ -653,20 +654,31 @@ export async function requestPhoneOtp(
 // sign-in "send code" step so unregistered numbers get pointed to sign-up)
 export async function checkPhoneRegistered(
   phone: string
-): Promise<{ registered: boolean }> {
+): Promise<{ account: PhoneAccountStatus }> {
   // Public action — throttle so it can't be used to enumerate registered
-  // mobile numbers at scale
+  // mobile numbers at scale.
+  //
+  // 'unknown', NOT 'none': the throttle returns before the lookup runs, and
+  // reporting "unregistered" on the strength of a check that never happened is
+  // a false statement that also pushes the shopper into a duplicate-account
+  // error on sign-up.
   const rl = rateLimit(`phonecheck:${phone.slice(-10)}`, 10, 10 * 60 * 1000);
-  if (!rl.allowed) return { registered: false };
+  if (!rl.allowed) return { account: 'unknown' };
 
   const normalized = normalizeIranMobile(phone);
-  if (!normalized) return { registered: false };
+  if (!normalized) return { account: 'none' };
 
-  const user = await prisma.user.findFirst({
-    where: { mobile: normalized },
-    select: { id: true },
-  });
-  return { registered: !!user };
+  try {
+    const user = await prisma.user.findFirst({
+      where: { mobile: normalized },
+      select: { id: true, banned: true },
+    });
+    return {
+      account: !user ? 'none' : user.banned ? 'banned' : 'active',
+    };
+  } catch {
+    return { account: 'unknown' };
+  }
 }
 
 // Sign user out — back to the homepage with a fresh guest cart cookie
