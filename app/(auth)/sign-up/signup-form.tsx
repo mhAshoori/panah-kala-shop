@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import { Loader2, Smartphone, KeyRound } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -18,10 +19,9 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { signUpDefaultValues } from '@/lib/constants';
-import { signUpUser, requestPhoneOtp, checkPhoneRegistered } from '@/lib/actions/user.actions';
+import { signUpUser, checkPhoneRegistered } from '@/lib/actions/user.actions';
 import { cn } from '@/lib/utils';
-import PhoneField from '@/components/shared/auth/phone-field';
-import OtpInput from '@/components/shared/otp-input';
+import PhoneOtpSection from '@/components/shared/auth/phone-otp-section';
 import GoogleButton from '@/components/shared/auth/google-button';
 
 type Mode = 'email' | 'phone';
@@ -38,76 +38,6 @@ const SignUpButton = () => {
   );
 };
 
-// Sends the OTP by calling the server action directly (no nested <form>).
-// First checks the phone is NOT already registered — existing numbers are
-// pointed to sign-in.
-const SendCodeButton = ({ mobile }: { mobile: string }) => {
-  const t = useTranslations('auth');
-  const [isPending, startTransition] = useTransition();
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState('');
-
-  const send = () => {
-    if (mobile.length !== 10) return;
-    setError('');
-    startTransition(async () => {
-      const reg = await checkPhoneRegistered(`+98${mobile}`);
-      if (reg.registered) {
-        setError(t('phoneAlreadyRegistered'));
-        return;
-      }
-      const fd = new FormData();
-      fd.set('phone', mobile);
-      const res = await requestPhoneOtp(null, fd);
-      if (res.success) {
-        setSent(true);
-      } else {
-        setError(res.message);
-      }
-    });
-  };
-
-  if (sent) {
-    return (
-      <p dir='rtl' className='text-center text-xs text-muted-foreground'>
-        {t('otpSentHint')}
-      </p>
-    );
-  }
-
-  return (
-    <div>
-      <Button
-        type='button'
-        variant='outline'
-        className='w-full'
-        disabled={mobile.length !== 10 || isPending}
-        onClick={send}
-      >
-        {isPending && <Loader2 className='h-4 w-4 animate-spin' />}
-        {t('sendCode')}
-      </Button>
-      {error && (
-        <p className='mt-1 text-xs text-destructive' dir='rtl'>
-          {error}
-        </p>
-      )}
-    </div>
-  );
-};
-
-// The signup form posts via useActionState — the OtpInput is a controlled
-// component, so its value is mirrored into a hidden input for the action.
-const SignUpOtpInput = ({ mobile }: { mobile: string }) => {
-  const [code, setCode] = useState('');
-  return (
-    <>
-      <input type='hidden' name='otpCode' value={code} />
-      <OtpInput value={code} onChange={setCode} disabled={mobile.length !== 10} />
-    </>
-  );
-};
-
 const SignUpForm = ({
   googleEnabled = false,
 }: {
@@ -121,8 +51,10 @@ const SignUpForm = ({
 
   const formRef = useRef<HTMLFormElement>(null);
   const retriedRef = useRef(false);
+  const toastShownRef = useRef(false);
 
   const searchParams = useSearchParams();
+  const router = useRouter();
   const callbackUrl = searchParams.get('callbackUrl') || '/user/profile';
   const t = useTranslations('auth');
 
@@ -139,6 +71,25 @@ const SignUpForm = ({
       retriedRef.current = false;
     }
   }, [data]);
+
+  // Rare path: the account WAS created but the session could not be
+  // established. The account survives, so this is a toast with a way
+  // forward — not an error styling, which would imply it was rolled back.
+  useEffect(() => {
+    if (data.toast === 'accountCreatedNotSignedIn' && !toastShownRef.current) {
+      toastShownRef.current = true;
+      toast.error(t('accountCreatedNotSignedIn'), {
+        description: t('signInToContinue'),
+        action: {
+          label: t('signIn'),
+          onClick: () => router.push('/sign-in'),
+        },
+      });
+    }
+    if (data.toast === undefined) {
+      toastShownRef.current = false;
+    }
+  }, [data, router, t]);
 
   return (
     <form action={action} ref={formRef}>
@@ -231,15 +182,12 @@ const SignUpForm = ({
           </>
         ) : (
           <>
-            <Field>
-              <FieldLabel htmlFor='mobile'>{t('mobile')}</FieldLabel>
-              <PhoneField id='mobile' value={mobile} onChange={setMobile} />
-            </Field>
-            <SendCodeButton mobile={mobile} />
-            <Field>
-              <FieldLabel htmlFor='otpCode'>{t('otpCodeLabel')}</FieldLabel>
-              <SignUpOtpInput mobile={mobile} />
-            </Field>
+            <PhoneOtpSection
+              mobile={mobile}
+              onMobileChange={setMobile}
+              otpFieldName='otpCode'
+              registerCheck={checkPhoneRegistered}
+            />
           </>
         )}
 

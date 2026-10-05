@@ -18,11 +18,10 @@ import {
 } from '@/components/ui/field';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
-import { requestPhoneOtp, checkPhoneRegistered } from '@/lib/actions/user.actions';
+import { checkPhoneRegistered } from '@/lib/actions/user.actions';
 import { normalizeIranMobile } from '@/lib/phone';
-import { signInDefaultValues } from '@/lib/constants';
-import PhoneField from '@/components/shared/auth/phone-field';
-import OtpInput from '@/components/shared/otp-input';
+import { signInDefaultValues, OTP_LENGTH } from '@/lib/constants';
+import PhoneOtpSection from '@/components/shared/auth/phone-otp-section';
 import GoogleButton from '@/components/shared/auth/google-button';
 
 type Mode = 'password' | 'phone';
@@ -35,69 +34,6 @@ const SubmitButton = ({ label }: { label: string }) => {
       {pending && <Loader2 className='h-4 w-4 animate-spin' />}
       {label}
     </Button>
-  );
-};
-
-// Sends the OTP by calling the server action directly (no nested <form>).
-// First verifies the phone belongs to a registered user — unregistered
-// numbers are pointed to sign-up instead of silently failing later.
-const SendCodeButton = ({ phone }: { phone: string }) => {
-  const t = useTranslations('auth');
-  const tCommon = useTranslations('common');
-  const [isPending, startTransition] = useTransition();
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState('');
-
-  const send = () => {
-    const normalized = normalizeIranMobile(`+98${phone}`);
-    if (!normalized) {
-      setError(t('invalidPhone'));
-      return;
-    }
-    setError('');
-    startTransition(async () => {
-      const reg = await checkPhoneRegistered(normalized);
-      if (!reg.registered) {
-        setError(t('phoneNotRegistered'));
-        return;
-      }
-      const fd = new FormData();
-      fd.set('phone', normalized);
-      const res = await requestPhoneOtp(null, fd);
-      if (res.success) {
-        setSent(true);
-      } else {
-        setError(res.message || tCommon('error'));
-      }
-    });
-  };
-
-  if (sent) {
-    return (
-      <p dir='rtl' className='text-center text-xs text-muted-foreground'>
-        {t('otpSentHint')}
-      </p>
-    );
-  }
-
-  return (
-    <div>
-      <Button
-        type='button'
-        variant='outline'
-        className='w-full'
-        disabled={!phone || isPending}
-        onClick={send}
-      >
-        {isPending && <Loader2 className='h-4 w-4 animate-spin' />}
-        {t('sendCode')}
-      </Button>
-      {error && (
-        <p className='mt-1 text-xs text-destructive' dir='rtl'>
-          {error}
-        </p>
-      )}
-    </div>
   );
 };
 
@@ -120,7 +56,6 @@ const CredentialsSignInForm = ({
   const [email, setEmail] = useState(signInDefaultValues.email);
   const [password, setPassword] = useState(signInDefaultValues.password);
   const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [, startTransition] = useTransition();
 
@@ -163,23 +98,27 @@ const CredentialsSignInForm = ({
     });
   };
 
-  const phoneSubmit = async (e: React.FormEvent) => {
+  const phoneSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
+    // PhoneOtpSection owns the OTP input state, so read it back off the form
+    // rather than keeping a second copy here that could drift.
+    const submitted = new FormData(e.currentTarget).get('code');
+    const otp = typeof submitted === 'string' ? submitted : '';
     const normalized = normalizeIranMobile(`+98${phone}`);
     if (!normalized) {
-      setError(t('invalidPhone'));
+      setError(authError('invalidPhone'));
       return;
     }
-    if (code.length !== 6) {
-      setError(t('invalidOtp'));
+    if (otp.length !== OTP_LENGTH) {
+      setError(authError('invalidOtp'));
       return;
     }
     startTransition(async () => {
       try {
         await signIn('sms', {
           phone: normalized,
-          code,
+          code: otp,
           redirect: false,
         });
       } catch (err) {
@@ -307,19 +246,19 @@ const CredentialsSignInForm = ({
       ) : (
         <form onSubmit={phoneSubmit}>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor='phone'>{t('mobile')}</FieldLabel>
-              <PhoneField id='phone' value={phone} onChange={setPhone} />
-            </Field>
-            <SendCodeButton phone={phone} />
-            <Field>
-              <FieldLabel htmlFor='code'>{t('otpCodeLabel')}</FieldLabel>
-              <OtpInput
-                value={code}
-                onChange={setCode}
-                disabled={!phone}
-              />
-            </Field>
+            <PhoneOtpSection
+              mobile={phone}
+              onMobileChange={setPhone}
+              name='phone'
+              otpFieldName='code'
+              registerCheck={async (e164) => {
+                const reg = await checkPhoneRegistered(e164);
+                // Sign-in is the mirror of sign-up: an unknown number is
+                // sent to sign-up rather than failing at code entry.
+                if (!reg.registered) setError(authError('phoneNotRegistered'));
+                return reg;
+              }}
+            />
           </FieldGroup>
 
           <div className='mt-6 space-y-4'>

@@ -23,6 +23,10 @@ export const CURRENCY = 'IRT';
  */
 export const OTP_TTL_SECONDS = 120;
 
+/** Digits in a one-time code. Mirrors lib/otp.ts's OTP_LENGTH, re-declared
+ *  here so client components can use it without pulling in node:crypto. */
+export const OTP_LENGTH = 6;
+
 /** Seconds a shopper must wait before asking for another code. */
 export const OTP_RESEND_COOLDOWN_SECONDS = 30;
 

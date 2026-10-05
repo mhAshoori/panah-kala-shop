@@ -5,7 +5,6 @@ import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { auth, signIn, signOut } from '@/auth';
 import { CredentialsSignin } from '@auth/core/errors';
-import { getLocale } from 'next-intl/server';
 import { z } from 'zod';
 
 import { prisma } from '@/db/prisma';
@@ -13,7 +12,6 @@ import { hashSync, compareSync } from 'bcrypt-ts-edge';
 import { createHash, randomBytes } from 'crypto';
 import { headers } from 'next/headers';
 import {
-  signInFormSchema,
   signUpFormSchema,
   paymentMethodSchema,
   updateProfileSchema,
@@ -33,7 +31,7 @@ import { normalizeIranMobile } from '../phone';
 import { OTP_TTL_MS } from '@/auth';
 import { generateOtpCode } from '@/lib/otp';
 import { isSmsConfigured, sendVerificationSms } from '@/lib/sms/smsir';
-import { consumeSmsOtp } from '@/lib/sms/verify-otp';
+import { checkSmsOtp } from '@/lib/sms/verify-otp';
 import { issueContactCode, validateContactChange } from '../contact';
 import type { ContactType } from '../contact';
 import { sendEmail } from '@/lib/email/mailer';
@@ -458,24 +456,6 @@ export async function getUserById(userId: string) {
   return user;
 }
 
-const messages = {
-  en: {
-    invalidCredentials: 'Invalid email or password',
-    unexpected: 'Something went wrong',
-  },
-  fa: {
-    invalidCredentials: 'ایمیل یا رمز عبور اشتباه است',
-    unexpected: 'خطایی رخ داد',
-  },
-} as const;
-
-type LoginMessageKey = keyof typeof messages.en;
-
-async function msg(key: LoginMessageKey): Promise<string> {
-  const locale = ((await getLocale()) as 'fa' | 'en') ?? 'en';
-  return messages[locale]?.[key] ?? messages.en[key];
-}
-
 // Next.js control-flow exceptions must be rethrown inside server actions
 function isNextRedirectError(error: unknown): boolean {
   return (
@@ -509,10 +489,28 @@ async function clearAuthCookies() {
 }
 
 /**
+ * Auth.js v5 with `redirect: false` does NOT throw on a bad credentials
+ * submit — it converts CredentialsSignin into a returned URL pointing at the
+ * error page with `?error=...`. So "no exception thrown" proves nothing; the
+ * only reliable success test is whether the returned URL carries an error or
+ * points back at sign-in.
+ *
+ * Shared by both providers so they cannot drift into disagreeing again — the
+ * credentials path used to check this and the SMS path silently assumed
+ * success, which is what made phone sign-up fail without a word.
+ */
+function signInUrlIndicatesFailure(result: unknown): boolean {
+  if (typeof result !== 'string') return false; // undefined/odd shape = success
+  try {
+    const url = new URL(result, 'http://localhost');
+    return url.searchParams.has('error') || /sign-in/i.test(url.pathname);
+  } catch {
+    return false; // non-URL result — treat as success
+  }
+}
+
+/**
  * Perform a credentials sign-in against Auth.js with redirect disabled.
- * Success detection: signIn() only throws CredentialsSignin on BAD
- * credentials. If it resolves — regardless of its return shape (some
- * platforms return undefined) — the session cookie was written.
  * Returns true when a session cookie has been established.
  */
 async function establishCredentialsSession(
@@ -525,19 +523,7 @@ async function establishCredentialsSession(
       password,
       redirect: false,
     });
-
-    // Only an explicit error parameter means failure. Missing/odd return
-    // shapes are success — the reload behavior proved the cookie is set.
-    if (typeof result === 'string') {
-      try {
-        const url = new URL(result, 'http://localhost');
-        if (url.searchParams.has('error')) return false;
-        if (/sign-in/i.test(url.pathname)) return false;
-      } catch {
-        /* non-URL result — treat as success */
-      }
-    }
-    return true;
+    return !signInUrlIndicatesFailure(result);
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
     if (error instanceof CredentialsSignin) return false;
@@ -549,67 +535,12 @@ async function establishCredentialsSession(
   }
 }
 
-// Sign in the user with credentials
-export async function signInWithCredentials(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
-  const callbackUrl = formData.get('callbackUrl')?.toString() || '/';
-  try {
-    // Brute-force guard: 5 attempts / 5 minutes per email
-    const emailRaw =
-      (formData.get('email') as string | null)?.toLowerCase() || 'unknown';
-    const rl = rateLimit(`signin:${emailRaw}`, 5, 5 * 60 * 1000);
-    if (!rl.allowed) {
-      return {
-        success: false,
-        message: await withActionMessage('tooManyAttempts', {
-          seconds: rl.retryAfterSeconds ?? 60,
-        }),
-      };
-    }
-
-    const parsed = signInFormSchema.safeParse({
-      email: formData.get('email'),
-      password: formData.get('password'),
-    });
-    if (!parsed.success) {
-      return { success: false, message: formatError(parsed.error) };
-    }
-
-    const ok = await establishCredentialsSession(
-      parsed.data.email,
-      parsed.data.password
-    );
-    if (!ok) {
-      return {
-        success: false,
-        message: await msg('invalidCredentials'),
-      };
-    }
-
-    // Admins land on the admin panel unless a specific path was requested
-    if (callbackUrl === '/') {
-      const user = await prisma.user.findUnique({
-        where: { email: parsed.data.email },
-        select: { role: true },
-      });
-      if (user?.role === 'admin') redirect('/admin');
-    }
-  } catch (error) {
-    if (isNextRedirectError(error)) throw error;
-    if (error instanceof RetryableSignInError) {
-      // Auth cookies were cleared — the client retries once automatically
-      return { success: false, message: '', retry: true };
-    }
-    return { success: false, message: formatError(error) };
-  }
-  redirect(callbackUrl);
-}
-
 /**
- * SMS-OTP sign-in against the 'sms' provider. Same no-throw success
- * detection as the credentials flow.
+ * SMS-OTP sign-in against the 'sms' provider. This is the one place the code
+ * is spent: it calls the provider, whose authorize() consumes the OTP. The
+ * returned URL is inspected because Auth.js reports a failed credential as a
+ * URL, not a throw — checking only for exceptions reported every failure as
+ * success.
  */
 async function establishSmsSession(
   phone: string,
@@ -618,8 +549,8 @@ async function establishSmsSession(
   try {
     // Must target the 'sms' provider — the credentials provider expects
     // email/password and would always fail here.
-    await signIn('sms', { phone, code, redirect: false });
-    return true;
+    const result = await signIn('sms', { phone, code, redirect: false });
+    return !signInUrlIndicatesFailure(result);
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
     if (error instanceof CredentialsSignin) return false;
@@ -913,7 +844,8 @@ export async function signUpUser(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const callbackUrl = formData.get('callbackUrl')?.toString() || '/';
+  // A new shopper always lands on their profile, whichever mode they registered
+  // with, so there is no callback to honour here.
   try {
     // Abuse guard: 3 sign-ups / hour per email
     const emailRaw =
@@ -962,13 +894,20 @@ export async function signUpUser(
     }
 
     if (mode === 'phone') {
-      // Verify the SMS code BEFORE creating the account — a wrong code must
-      // never leave an unverified user row behind (which would then block
-      // re-signup with "account exists").
+      // Authorize BEFORE creating the account — a wrong code must never leave
+      // an unverified user row behind (which would then block re-signup with
+      // "account exists"). checkSmsOtp, not consumeSmsOtp: spending the code
+      // here would leave nothing for the session step below to verify, which
+      // is exactly the double-consume that broke phone sign-up.
       const phoneE164 = `+98${mobile}`;
-      const otpValid = await consumeSmsOtp(phoneE164, otpCode);
-      if (!otpValid) {
-        return { success: false, message: await withActionMessage('invalidOtp') };
+      const verdict = await checkSmsOtp(phoneE164, otpCode);
+      if (verdict !== 'valid') {
+        return {
+          success: false,
+          message: await withActionMessage(
+            verdict === 'expired' ? 'otpExpired' : 'invalidOtp'
+          ),
+        };
       }
     }
 
@@ -988,19 +927,22 @@ export async function signUpUser(
       data: { userId: created.id },
     });
 
-    if (mode === 'email') {
-      const ok = await establishCredentialsSession(email, password);
-      if (!ok) {
-        // Account exists but auto sign-in failed — send to sign-in page.
-        redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
-      }
-    } else {
-      // OTP sign-up: sign in via the SMS provider (mobile normalized). The
-      // code was already verified above — this just establishes the session.
-      const ok = await establishSmsSession(`+98${mobile}`, otpCode);
-      if (!ok) {
-        redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
-      }
+    const established =
+      mode === 'email'
+        ? await establishCredentialsSession(email, password)
+        : // Establishes the session and spends the code — the one place it
+          // is consumed, and it is spent exactly once per attempt.
+          await establishSmsSession(`+98${mobile}`, otpCode);
+
+    if (!established) {
+      // Rare: the account is real and stays. Never roll it back — the shopper
+      // can sign in with a fresh code. Told via toast, not a redirect that
+      // would explain nothing.
+      return {
+        success: false,
+        message: await withActionMessage('accountCreatedNotSignedIn'),
+        toast: 'accountCreatedNotSignedIn',
+      };
     }
 
     // New users complete their profile next
