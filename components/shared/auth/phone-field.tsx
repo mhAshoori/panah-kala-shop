@@ -22,6 +22,12 @@ const PhoneField = ({
   value: string;
   onChange: (v: string) => void;
   required?: boolean;
+  /**
+   * Locks editing WITHOUT disabling the input. `disabled` would drop the field
+   * from FormData on submit, so a locked phone number would post as empty and
+   * fail validation — readOnly keeps the value submittable while still making
+   * it uneditable.
+   */
   disabled?: boolean;
   className?: string;
 }) => {
@@ -48,9 +54,10 @@ const PhoneField = ({
         placeholder='9123456789'
         maxLength={10}
         pattern='\d{10}'
-        required={required && !disabled}
-        disabled={disabled}
+        required={required}
+        readOnly={disabled}
         aria-label={t('mobile')}
+        aria-readonly={disabled || undefined}
         value={value ?? ''}
         onChange={(e) =>
           onChange(e.target.value.replace(/[^\d]/g, '').slice(0, 10))

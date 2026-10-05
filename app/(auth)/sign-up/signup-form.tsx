@@ -60,6 +60,10 @@ const SignUpForm = ({
 
   const [mode, setMode] = useState<Mode>('email');
   const [mobile, setMobile] = useState('');
+  // Controlled, not defaultValue: a failed submit re-renders this form, and an
+  // uncontrolled input resets to defaultValue on that re-render — wiping what
+  // the shopper typed. Same reason the phone field is state-driven.
+  const [name, setName] = useState(signUpDefaultValues.name);
 
   // Transparent single retry after a stale auth cookie was cleared server-side
   useEffect(() => {
@@ -131,7 +135,8 @@ const SignUpForm = ({
             required
             type='text'
             autoComplete='name'
-            defaultValue={signUpDefaultValues.name}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             className='text-right' dir='rtl'
           />
         </Field>
