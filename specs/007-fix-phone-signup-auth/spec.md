@@ -111,7 +111,7 @@ Signing in by mobile is audited alongside sign-up for the same class of defect, 
 
 ### Functional Requirements
 
-- **FR-001**: System MUST verify a submitted one-time code exactly once per sign-up attempt, and MUST NOT require the same code to be presented a second time to establish the session.
+- **FR-001**: System MUST verify a submitted one-time code exactly once per sign-up attempt, MUST NOT require the same code to be presented a second time to establish the session, and MUST NOT consume a code before it has been fully validated for the operation being performed.
 - **FR-002**: System MUST establish the signed-in session for a successful mobile sign-up using the credential already proven by the verified code, without a second verification of that code.
 - **FR-003**: System MUST NOT silently succeed: every completed sign-up attempt MUST end in exactly one of — the shopper signed in and redirected to the destination, or a specific actionable message shown on the form.
 - **FR-004**: System MUST treat a verification pass with no explicit error as failure when no signed-in session exists, and MUST NOT continue as if sign-in succeeded.
@@ -124,20 +124,19 @@ Signing in by mobile is audited alongside sign-up for the same class of defect, 
 - **FR-019**: Releasing the phone number field to change the number MUST invalidate the pending code for the previous number.
 - **FR-020**: System MUST offer a resend control for the verification code that becomes available once the current code has expired, and MUST enforce a cool-down between code requests so codes cannot be requested faster than the cool-down allows.
 - **FR-021**: Each resend MUST replace the previous code, so only the most recently issued code can be used, and MUST report the new expiry from the moment the new code was sent.
-- **FR-008**: System MUST NOT consume a one-time code before it has been fully validated for the operation being performed.
 - **FR-009**: System MUST report the following sign-up and sign-in failures with distinct, plain-language messages: incorrect code, expired code, unregistered number, existing account, delivery failure, rate limit reached, and banned account.
 - **FR-010**: System MUST report a new code as invalidating any earlier code for the same number.
 - **FR-011**: Sign-in by mobile MUST reject an unregistered number with a "not registered, please sign up" message rather than a generic failure.
 - **FR-012**: System MUST NOT allow one sign-in attempt to consume a code issued for a different purpose.
 - **FR-013**: Every new user-facing message introduced by this feature MUST exist in both the Persian and English message catalogues.
 - **FR-014**: System MUST verify the corrected sign-up journey end-to-end in a browser against a site with real SMS delivery configured, covering: successful registration, wrong code, expired code, and repeat submission of a used code.
-- **FR-015**: System MUST leave no partially-created account behind when sign-up fails before the account is created, and MUST leave no account stranded in an unconfirmed state when sign-up fails after it is created.
+- **FR-015**: System MUST leave no account behind when sign-up fails before the account is created. When sign-up fails after the account is created, the account MUST remain fully usable — there is no intermediate or pending account state — so the shopper can sign in to it with a freshly requested code.
 - **FR-022**: Sign-in and sign-up MUST establish the signed-in session through one shared path, so a single fix applies to both and neither can diverge into a silent failure.
-- **FR-023**: Both the sign-in and sign-up forms MUST confirm that a signed-in session actually exists before navigating away, and MUST report failure if it does not.
+- **FR-023**: Both the sign-in and sign-up forms MUST confirm that a signed-in session actually exists before navigating away, and MUST report failure if it does not. Sign-up satisfies this through the server: it redirects only after session establishment returns success, so a session cookie is guaranteed before navigation begins and no client-side check is reachable. Sign-in has no server redirect, so it MUST verify the session client-side before navigating.
 - **FR-024**: The duplicate, unused sign-in implementation that exists alongside the shared path MUST be removed, so there is only one way an account is signed in.
 - **FR-025**: Google sign-in MUST complete successfully on the live site and land the shopper on `/user/profile`, with no provider-side error.
-- **FR-026**: The redirect URI the application sends to the sign-in provider MUST exactly match a redirect URI registered for that provider, with matching scheme, host, port, and path. When they differ, the application MUST show an actionable message rather than the provider's raw error page.
-- **FR-027**: The address the application believes it is served from MUST be derived from the live site configuration, so a deployment behind the domain, with or without the `www.` prefix, produces the correct redirect URI.
+- **FR-026**: The redirect URI the application sends to the sign-in provider MUST exactly match a redirect URI registered for that provider, with matching scheme, host, port, and path. When they differ, the application MUST show an actionable message rather than the provider's raw error page. This is a deployment requirement rather than an application one: the value originates from environment configuration and is verified at deploy time (see `docs/DEPLOYMENT.md` §9b), not derived in application code.
+- **FR-027**: The address the application believes it is served from MUST be set from the live site configuration on the server, so a deployment behind the domain, with or without the `www.` prefix, produces the correct redirect URI. The application MUST NOT hold a hardcoded origin; the value comes from environment configuration read at runtime.
 
 ### Key Entities
 
