@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { signUpDefaultValues } from '@/lib/constants';
-import { signUpUser, checkPhoneRegistered } from '@/lib/actions/user.actions';
+import { signUpUser } from '@/lib/actions/user.actions';
 import { cn } from '@/lib/utils';
 import PhoneOtpSection from '@/components/shared/auth/phone-otp-section';
 import GoogleButton from '@/components/shared/auth/google-button';
@@ -58,8 +58,13 @@ const SignUpForm = ({
   const callbackUrl = searchParams.get('callbackUrl') || '/user/profile';
   const t = useTranslations('auth');
 
-  const [mode, setMode] = useState<Mode>('email');
-  const [mobile, setMobile] = useState('');
+  // A pre-filled number is a phone shopper mid-flow — start them in phone mode.
+const [mode, setMode] = useState<Mode>(
+    searchParams.get('mobile') ? 'phone' : 'email'
+  );
+  const [mobile, setMobile] = useState(
+    () => searchParams.get('mobile') ?? ''
+  );
   // Controlled, not defaultValue: a failed submit re-renders this form, and an
   // uncontrolled input resets to defaultValue on that re-render — wiping what
   // the shopper typed. Same reason the phone field is state-driven.
@@ -191,7 +196,8 @@ const SignUpForm = ({
               mobile={mobile}
               onMobileChange={setMobile}
               otpFieldName='otpCode'
-              registerCheck={checkPhoneRegistered}
+              // A registered number is a PROBLEM here — it must not get a code.
+              intent='register'
             />
           </>
         )}

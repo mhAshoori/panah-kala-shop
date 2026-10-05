@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { signIn } from 'next-auth/react';
+import { toast } from 'sonner';
 import { AuthError } from 'next-auth';
 import { Loader2, Smartphone, KeyRound } from 'lucide-react';
 
@@ -18,7 +19,7 @@ import {
 } from '@/components/ui/field';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
-import { checkPhoneRegistered } from '@/lib/actions/user.actions';
+
 import { normalizeIranMobile } from '@/lib/phone';
 import { signInDefaultValues, OTP_LENGTH } from '@/lib/constants';
 import PhoneOtpSection from '@/components/shared/auth/phone-otp-section';
@@ -94,6 +95,10 @@ const CredentialsSignInForm = ({
         return;
       }
       router.push(callbackUrl);
+      // After the push, never before: a toast raised first is unmounted with
+      // this form and never seen. AppToaster lives in the root layout, so it
+      // survives the navigation and shows on the destination page.
+      toast.success(authError('signedInSuccess'));
       router.refresh();
     });
   };
@@ -142,6 +147,10 @@ const CredentialsSignInForm = ({
         return;
       }
       router.push(callbackUrl);
+      // After the push, never before: a toast raised first is unmounted with
+      // this form and never seen. AppToaster lives in the root layout, so it
+      // survives the navigation and shows on the destination page.
+      toast.success(authError('signedInSuccess'));
       router.refresh();
     });
   };
@@ -251,13 +260,9 @@ const CredentialsSignInForm = ({
               onMobileChange={setPhone}
               name='phone'
               otpFieldName='code'
-              registerCheck={async (e164) => {
-                const reg = await checkPhoneRegistered(e164);
-                // Sign-in is the mirror of sign-up: an unknown number is
-                // sent to sign-up rather than failing at code entry.
-                if (!reg.registered) setError(authError('phoneNotRegistered'));
-                return reg;
-              }}
+              // A registered number is the EXPECTED case here — it must get a
+              // code. Only an unregistered number is refused on this page.
+              intent='sign-in'
             />
           </FieldGroup>
 

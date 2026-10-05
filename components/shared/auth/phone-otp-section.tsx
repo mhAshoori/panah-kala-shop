@@ -5,10 +5,11 @@ import { useEffect, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { cn } from '@/lib/utils';
 import { OTP_RESEND_COOLDOWN_SECONDS, OTP_TTL_SECONDS } from '@/lib/constants';
+import { decideOtpSend, type OtpIntent } from '@/lib/phone-otp-intent';
 import PhoneField from '@/components/shared/auth/phone-field';
 import OtpInput from '@/components/shared/otp-input';
 
@@ -25,21 +26,23 @@ import OtpInput from '@/components/shared/otp-input';
  *  - a resend that only unlocks once the code has expired, then waits out a
  *    short cool-down
  *
- * `registerCheck` decides whether the number is already taken — sign-up sends
- * existing numbers to sign-in, sign-in sends unknown numbers to sign-up.
+ * Whether a code should be SENT is decided by decideOtpSend, which is told the
+ * shopper's `intent`. This component holds no rule of its own about whether a
+ * number is registered — that is what broke sign-in, when the component
+ * refused on `registered` and the sign-in caller refused on `!registered`.
  */
 export default function PhoneOtpSection({
   mobile,
   onMobileChange,
   name = 'mobile',
   otpFieldName,
-  registerCheck,
+  intent,
 }: {
   mobile: string;
   onMobileChange: (v: string) => void;
   name?: string;
   otpFieldName: string;
-  registerCheck?: (e164: string) => Promise<{ registered: boolean }>;
+  intent: OtpIntent;
 }) {
   const t = useTranslations('auth');
   const locale = useLocale();
@@ -48,6 +51,8 @@ export default function PhoneOtpSection({
   const [secondsLeft, setSecondsLeft] = useState(OTP_TTL_SECONDS);
   const [cooldown, setCooldown] = useState(0);
   const [error, setError] = useState('');
+  /** Link to the other auth page when this one cannot proceed (FR-005). */
+  const [referral, setReferral] = useState<string | null>(null);
   const [code, setCode] = useState('');
 
   useEffect(() => {
@@ -65,16 +70,25 @@ export default function PhoneOtpSection({
   const send = async () => {
     if (mobile.length !== 10) return;
     setError('');
+    setReferral(null);
     const e164 = `+98${mobile}`;
     startTransition(async () => {
-      if (registerCheck) {
-        const reg = await registerCheck(e164);
-        if (reg.registered) {
-          setError(t('phoneAlreadyRegistered'));
-          return;
-        }
+      const { requestPhoneOtp, checkPhoneRegistered } = await import(
+        '@/lib/actions/user.actions'
+      );
+      const { account } = await checkPhoneRegistered(e164);
+      const decision = decideOtpSend(intent, account);
+
+      if (!decision.canSend) {
+        setError(t(decision.messageKey as string));
+        // A referral carries the number so it need not be retyped. 'sign-in'
+        // carries nothing — the shopper is already there.
+        setReferral(
+          decision.redirectTo === 'sign-up' ? `/sign-up?mobile=${mobile}` : null
+        );
+        return;
       }
-      const { requestPhoneOtp } = await import('@/lib/actions/user.actions');
+
       const fd = new FormData();
       fd.set('phone', e164);
       const res = await requestPhoneOtp(null, fd);
@@ -90,10 +104,15 @@ export default function PhoneOtpSection({
   };
 
   const releaseNumber = () => {
+    // Nothing is retained across a release: no verdict, no code, no countdown.
+    // A stale verdict reused for a different number is the same class of
+    // confusion as the original dead end.
     setSent(false);
     setSecondsLeft(OTP_TTL_SECONDS);
     setCooldown(0);
     setCode('');
+    setError('');
+    setReferral(null);
   };
 
   // m:ss must NOT go through formatNumberLocale — a numeric formatter would
@@ -153,9 +172,14 @@ export default function PhoneOtpSection({
       ) : null}
 
       {error && (
-        <p className={cn('mt-1 text-xs text-destructive')} dir='rtl'>
-          {error}
-        </p>
+        <div className='mt-1 text-xs text-destructive' dir='rtl'>
+          <p>{error}</p>
+          {referral && (
+            <Link href={referral} className='link underline underline-offset-4'>
+              {t(intent === 'sign-in' ? 'signUp' : 'signIn')}
+            </Link>
+          )}
+        </div>
       )}
 
       <Field>
