@@ -97,4 +97,10 @@ export type ActionState = {
   message: string;
   /** Client should silently re-submit once (stale auth cookie was cleared) */
   retry?: boolean;
+  /**
+   * Set when the shopper's account WAS created but they are not signed in.
+   * Rendered as a toast, not an inline form error — the account survives, so
+   * an error styling would wrongly imply it was rolled back.
+   */
+  toast?: 'accountCreatedNotSignedIn';
 };

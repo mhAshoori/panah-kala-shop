@@ -87,4 +87,10 @@ describe('OTP primitives', () => {
       expect(OTP_LENGTH).toBe(6);
     });
   });
+
+  describe('TTL', () => {
+    it('is 2 minutes', () => {
+      expect(OTP_TTL_MS).toBe(2 * 60 * 1000);
+    });
+  });
 });

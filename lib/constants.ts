@@ -13,6 +13,20 @@ export const TAX_RATE = 0.09;
 export const CURRENCY = 'IRT';
 
 /**
+ * SMS one-time-code lifetime, in seconds. Deliberately short: the code is a
+ * bearer credential for an account, and Iranian SMS delivery is well under a
+ * minute. This is the single source for BOTH the server-enforced expiry
+ * (lib/otp.ts) and the countdown the auth forms display — they must not drift.
+ *
+ * Lives here rather than lib/otp.ts because the auth forms import it, and
+ * lib/otp.ts pulls in node:crypto, which would break the client bundle.
+ */
+export const OTP_TTL_SECONDS = 120;
+
+/** Seconds a shopper must wait before asking for another code. */
+export const OTP_RESEND_COOLDOWN_SECONDS = 30;
+
+/**
  * Supported payment methods. PayPal/Stripe intentionally omitted;
  * ZarinPal is the Iranian gateway, plus cash on delivery.
  */

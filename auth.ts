@@ -27,8 +27,10 @@ class SmsRateLimited extends CredentialsSignin {
 // Validate an SMS one-time code against VerificationToken. Without SMS.ir
 // configured (dev/CI only) the fixed master code 123456 keeps the flow
 // testable; with the key set, ONLY the code actually sent is accepted.
+// Consumes the code — this is the one legitimate spending point in the
+// sign-in flow, reached only when the session is actually created.
 async function verifySmsOtp(phone: string, code: string): Promise<boolean> {
-  return consumeSmsOtp(phone, code);
+  return (await consumeSmsOtp(phone, code)) === 'valid';
 }
 
 export const config: NextAuthConfig = {

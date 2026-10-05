@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto';
 import { isSmsConfigured } from './sms/smsir';
+import { OTP_TTL_SECONDS } from './constants';
 
 /**
  * One-time code generation + in-memory delivery channel for contact-change
@@ -10,7 +11,7 @@ import { isSmsConfigured } from './sms/smsir';
  * still works via the fixed 123456/456789 master codes.
  */
 
-export const OTP_TTL_MS = 5 * 60 * 1000;
+export const OTP_TTL_MS = OTP_TTL_SECONDS * 1000;
 export const OTP_LENGTH = 6;
 
 // Legacy master codes — kept ONLY when no SMS provider is configured, so

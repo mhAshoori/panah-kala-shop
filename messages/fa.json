@@ -195,7 +195,16 @@
     "emailOrPhone": "ایمیل یا شماره موبایل",
     "chooseSignupMethod": "روش ثبت‌نام",
     "or": "یا",
-    "googleSignIn": "ورود با گوگل"
+    "googleSignIn": "ورود با گوگل",
+    "otpExpired": "کد تایید منقضی شده است. کد جدید بگیرید.",
+    "accountCreatedNotSignedIn": "حساب شما با موفقیت ساخته شد، اما هنوز وارد نشده‌اید.",
+    "signInToContinue": "برای ورود کلیک کنید",
+    "resendCode": "ارسال دوباره کد",
+    "resendIn": "ارسال دوباره تا {seconds} ثانیه دیگر",
+    "changeNumber": "تغییر شماره",
+    "otpCountdown": "اعتبار کد: {time}",
+    "googleSignInFailed": "ورود با گوگل انجام نشد. لطفاً دوباره تلاش کنید.",
+    "googleSignInUnavailable": "ورود با گوگل در حال حاضر در دسترس نیست. از شماره موبایل یا ایمیل استفاده کنید."
   },
   "checkout": {
     "shippingAddress": "آدرس تحویل",

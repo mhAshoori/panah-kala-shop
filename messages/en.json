@@ -195,7 +195,16 @@
     "emailOrPhone": "Email or Mobile",
     "chooseSignupMethod": "Sign-up method",
     "or": "or",
-    "googleSignIn": "Sign in with Google"
+    "googleSignIn": "Sign in with Google",
+    "otpExpired": "Your verification code has expired. Request a new one.",
+    "accountCreatedNotSignedIn": "Your account was created, but you are not signed in yet.",
+    "signInToContinue": "Click to sign in",
+    "resendCode": "Resend code",
+    "resendIn": "Resend in {seconds}s",
+    "changeNumber": "Change number",
+    "otpCountdown": "Code valid for: {time}",
+    "googleSignInFailed": "Google sign-in failed. Please try again.",
+    "googleSignInUnavailable": "Google sign-in is currently unavailable. Use your phone number or email."
   },
   "checkout": {
     "shippingAddress": "Shipping Address",
