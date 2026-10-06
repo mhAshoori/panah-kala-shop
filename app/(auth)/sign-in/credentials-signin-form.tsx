@@ -120,24 +120,31 @@ const CredentialsSignInForm = ({
       return;
     }
     startTransition(async () => {
+      // The beta client signIn() RETURNS its result under redirect:false and
+      // does not throw, so a try/catch here can never see a failure. Reading
+      // the returned code is what makes these three messages reachable.
+      let result;
       try {
-        await signIn('sms', {
+        result = await signIn('sms', {
           phone: normalized,
           code: otp,
           redirect: false,
         });
-      } catch (err) {
-        if (err instanceof AuthError) {
-          const code = (err as AuthError & { code?: string }).code;
-          if (code === 'user_not_found') {
-            setError(authError('phoneNotRegistered'));
-          } else if (code === 'rate_limited') {
-            setError(authError('tooManyAttempts'));
-          } else {
-            setError(authError('invalidOtp'));
-          }
+      } catch {
+        setError(tCommon('error'));
+        return;
+      }
+
+      if (result?.error) {
+        const code = result.code;
+        if (code === 'user_not_found') {
+          setError(authError('phoneNotRegistered'));
+        } else if (code === 'user_banned') {
+          setError(authError('accountBanned'));
+        } else if (code === 'rate_limited') {
+          setError(authError('tooManyAttempts'));
         } else {
-          setError(tCommon('error'));
+          setError(authError('invalidOtp'));
         }
         return;
       }

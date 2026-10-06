@@ -192,6 +192,7 @@
     "phoneNotRegistered": "This mobile number is not registered — please sign up first",
     "phoneAlreadyRegistered": "This mobile number is already registered — please sign in",
     "tooManyAttempts": "Too many attempts — please try again later",
+    "accountBanned": "Your account has been suspended.",
     "emailOrPhone": "Email or Mobile",
     "chooseSignupMethod": "Sign-up method",
     "or": "or",

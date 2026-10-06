@@ -191,6 +191,7 @@
     "mobile": "شماره موبایل",
     "phoneNotRegistered": "این شماره موبایل ثبت نشده است — لطفاً ابتدا ثبت‌نام کنید",
     "phoneAlreadyRegistered": "این شماره موبایل قبلاً ثبت شده است — وارد شوید",
+    "accountBanned": "حساب شما مسدود شده است.",
     "tooManyAttempts": "تلاش‌های بیش از حد — لطفاً بعداً دوباره تلاش کنید",
     "emailOrPhone": "ایمیل یا شماره موبایل",
     "chooseSignupMethod": "روش ثبت‌نام",

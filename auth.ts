@@ -20,6 +20,9 @@ export const OTP_TTL_MS = 5 * 60 * 1000;
 class SmsUserNotFound extends CredentialsSignin {
   code = 'user_not_found';
 }
+class SmsAccountBanned extends CredentialsSignin {
+  code = 'user_banned';
+}
 class SmsRateLimited extends CredentialsSignin {
   code = 'rate_limited';
 }
@@ -116,7 +119,11 @@ export const config: NextAuthConfig = {
         if (!valid) return null;
 
         const user = await prisma.user.findFirst({ where: { mobile: phone } });
-        if (!user || user.banned) throw new SmsUserNotFound();
+        if (!user) throw new SmsUserNotFound();
+        // Distinct from "no such user": a banned shopper must not be told to
+        // register, because re-registering this number is exactly what they
+        // must not do (008 FR-008).
+        if (user.banned) throw new SmsAccountBanned();
 
         return {
           id: user.id,
