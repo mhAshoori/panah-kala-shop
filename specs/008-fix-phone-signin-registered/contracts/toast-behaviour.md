@@ -56,8 +56,6 @@ Shown **in addition to** the existing inline error, never instead of it (researc
 | Number already registered (sign-up) | `phoneAlreadyRegistered` | error |
 | Lookup failed or throttled | `phoneCheckFailed` | error |
 | Too many attempts | `tooManyAttempts` | error |
-| Account banned | `accountBanned` | error |
-| Code could not be sent | `smsSendFailed` | error |
 
 ### Why keep the inline error
 
@@ -95,8 +93,6 @@ One toast per outcome, not one per render. Guarded with a ref so a re-render can
 | `signedInSuccess` | Sign-in completed |
 | `signedUpSuccess` | Reserved; sign-up confirms via destination. Included so the copy exists if the redirect ever moves client-side |
 | `phoneCheckFailed` | The registration lookup failed or was throttled |
-| `accountBanned` | Account exists but is suspended |
-| `smsSendFailed` | The code could not be sent |
 
 Persian is the default locale. Natural Persian, not transliterated English.
 

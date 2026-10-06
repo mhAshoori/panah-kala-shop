@@ -206,8 +206,6 @@
     "googleSignInFailed": "Google sign-in failed. Please try again.",
     "googleSignInUnavailable": "Google sign-in is currently unavailable. Use your phone number or email.",
     "phoneCheckFailed": "We could not check this number. Please try again.",
-    "accountBanned": "Your account has been suspended.",
-    "smsSendFailed": "Could not send the SMS. Please try again.",
     "signedInSuccess": "Signed in successfully.",
     "signedUpSuccess": "Your account was created successfully."
   },
