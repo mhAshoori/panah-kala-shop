@@ -134,6 +134,27 @@ description: "Task list for 008-fix-phone-signin-registered"
 
 ---
 
+## Phase 7: Post-Review Defects (found by Product Manager review, 2026-10-06)
+
+Found after the feature was committed, by a product review of specs 007 + 008 rather than by
+running the app. Both are **008 implementation defects**, not scope creep — they were written
+into 008's own requirements and then not built.
+
+- [ ] T025 [US3] The banned-account message does not exist. `auth.ts:119` throws `SmsUserNotFound` for both a missing user and a banned one, and `credentials-signin-form.tsx:133` maps that single code to `phoneNotRegistered` ("this number is not registered — please sign up"). A banned shopper is therefore told to register a number that cannot be registered. `spec.md:109` (FR-008) and `spec.md:133` (SC-006) both forbid exactly this. **Fix:** split the failure so a banned account is refused with its own message, and add that message to `messages/fa.json` and `messages/en.json`. The deleted `accountBanned` key was the right message — this restores it because code now reads it (FR-008, SC-006)
+- [ ] T026 [US1] The SMS error branch in `credentials-signin-form.tsx:129-143` is **unreachable**, so every SMS sign-in failure shows "invalid code". `signIn` is imported from `next-auth/react`, whose browser build **returns** `{ error, code, status, ok }` when `redirect: false` (`node_modules/next-auth/react.js:174-183`) and never throws — so the `catch (err) { if (err instanceof AuthError) ... }` block can never run, and control falls through to the `verifySession()` check that sets `invalidOtp`. `phoneNotRegistered`, `tooManyAttempts` and the banned message are all unreachable as a result. **Fix:** read the returned `{ error, code }` instead of catching. This is a 007-era defect, not new (FR-002, contracts/toast-behaviour.md)
+
+**Deferred, not defects — a genuine gap in 008's own coverage:**
+
+- [ ] T027 [US2] Add a story for what a shopper does when a code does not arrive. 008 enumerates which numbers get a code; it never asks what happens when the SMS is lost. For a phone-mode account with no email and no password (`signUpFormSchema` requires neither in phone mode — `lib/validator.ts:178-186`), password reset is email-only (`forgotPasswordSchema` takes `email` — `lib/validator.ts:248`), so **such a shopper has no recovery route at all** if they lose access. Spec-level gap; see specs/009 for whether it is a separate feature.
+
+**Corrected rationale on T019** — the deferral reason in Phase 6 above is wrong for this task:
+T019 (banned account) does **not** need a real phone. The ban is checked at submit, after OTP
+verification ([auth.ts:115-119](file:///D:/xTEMP/projects/001-panah-kala-shop/panah-kala-shop/auth.ts)), and without `SMSIR_API_KEY` the master code `123456` verifies without a DB read
+(`lib/sms/verify-otp.ts:45,66`), so the banned path is fully observable locally. It is blocked
+on T025/T026 being fixed, not on real SMS delivery.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
