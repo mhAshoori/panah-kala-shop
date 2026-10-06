@@ -108,7 +108,8 @@ description: "Task list for 008-fix-phone-signin-registered"
 - [X] T016 [US3] In `components/shared/auth/phone-otp-section.tsx`, when `decideOtpSend` returns `redirectTo: 'sign-up'`, render a link to `/sign-up?mobile={number}` so the number carries over and the shopper does not retype it (FR-005)
 - [X] T017 [US3] In `app/(auth)/sign-up/signup-form.tsx`, read the `mobile` query parameter into the existing phone state on mount, so the referral arrives pre-filled
 - [X] T018 [US3] Confirm `checkPhoneRegistered` returning `'unknown'` (throttled or failed) produces `phoneCheckFailed` and **not** `phoneNotRegistered` on both pages (FR-009, research.md R2)
-- [ ] T019 [US3] Confirm in a browser that a banned account is treated as registered — code sent on sign-in, refused at verification with a specific message — and is never told to register (FR-008)
+- [X] T019 [US3] Confirm in a browser that a banned account is treated as registered — code sent on sign-in, refused at verification with a specific message — and is never told to register (FR-008)
+  - **Done, and it did NOT need real SMS.** A disposable banned user on a fresh number: requesting a code sends one and starts the countdown (no refusal, no register prompt — banned counts as registered, so `decideOtpSend` returns SEND). Submitting a correct code then refuses with **حساب شما مسدود شده است.** and stays on the page. All three claims in this task verified; test user deleted afterwards.
 
 **Checkpoint**: All three stories independently functional. Commit: `fix(auth): point unregistered numbers at sign-up with the number carried over`
 
@@ -153,7 +154,7 @@ into 008's own requirements and then not built.
 T019 (banned account) does **not** need a real phone. The ban is checked at submit, after OTP
 verification ([auth.ts:115-119](file:///D:/xTEMP/projects/001-panah-kala-shop/panah-kala-shop/auth.ts)), and without `SMSIR_API_KEY` the master code `123456` verifies without a DB read
 (`lib/sms/verify-otp.ts:45,66`), so the banned path is fully observable locally. It is blocked
-on T025/T026 being fixed, not on real SMS delivery.
+on T025/T026 being fixed, not on real SMS delivery. **Now closed** — see the note on T019 above.
 
 ---
 
